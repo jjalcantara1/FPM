@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FINSI — Project Manager Login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --finsi-orange: #ff6a00;
+      --finsi-orange-deep: #ff4d00;
+      --text: #111827;
+      --muted: #6b7280;
+      --card-border: #e5e7eb;
+      --field-bg: #e5e5e5;
+      --field-text: #111827;
+      --shadow: 0 10px 25px rgba(0,0,0,0.08);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      color: var(--text);
+      background: #ffffff;
+      background-image:
+        radial-gradient(1200px 600px at 100% 100%, rgba(255,106,0,0.15), transparent 60%),
+        radial-gradient(1200px 600px at 0% 0%, rgba(255,106,0,0.12), transparent 60%),
+        linear-gradient(180deg, #ffffff 0%, #ffffff 45%, #fff7f2 45%, #fff7f2 60%, #ffffff 60%, #ffffff 100%);
+      background-attachment: fixed;
+    }
+
+    .page {
+      min-height: 100%;
+      display: grid;
+      place-items: center;
+      padding: 32px;
+    }
+
+    .card {
+      width: min(1100px, 96vw);
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 40px;
+      background: #fff;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      padding: 48px 56px;
+    }
+
+    @media (max-width: 760px) {
+      .card { grid-template-columns: 1fr; padding: 28px; }
+      .brand { order: -1; justify-content: center; }
+    }
+
+    .title {
+      margin: 0 0 22px 0;
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--finsi-orange);
+      letter-spacing: 0.4px;
+      text-shadow: 0 2px 0 rgba(0,0,0,0.05);
+    }
+
+    .field { margin-bottom: 22px; }
+    label { display: block; font-size: 14px; color: #222; margin: 0 0 10px 0; font-weight: 600; }
+
+    .input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 14px;
+      width: 22px;
+      height: 22px;
+      color: #444;
+      opacity: 0.8;
+      pointer-events: none;
+    }
+
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      height: 48px;
+      padding: 10px 14px 10px 48px;
+      border-radius: 6px;
+      border: none;
+      outline: none;
+      background: var(--field-bg);
+      color: var(--field-text);
+      font-size: 16px;
+      transition: box-shadow 120ms ease, background 120ms ease;
+    }
+
+    input[type="email"]:focus,
+    input[type="password"]:focus {
+      background: #efefef;
+      box-shadow: inset 0 0 0 2px rgba(255,106,0,0.3);
+    }
+
+    .actions { margin-top: 12px; }
+    .btn {
+      display: inline-block;
+      width: 220px;
+      height: 44px;
+      line-height: 44px;
+      text-align: center;
+      border: none;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 16px;
+      color: #fff;
+      background: linear-gradient(180deg, var(--finsi-orange) 0%, var(--finsi-orange-deep) 100%);
+      cursor: pointer;
+      box-shadow: 0 6px 12px rgba(255,106,0,0.25);
+      transition: transform 120ms ease, box-shadow 120ms ease;
+    }
+    .btn:hover { transform: translateY(-1px); box-shadow: 0 8px 16px rgba(255,106,0,0.3); }
+    .btn:active { transform: translateY(0); box-shadow: 0 4px 10px rgba(255,106,0,0.25); }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+    }
+    .brand img { max-width: 260px; width: 100%; height: auto; }
+
+    .card::after {
+      content: "";
+      position: absolute;
+      inset: -8px;
+      border-radius: 10px;
+      pointer-events: none;
+    }
+
+    .form-col { position: relative; }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="card" role="region" aria-labelledby="login-title">
+      <div class="form-col">
+        <h1 id="login-title" class="title">Project Manager</h1>
+
+        <form method="get" action="projectmanager.html" novalidate>
+          <div class="field">
+            <label for="email">Email</label>
+            <div class="input-wrap">
+              <svg class="input-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="currentColor" d="M12 12.713L1.2 6h21.6L12 12.713zm0 2.574L0 7.2V18a2 2 0 002 2h20a2 2 0 002-2V7.2L12 15.287z"/>
+              </svg>
+              <input id="email" name="email" type="email" autocomplete="username" placeholder="name@company.com" required />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="password">Password</label>
+            <div class="input-wrap">
+              <svg class="input-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="currentColor" d="M17 9V7a5 5 0 10-10 0v2H5a2 2 0 00-2 2v8a2 2 0 002 2h14a2 2 0 002-2v-8a2 2 0 00-2-2h-2zm-8 0V7a3 3 0 116 0v2H9z"/>
+              </svg>
+              <input id="password" name="password" type="password" autocomplete="current-password" placeholder="••••••••" required />
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="btn" type="submit">Login</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="brand" aria-hidden="true">
+        <img src="Finsi.png" alt="FINSI" />
+      </div>
+    </section>
+  </main>
+</body>
+</html>
+
+
+

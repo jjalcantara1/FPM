@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>FINSI — Home</title>
+	<meta name="theme-color" content="#0b5cff">
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="home.css">
+    <style>
+        /* moved to home.css */
+		:root {
+			--brand-700: #0a3cff;
+			--brand-600: #155bff;
+			--brand-500: #4b79ff;
+			--accent-500: #22d3ee;
+			--text-900: #0b1020;
+			--text-700: #2a3347;
+			--text-500: #66748a;
+			--bg-50: #f6f8ff;
+			--bg-100: #eef2ff;
+			--white: #ffffff;
+		}
+		* { box-sizing: border-box; }
+		html, body { height: 100%; }
+		html { scroll-behavior: smooth; }
+		body {
+			margin: 0;
+			font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+			color: var(--text-900);
+			background: radial-gradient(1200px 600px at 80% -20%, #e8efff, transparent 60%), var(--bg-50);
+			line-height: 1.6;
+			display: flex;
+			flex-direction: column;
+			min-height: 100vh;
+		}
+		main { flex: 1; }
+		a { color: inherit; text-decoration: none; }
+		.container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+
+		/* Header */
+		header {
+			position: sticky;
+			top: 0;
+			z-index: 50;
+			background: rgba(255,255,255,0.8);
+			backdrop-filter: blur(10px);
+			border-bottom: 1px solid #e6ecf7;
+		}
+        .nav { display: flex; align-items: center; justify-content: space-between; height: 80px; }
+        .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 800; font-size: 24px; letter-spacing: 0.4px; }
+        nav ul { display: flex; align-items: center; gap: 28px; list-style: none; margin: 0; padding: 0; }
+        nav a { color: var(--text-700); font-weight: 700; font-size: 18px; position: relative; padding: 8px 2px; }
+		nav a:hover { color: var(--brand-600); }
+		nav a::after { content: ""; position: absolute; left: 0; right: 0; bottom: -6px; height: 2px; background: linear-gradient(90deg, var(--brand-600), var(--accent-500)); opacity: 0; transform: scaleX(0.6); transition: opacity .2s ease, transform .2s ease; }
+		nav a:hover::after { opacity: 1; transform: scaleX(1); }
+		/* Disabled link visual for restricted access */
+		.disabled-link { opacity: 0.55; cursor: not-allowed; }
+		.cta-btn { background: linear-gradient(135deg, #ff8b13, #ff6b00); color: var(--white); padding: 10px 16px; border-radius: 999px; font-weight: 800; font-size: 14px; box-shadow: 0 8px 20px rgba(255,107,0,0.25); border: 1px solid rgba(255,107,0,0.6); }
+		.btn-outline { background: transparent; color: #ff6b00; border: 1px solid rgba(255,107,0,0.6); padding: 9px 14px; border-radius: 999px; font-weight: 800; }
+		/* Profile dropdown */
+		/* Profile dropdown */
+        .profile { position: relative; }
+        .profile-btn { background: #fff; border: 1px solid #e6ecf7; border-radius: 999px; padding: 8px 12px; font-weight: 700; color: var(--text-700); display: inline-flex; align-items: center; gap: 8px; cursor: pointer; box-shadow: 0 6px 16px rgba(11,92,255,0.08); }
+        .badge { font-size: 11px; padding: 2px 8px; border-radius: 999px; font-weight: 800; }
+        .badge.pending { background: rgba(245,158,11,0.15); color: #b45309; }
+        .badge.approved { background: rgba(16,185,129,0.15); color: #065f46; }
+        .profile-dropdown { position: absolute; right: 0; top: calc(100% + 8px); background: #fff; border: 1px solid #e6ecf7; border-radius: 12px; min-width: 200px; box-shadow: 0 16px 30px rgba(21,91,255,0.12); display: none; overflow: hidden; z-index: 100; }
+        .profile-dropdown.open { display: grid; }
+        .profile-dropdown a, .profile-dropdown button { padding: 10px 14px; text-align: left; border: 0; background: none; font: inherit; color: var(--text-700); cursor: pointer; }
+        .profile-dropdown a:hover, .profile-dropdown button:hover { background: #f6f8ff; color: var(--brand-700); }
+
+		/* Modal */
+		.modal-overlay { position: fixed; inset: 0; background: rgba(16,24,40,0.5); display: none; align-items: center; justify-content: center; z-index: 200; padding: 16px; }
+		.modal-overlay.show { display: flex; }
+		.modal-card { width: min(480px, 100%); background: #ffffff; border: 1px solid #e6ecf7; border-radius: 16px; box-shadow: 0 24px 48px rgba(2, 8, 23, 0.18); overflow: hidden; }
+		.modal-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid #eef2ff; }
+		.modal-title { margin: 0; font-weight: 800; font-size: 16px; color: #0b1020; }
+		.modal-body { padding: 16px; color: var(--text-700); }
+		.modal-actions { display: flex; gap: 10px; justify-content: flex-end; padding: 0 16px 16px; }
+		.modal-close { background: transparent; border: 1px solid #e6ecf7; border-radius: 10px; padding: 8px 12px; font-weight: 700; color: var(--text-700); cursor: pointer; }
+
+		/* Hero */
+		.hero { padding: 0; background: radial-gradient(1400px 600px at 20% -30%, #e5f4ff, transparent 60%); }
+		.hero-grid { display: grid; grid-template-columns: 1fr; gap: 18px; align-items: start; }
+		.eyebrow { display: inline-flex; align-items: center; gap: 10px; color: var(--brand-700); background: #eaf1ff; padding: 8px 14px; border-radius: 999px; font-weight: 800; font-size: 12px; letter-spacing: .6px; text-transform: uppercase; }
+		.about-eyebrow { background: rgba(255,107,0,0.12); color: #ff6b00; }
+		.about-details { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+		.info-card { background: #ffffff; border: 1px solid #e6ecf7; border-radius: 14px; padding: 16px; display: grid; gap: 8px; box-shadow: 0 8px 18px rgba(11,92,255,0.06); position: relative; overflow: hidden; }
+		.info-card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: linear-gradient(180deg, #ff8b13, #ff6b00); }
+		.info-title { font-weight: 800; color: #0b1020; margin-left: 6px; }
+		.info-text { color: var(--text-700); font-size: 14px; }
+		.info-icon { width: 30px; height: 30px; border-radius: 999px; background: rgba(255,107,0,0.12); color: #ff6b00; display: grid; place-items: center; font-weight: 900; }
+		h1 { font-size: 36px; margin: 12px 0 6px; }
+		.sub { color: var(--text-500); }
+
+        /* Carousel */
+		.carousel { position: relative; width: 100%; aspect-ratio: 16 / 10; border-radius: 16px; overflow: hidden; border: 1px solid #e6ecf7; background: #ffffff; box-shadow: 0 10px 28px rgba(21,91,255,0.08); }
+		.carousel img { width: 100%; height: 100%; object-fit: cover; display: block; }
+		.carousel .layer { position: absolute; inset: 0; opacity: 0; transition: opacity .6s ease; }
+		.carousel .layer.show { opacity: 1; }
+		.carousel .arrow { position: absolute; top: 50%; transform: translateY(-50%); width: 48px; height: 48px; border-radius: 999px; border: 1px solid #e6ecf7; background: rgba(255,255,255,0.9); display: grid; place-items: center; cursor: pointer; font-weight: 800; color: var(--text-700); box-shadow: 0 6px 16px rgba(11,92,255,0.10); font-size: 28px; }
+		.carousel .arrow:hover { color: var(--brand-700); border-color: var(--brand-600); }
+		.carousel .prev { left: 12px; }
+		.carousel .next { right: 12px; }
+		.full-bleed { position: relative; left: 50%; right: 50%; margin-left: -50vw; margin-right: -50vw; width: 100vw; }
+		.carousel.hero-carousel { border-radius: 0; border: none; box-shadow: none; aspect-ratio: unset; height: 60vh; max-height: 520px; min-height: 320px; }
+
+
+		/* Appointment */
+		.appointment-card { background: var(--white); border: 1px solid #e6ecf7; border-radius: 18px; padding: 22px; box-shadow: 0 10px 28px rgba(21,91,255,0.06); }
+		.field { margin-bottom: 14px; }
+		label { display: block; font-weight: 600; margin-bottom: 6px; }
+		input, textarea { width: 100%; padding: 12px 12px; border: 1px solid #dce6f5; border-radius: 12px; font: inherit; }
+		textarea { min-height: 100px; }
+		.btn-primary { background: linear-gradient(135deg, var(--brand-600), var(--brand-700)); color: #fff; padding: 12px 18px; border: 0; border-radius: 999px; font-weight: 800; cursor: pointer; box-shadow: 0 10px 24px rgba(21,91,255,0.18); }
+
+		/* Offset in-page anchors for sticky header */
+		#home, #appointment { scroll-margin-top: 80px; }
+
+		/* Footer */
+		footer { padding: 34px 0; border-top: 1px solid #e6ecf7; background: #fbfdff; color: var(--text-500); }
+		.foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+
+		@media (max-width: 720px) {
+			nav ul { display: none; position: absolute; top: 72px; left: 0; right: 0; background: #fff; border-bottom: 1px solid #e6ecf7; padding: 14px 20px; }
+			nav ul.open { display: grid; gap: 10px; }
+			/* smooth scrolling set globally */
+		}
+	</style>
+	<script>
+		function toggleMenu() {
+			var menu = document.getElementById('menu');
+			menu.classList.toggle('open');
+		}
+	</script>
+	<script>
+		// Simulated user session
+		window.currentUser = {
+			email: 'demo@company.com',
+			companyName: 'Demo Company',
+			status: 'approved'
+		};
+		
+		// Logout function
+		window.logout = function() {
+			window.currentUser = null;
+			localStorage.removeItem('authCompany');
+			window.location.href = 'landingpage.html#home';
+		}
+		
+		// Initialize user on page load
+		document.addEventListener('DOMContentLoaded', function() {
+			const label = document.getElementById('welcomeLabel');
+			if (label && window.currentUser) {
+				label.textContent = window.currentUser.companyName ? 
+					('Welcome, ' + window.currentUser.companyName) : 
+					('Welcome, ' + window.currentUser.email);
+			}
+			
+			var badge = document.querySelector('.profile-btn .badge');
+			if (badge && window.currentUser) {
+				badge.textContent = window.currentUser.status === 'approved' ? 'approved' : 'pending';
+				badge.classList.remove('approved','pending');
+				badge.classList.add(window.currentUser.status === 'approved' ? 'approved' : 'pending');
+			}
+			
+			var apptLink = document.getElementById('appointmentLink');
+			if (apptLink) {
+				apptLink.classList.remove('disabled-link');
+			}
+			
+			var statusLink = document.getElementById('statusLink');
+			if (statusLink) {
+				statusLink.classList.remove('disabled-link');
+			}
+		});
+	</script>
+    <link rel="stylesheet" href="home.css">
+    <script>
+        document.addEventListener('DOMContentLoaded', function(){
+            // Modal helpers
+            window.showModal = function(title, message){
+                var overlay = document.querySelector('.modal-overlay');
+                if (!overlay) {
+                    overlay = document.createElement('div');
+                    overlay.className = 'modal-overlay';
+                    overlay.innerHTML = '\n<div class="modal-card">\n  <div class="modal-header">\n    <h3 class="modal-title"></h3>\n    <button type="button" class="modal-close" data-modal-close>Close</button>\n  </div>\n  <div class="modal-body"></div>\n</div>\n';
+                    document.body.appendChild(overlay);
+                    overlay.addEventListener('click', function(e){
+                        if (e.target === overlay || e.target.hasAttribute('data-modal-close')) {
+                            hideModal();
+                        }
+                    });
+                }
+                overlay.querySelector('.modal-title').textContent = title || 'Notice';
+                overlay.querySelector('.modal-body').textContent = message || '';
+                overlay.classList.add('show');
+            };
+            window.hideModal = function(){
+                var overlay = document.querySelector('.modal-overlay');
+                if (overlay) overlay.classList.remove('show');
+            };
+            var btn = document.getElementById('profileBtn');
+            var menu = document.getElementById('profileMenu');
+            if (!btn || !menu) return;
+            btn.addEventListener('click', function(){
+                menu.classList.toggle('open');
+            });
+            document.addEventListener('click', function(e){
+                if (!menu.contains(e.target) && !btn.contains(e.target)) {
+                    menu.classList.remove('open');
+                }
+            });
+            // removed notification settings
+        });
+    </script>
+</head>
+<body>
+	<div id="home" style="height:0; scroll-margin-top: 80px;"></div>
+	<header>
+		<div class="container nav">
+			<a href="#home" class="brand"><img src="finsi.png" alt="FINSI" style="height:56px; width:auto;"></a>
+			<nav>
+                <ul id="menu">
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="appointment.html" id="appointmentLink">Appointment</a></li>
+                    <li><a id="statusLink" class="disabled-link" href="status.html" aria-disabled="true" title="Login required">Status</a></li>
+                </ul>
+			</nav>
+			<div class="auth-actions">
+            <div class="profile">
+                <button type="button" class="profile-btn" id="profileBtn">
+                    <span id="welcomeLabel">Welcome</span>
+                    <span class="badge">pending</span>
+                </button>
+                <div class="profile-dropdown" id="profileMenu">
+                    <button type="button" onclick="logout()">Logout</button>
+                </div>
+            </div>
+        </div>
+		</div>
+	</header>
+
+	<main>
+		<section class="hero">
+			<div class="container hero-grid">
+                <div class="full-bleed">
+                    <div class="carousel hero-carousel" data-images="building1.jpg, building2.jpg, building3.jpg">
+						<img id="carousel-image-a" class="layer show" src="" alt="FINSI showcase">
+						<img id="carousel-image-b" class="layer" src="" alt="FINSI showcase">
+						<button class="arrow prev" type="button" onclick="handlePrevClick()" aria-label="Previous">‹</button>
+						<button class="arrow next" type="button" onclick="handleNextClick()" aria-label="Next">›</button>
+					</div>
+				</div>
+				<div style="text-align:center; padding: 12px 20px 18px;">
+					<span class="eyebrow about-eyebrow">About FINSI</span>
+					<h1>Our Vision & Mission</h1>
+					<div class="about-details">
+						<div class="info-card">
+							<div style="display:flex; align-items:center; gap:8px">
+								<div class="info-icon">V</div>
+								<div class="info-title">Our Vision</div>
+							</div>
+							<div class="info-text">To be the leading edge local solutions provider for the Telecommunications and Technology industries.</div>
+						</div>
+						<div class="info-card">
+							<div style="display:flex; align-items:center; gap:8px">
+								<div class="info-icon">M</div>
+								<div class="info-title">Our Mission</div>
+							</div>
+							<div class="info-text">To accelerate the Philippines into a connected nation, using innovative, leading-edge technologies and world-class local expertise.</div>
+						</div>
+						<div class="info-card">
+							<div style="display:flex; align-items:center; gap:8px">
+								<div class="info-icon">L</div>
+								<div class="info-title">Location</div>
+							</div>
+							<div class="info-text">4/F Globe Telecom Plaza 2, Pioneer cor. Madison Street<br/>Mandaluyong City, 1550, PH</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+    </main>
+
+	<footer>
+		<div class="container" style="margin-top:10px; text-align:center; font-size:14px">
+			© 2021 FINSI. All rights reserved.
+		</div>
+	</footer>
+
+<script>
+function handleNextClick() {
+	stopAutoplay();
+	nextSlide();
+}
+function handlePrevClick() {
+	stopAutoplay();
+	prevSlide();
+}
+// Read images from data attribute like landing page
+var heroEl = document.querySelector('.hero-carousel');
+var imagesAttr = (heroEl && heroEl.getAttribute('data-images')) || '';
+var slides = imagesAttr ? imagesAttr.split(',').map(function(s){ return s.trim(); }) : ['1.jpg','2.jpg','3.jpg'];
+var currentSlide = 0;
+var usingA = true;
+function renderSlide(initial) {
+	var a = document.getElementById('carousel-image-a');
+	var b = document.getElementById('carousel-image-b');
+	if (!a || !b) return;
+	if (initial) {
+		a.src = slides[currentSlide];
+		a.alt = 'Slide ' + (currentSlide + 1);
+		a.classList.add('show');
+		b.classList.remove('show');
+		return;
+	}
+	var incoming = usingA ? b : a;
+	var outgoing = usingA ? a : b;
+	incoming.src = slides[currentSlide];
+	incoming.alt = 'Slide ' + (currentSlide + 1);
+	outgoing.classList.remove('show');
+	void incoming.offsetWidth;
+	incoming.classList.add('show');
+	usingA = !usingA;
+}
+function nextSlide() {
+	currentSlide = (currentSlide + 1) % slides.length;
+	renderSlide(false);
+}
+function prevSlide() {
+	currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+	renderSlide(false);
+}
+var autoplayId = null;
+function startAutoplay() {
+	if (autoplayId !== null) return;
+	autoplayId = setInterval(function() { nextSlide(); }, 4000);
+}
+function stopAutoplay() {
+	if (autoplayId !== null) { clearInterval(autoplayId); autoplayId = null; }
+}
+renderSlide(true);
+startAutoplay();
+</script>
+
+</html>
+
+

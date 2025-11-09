@@ -1,0 +1,35 @@
+/* Styles extracted from status.php */
+:root { --brand-700:#0a3cff; --brand-600:#155bff; --accent-500:#22d3ee; --text-900:#0b1020; --text-700:#2a3347; --text-500:#66748a; --bg-50:#f6f8ff; --white:#ffffff; }
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin:0; font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif; color:var(--text-900); background: radial-gradient(1200px 600px at 80% -20%, #e8efff, transparent 60%), var(--bg-50); display:flex; flex-direction:column; min-height:100vh; }
+main { flex:1; }
+.container { width:100%; max-width:1200px; margin:0 auto; padding:0 20px; }
+header { position:sticky; top:0; z-index:50; background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); border-bottom:1px solid #e6ecf7; }
+.nav { display:flex; align-items:center; justify-content:space-between; height:80px; }
+.brand { display:inline-flex; align-items:center; gap:10px; font-weight:800; font-size:24px; letter-spacing:.4px; }
+nav ul { display:flex; align-items:center; gap:28px; list-style:none; margin:0; padding:0; }
+nav a { color:var(--text-700); font-weight:700; font-size:18px; position:relative; padding:8px 2px; text-decoration:none; }
+nav a:hover { color:var(--brand-600); }
+.badge { font-size:11px; padding:2px 8px; border-radius:999px; font-weight:800; }
+.badge.pending { background: rgba(245,158,11,0.15); color:#b45309; }
+.badge.approved { background: rgba(16,185,129,0.15); color:#065f46; }
+.profile { position:relative; }
+.profile-btn { background:#fff; border:1px solid #e6ecf7; border-radius:999px; padding:8px 12px; font-weight:700; color:var(--text-700); display:inline-flex; align-items:center; gap:8px; cursor:pointer; box-shadow:0 6px 16px rgba(11,92,255,0.08); }
+.profile-dropdown { position:absolute; right:0; top:calc(100% + 8px); background:#fff; border:1px solid #e6ecf7; border-radius:12px; min-width:200px; box-shadow:0 16px 30px rgba(21,91,255,0.12); display:none; overflow:hidden; z-index:100; }
+.profile-dropdown.open { display:grid; }
+.profile-dropdown a, .profile-dropdown button { padding:10px 14px; text-align:left; border:0; background:none; font:inherit; color:var(--text-700); cursor:pointer; }
+.profile-dropdown a:hover, .profile-dropdown button:hover { background:#f6f8ff; color:#0a3cff; }
+.page-hero { padding:18px 0 6px; }
+h1 { font-size:32px; margin:6px 0; }
+.sub { color:var(--text-500); }
+.card { background:#fff; border:1px solid #e6ecf7; border-radius:14px; padding:16px; box-shadow:0 8px 18px rgba(11,92,255,0.06); }
+.table { width:100%; border-collapse:collapse; }
+.table th, .table td { padding:12px 14px; text-align:left; border-bottom:1px solid #eef2ff; font-size:14px; }
+.table th { background:#0a3cff; color:#fff; font-weight:800; }
+.status-pill { display:inline-block; font-size:12px; padding:2px 8px; border-radius:999px; font-weight:800; }
+.status-pending { background:rgba(245,158,11,.12); color:#b45309; }
+.status-approved { background:rgba(16,185,129,.12); color:#065f46; }
+.status-assigned { background:rgba(59,130,246,.12); color:#1d4ed8; }
+.status-inprogress { background:rgba(124,58,237,.12); color:#6d28d9; }
+.footer { padding:34px 0; border-top:1px solid #e6ecf7; background:#fbfdff; color:var(--text-500); }

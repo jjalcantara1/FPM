@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Login — FINSI</title>
+    <meta name="theme-color" content="#0b5cff">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="login.css">
+    <style>
+        /* moved to login.css */
+    </style>
+    <style>
+        :root {
+            --brand-700: #0a3cff;
+            --brand-600: #155bff;
+            --brand-500: #4b79ff;
+            --accent-500: #22d3ee;
+            --text-900: #0b1020;
+            --text-700: #2a3347;
+            --text-500: #66748a;
+            --bg-50: #f6f8ff;
+            --white: #ffffff;
+            --orange-600: #ff6b00;
+            --orange-500: #ff8b13;
+        }
+        * { box-sizing: border-box; }
+        html, body { height: 100%; }
+        body {
+            margin: 0;
+            font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+            color: var(--text-900);
+            background: radial-gradient(1200px 600px at 80% -20%, #e8efff, transparent 60%), var(--bg-50);
+            line-height: 1.6;
+        }
+        a { color: inherit; text-decoration: none; }
+        .container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+
+        /* Header */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(255,255,255,0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #e6ecf7;
+        }
+        .nav { display: flex; align-items: center; justify-content: space-between; height: 80px; }
+        .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 800; font-size: 24px; letter-spacing: 0.4px; }
+        nav ul { display: flex; align-items: center; gap: 28px; list-style: none; margin: 0; padding: 0; }
+        nav a { color: var(--text-700); font-weight: 700; font-size: 18px; position: relative; padding: 8px 2px; }
+        nav a:hover { color: var(--brand-600); }
+        nav a::after { content: ""; position: absolute; left: 0; right: 0; bottom: -6px; height: 2px; background: linear-gradient(90deg, var(--brand-600), var(--accent-500)); opacity: 0; transform: scaleX(0.6); transition: opacity .2s ease, transform .2s ease; }
+        nav a:hover::after { opacity: 1; transform: scaleX(1); }
+        .locked { opacity: .6; cursor: not-allowed; pointer-events: none; }
+        .cta-btn { background: linear-gradient(135deg, var(--orange-500), var(--orange-600)); color: var(--white); padding: 10px 16px; border-radius: 999px; font-weight: 800; font-size: 14px; box-shadow: 0 8px 20px rgba(255,107,0,0.25); border: 1px solid rgba(255,107,0,0.6); }
+        .btn-outline { background: transparent; color: var(--orange-600); border: 1px solid rgba(255,107,0,0.6); padding: 9px 14px; border-radius: 999px; font-weight: 800; }
+        .menu-toggle { display: none; background: none; border: 0; font-size: 26px; }
+
+        /* Page */
+        .page-hero { padding: 24px 0 10px; }
+        h1 { font-size: 36px; margin: 12px 0 6px; }
+        .sub { color: var(--text-500); }
+
+        /* Login card */
+        .wrap { display: grid; place-items: center; padding: 24px 0 40px; }
+        .card { width: 100%; max-width: 520px; background: var(--white); border: 1px solid #e6ecf7; border-radius: 18px; box-shadow: 0 16px 40px rgba(21,91,255,0.08); padding: 22px; }
+        .card-header { text-align: center; margin-bottom: 10px; }
+        .form-title { margin: 0; font-size: 24px; letter-spacing: -0.2px; }
+        .form-sub { color: var(--text-500); margin-top: 4px; font-size: 14px; }
+        .field { margin: 12px 0; }
+        label { display: block; font-weight: 700; margin-bottom: 6px; font-size: 14px; }
+        input { width: 100%; padding: 12px 12px; border: 1px solid #dce6f5; border-radius: 12px; font: inherit; transition: border-color .15s ease, box-shadow .15s ease; }
+        input:focus { outline: none; border-color: var(--brand-600); box-shadow: 0 0 0 3px rgba(21,91,255,0.12); }
+        .actions { display: flex; justify-content: center; }
+        .btn-primary { width: 100%; background: linear-gradient(135deg, var(--orange-500), var(--orange-600)); color: #fff; padding: 14px 24px; border: 0; border-radius: 12px; font-weight: 800; cursor: pointer; box-shadow: 0 12px 26px rgba(255,107,0,0.22); transition: transform .06s ease, filter .15s ease; }
+        .btn-primary:hover { filter: brightness(1.04); }
+        .btn-primary:active { transform: translateY(1px); }
+        .muted { color: var(--text-500); font-size: 13px; }
+        .form-footer { display: grid; gap: 8px; margin-top: 8px; }
+        .help-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+        .help-row a { color: var(--brand-600); font-weight: 600; }
+        .status { font-size: 13px; text-align: center; margin-top: 8px; }
+        .status.error { color: #ef4444; }
+        .status.success { color: #059669; }
+
+        /* Footer */
+        footer { padding: 34px 0; border-top: 1px solid #e6ecf7; background: #fbfdff; color: var(--text-500); }
+
+        @media (max-width: 900px) {
+            .card { margin: 0 10px; }
+        }
+    </style>
+    <script>
+        function toggleMenu() {
+            var menu = document.getElementById('menu');
+            if (menu) menu.classList.toggle('open');
+        }
+        
+        function handleLogin(e) {
+            e.preventDefault();
+            var email = document.getElementById('email').value.trim();
+            var password = document.getElementById('password').value;
+            var statusEl = document.getElementById('loginStatus');
+            var submitBtn = document.querySelector('.btn-primary');
+            
+            if (!email || !password) {
+                if (statusEl) { statusEl.textContent = 'Please enter your email and password.'; statusEl.className = 'status error'; }
+                return false;
+            }
+            
+            if (statusEl) { statusEl.textContent = ''; statusEl.className = 'status'; }
+            if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Signing in...'; }
+            
+            // Simulate async login
+            setTimeout(function() {
+                try {
+                    // Check localStorage for registered companies
+                    const companies = JSON.parse(localStorage.getItem('companies') || '[]');
+                    const company = companies.find(c => c.companyEmail === email);
+                    
+                    if (company) {
+                        // Simulate successful login
+                        window.currentUser = {
+                            email: company.companyEmail,
+                            companyName: company.companyName,
+                            status: company.status || 'pending'
+                        };
+                        localStorage.setItem('authCompany', JSON.stringify(window.currentUser));
+                        
+                        if (statusEl) { statusEl.textContent = 'Login successful. Redirecting...'; statusEl.className = 'status success'; }
+                        setTimeout(function() {
+                            window.location.href = 'homepage.html#home';
+                        }, 500);
+                    } else {
+                        // Demo login for testing
+                        window.currentUser = {
+                            email: email,
+                            companyName: 'Demo Company',
+                            status: 'approved'
+                        };
+                        localStorage.setItem('authCompany', JSON.stringify(window.currentUser));
+                        
+                        if (statusEl) { statusEl.textContent = 'Login successful. Redirecting...'; statusEl.className = 'status success'; }
+                        setTimeout(function() {
+                            window.location.href = 'homepage.html#home';
+                        }, 500);
+                    }
+                } catch (err) {
+                    console.error(err);
+                    if (statusEl) { statusEl.textContent = 'Login failed. Please try again.'; statusEl.className = 'status error'; }
+                    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Login'; }
+                }
+            }, 800);
+            
+            return false;
+        }
+
+        window.handleLogin = handleLogin;
+    </script>
+    </head>
+<body>
+    <header>
+        <div class="container nav">
+            <a href="landingpage.html#home" class="brand"><img src="finsi.png" alt="FINSI" style="height:56px; width:auto;"></a>
+            <button class="menu-toggle" aria-label="Menu" onclick="toggleMenu()">☰</button>
+            <nav>
+                <ul id="menu">
+                    <li><a href="landingpage.html#home">Home</a></li>
+                    <li><a href="landingpage.html#services">Services</a></li>
+                    <li><a class="locked" href="landingpage.html#appointment" aria-disabled="true" title="Login required">Appointment</a></li>
+                    <li><a class="locked" href="#status" aria-disabled="true" title="Login required">Status</a></li>
+                </ul>
+            </nav>
+            <div class="auth-actions">
+                <a href="login.html" class="btn-outline">Login</a>
+                <a href="linkcompany.html" class="cta-btn">Link Company</a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="page-hero">
+            <div class="container">
+                <h1>Welcome back</h1>
+                <div class="sub">Sign in to continue to your dashboard.</div>
+            </div>
+        </section>
+        <section>
+            <div class="container wrap">
+                <form class="card" onsubmit="handleLogin(event)">
+                    <div class="card-header">
+                        <h2 class="form-title">Sign in</h2>
+                        <div class="form-sub">Use your company email and password</div>
+                    </div>
+                    <div class="field">
+                        <label>Email</label>
+                        <input id="email" type="email" placeholder="you@company.com" required>
+                    </div>
+                    <div class="field">
+                        <label>Password</label>
+                        <input id="password" type="password" placeholder="••••••••" minlength="6" required>
+                    </div>
+                    <div class="actions" style="margin-top:10px">
+                        <button type="submit" class="btn-primary">Login</button>
+                    </div>
+                    <div id="loginStatus" class="status"></div>
+                    <div class="form-footer">
+                        <div class="help-row">
+                            <span class="muted">Don't have an account?</span>
+                            <a href="linkcompany.html">Link your company</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </section>
+{{ ... }}
+
+    <footer>
+        <div class="container" style="margin-top:10px; text-align:center; font-size:14px">
+            © 2021 FINSI. All rights reserved.
+        </div>
+    </footer>
+</body>
+</html>
+
+

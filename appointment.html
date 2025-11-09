@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>FINSI — Appointment</title>
+    <meta name="theme-color" content="#0b5cff">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="appointment.css">
+    <script>
+        function toggleMenu() {
+            var menu = document.getElementById('menu');
+            menu.classList.toggle('open');
+        }
+        
+        // Simulated user session
+        window.currentUser = {
+            email: 'demo@company.com',
+            companyName: 'Demo Company',
+            status: 'approved'
+        };
+        
+        // Logout function
+        window.logout = function() {
+            window.currentUser = null;
+            localStorage.removeItem('authCompany');
+            window.location.href = 'landingpage.html#home';
+        }
+        
+        // Initialize user on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const label = document.getElementById('welcomeLabel');
+            if (label && window.currentUser) {
+                label.textContent = window.currentUser.companyName ? 
+                    ('Welcome, ' + window.currentUser.companyName) : 
+                    ('Welcome, ' + window.currentUser.email);
+            }
+            
+            var badge = document.querySelector('.profile-btn .badge');
+            if (badge && window.currentUser) {
+                badge.textContent = window.currentUser.status === 'approved' ? 'approved' : 'pending';
+                badge.classList.remove('approved','pending');
+                badge.classList.add(window.currentUser.status === 'approved' ? 'approved' : 'pending');
+            }
+            
+            var statusLink = document.getElementById('statusLink');
+            if (statusLink) {
+                statusLink.classList.remove('disabled-link');
+            }
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function(){
+            // Enhanced modal with optional actions while keeping backward compatibility
+            window.showModal = function(title, message, actions){
+                var overlay = document.querySelector('.modal-overlay');
+                if (!overlay) {
+                    overlay = document.createElement('div');
+                    overlay.className = 'modal-overlay';
+                    document.body.appendChild(overlay);
+                }
+                // Ensure overlay has modal structure and click handler even if it pre-exists in DOM
+                if (!overlay.querySelector('.modal-card')) {
+                    overlay.innerHTML = '\n<div class="modal-card">\n  <div class="modal-header">\n    <h3 class="modal-title"></h3>\n    <button type="button" class="modal-close" data-modal-close>Close</button>\n  </div>\n  <div class="modal-body"></div>\n  <div class="modal-actions"></div>\n</div>\n';
+                }
+                if (!overlay._hasClickHandler) {
+                    overlay.addEventListener('click', function(e){
+                        if (e.target === overlay || e.target.hasAttribute('data-modal-close')) {
+                            hideModal();
+                        }
+                    });
+                    overlay._hasClickHandler = true;
+                }
+                
+                // Safely set text content with null checks
+                var titleEl = overlay.querySelector('.modal-title');
+                var bodyEl = overlay.querySelector('.modal-body');
+                var actionsEl = overlay.querySelector('.modal-actions');
+                
+                if (titleEl) {
+                    titleEl.textContent = title || 'Notice';
+                }
+                if (bodyEl) {
+                    // Allow simple text; if caller passes an element, append it
+                    if (typeof message === 'string') {
+                        bodyEl.textContent = message || '';
+                    } else if (message instanceof Node) {
+                        bodyEl.innerHTML = '';
+                        bodyEl.appendChild(message);
+                    } else {
+                        bodyEl.textContent = '';
+                    }
+                }
+                if (actionsEl) {
+                    actionsEl.innerHTML = '';
+                    if (Array.isArray(actions) && actions.length) {
+                        actions.forEach(function(act){
+                            var btn = document.createElement('button');
+                            btn.type = 'button';
+                            btn.className = 'modal-close';
+                            btn.textContent = act && act.label ? act.label : 'OK';
+                            if (act && act.primary) {
+                                btn.style.background = 'var(--brand-600)';
+                                btn.style.color = '#fff';
+                                btn.style.borderColor = 'var(--brand-600)';
+                            }
+                            btn.addEventListener('click', function(){
+                                try { if (act && typeof act.onClick === 'function') act.onClick(); } finally { hideModal(); }
+                            });
+                            actionsEl.appendChild(btn);
+                        });
+                    }
+                }
+                
+                overlay.classList.add('show');
+            };
+            window.hideModal = function(){
+                var overlay = document.querySelector('.modal-overlay');
+                if (overlay) overlay.classList.remove('show');
+            };
+
+            var btn = document.getElementById('profileBtn');
+            var menu = document.getElementById('profileMenu');
+            if (btn && menu) {
+                btn.addEventListener('click', function(){ menu.classList.toggle('open'); });
+                document.addEventListener('click', function(e){ if (!menu.contains(e.target) && !btn.contains(e.target)) { menu.classList.remove('open'); } });
+            }
+        });
+    </script>
+</head>
+<body>
+    <header>
+        <div class="container nav">
+            <a href="homepage.html#home" class="brand"><img src="finsi.png" alt="FINSI" style="height:56px; width:auto;"></a>
+            <nav>
+                <ul id="menu">
+                    <li><a href="homepage.html#home">Home</a></li>
+                    <li><a href="appointment.html" id="appointmentLink">Appointment</a></li>
+                    <li><a id="statusLink" class="disabled-link" href="status.html" aria-disabled="true" title="Login required">Status</a></li>
+                </ul>
+            </nav>
+            <div class="auth-actions">
+                <div class="profile">
+                    <button type="button" class="profile-btn" id="profileBtn">
+                        <span id="welcomeLabel">Welcome</span>
+                        <span class="badge">pending</span>
+                    </button>
+                    <div class="profile-dropdown" id="profileMenu">
+                        <button type="button" onclick="logout()">Logout</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="page-hero">
+            <div class="container">
+                <h1>Appointment Calendar</h1>
+                <div class="sub">Select from available dates below.</div>
+            </div>
+        </section>
+        <section>
+            <div class="container cal-form">
+                <div class="calendar">
+                    <div class="cal-header">
+                        <div class="cal-title" id="calTitle">Month YYYY</div>
+                        <div class="cal-nav">
+                            <button class="cal-btn" type="button" id="prevBtn">‹ Prev</button>
+                            <button class="cal-btn" type="button" id="todayBtn">Today</button>
+                            <button class="cal-btn" type="button" id="nextBtn">Next ›</button>
+                        </div>
+                    </div>
+                    <div class="cal-weekday">
+                        <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+                    </div>
+                    <div class="cal-grid" id="calGrid"></div>
+                </div>
+                <form class="form-card" id="appointmentForm">
+                    <h2>Appointment</h2>
+                    <div class="form-field">
+                        <label class="form-label">Date</label>
+                        <input class="text" id="apptDate" type="text" placeholder="Select a date from the calendar" readonly>
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label">Type of Appointment</label>
+                        <select class="select" id="apptType">
+                            <option value="Services">Services</option>
+                            <option value="Consultation">Consultation</option>
+                            <option value="Maintenance">Maintenance</option>
+                            <option value="Installation">Installation</option>
+                            <option value="Repair">Repair</option>
+                            <option value="Inspection">Inspection</option>
+                            <option value="Upgrade">Upgrade</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-field" id="customTypeField" style="display: none;">
+                        <label class="form-label">Please specify the appointment type</label>
+                        <input class="text" id="customApptType" type="text" placeholder="Enter custom appointment type">
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label">Urgency</label>
+                        <div class="urgency-list">
+                            <label class="urgency-item"><span class="dot low"></span><input type="radio" name="urgency" value="Low" checked style="margin:0 6px 0 0">Low</label>
+                            <label class="urgency-item"><span class="dot med"></span><input type="radio" name="urgency" value="Medium" style="margin:0 6px 0 0">Medium</label>
+                            <label class="urgency-item"><span class="dot high"></span><input type="radio" name="urgency" value="High" style="margin:0 6px 0 0">High</label>
+                        </div>
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label">Item Details / Task Description</label>
+                        <textarea class="textarea" id="apptDesc" placeholder="Describe the task"></textarea>
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label">Site</label>
+                        <input class="text" id="apptSite" type="text" placeholder="Enter site location">
+                    </div>
+                    <div class="submit-btn">
+                        <button type="submit" class="btn-submit">Submit</button>
+                    </div>
+                    <div id="submitStatus" style="text-align:center; margin-top:8px; font-size:13px; color:#0b1020"></div>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container" style="margin-top:10px; text-align:center; font-size:14px">
+            © 2021 FINSI. All rights reserved.
+        </div>
+    </footer>
+
+    <div class="modal-overlay"></div>
+
+    <script>
+        // Local state management (no backend)
+        const state = {
+            current: new Date(),
+            selected: null,
+            unavailableSet: new Set(),
+            dateSlots: new Map(), // Track slots per date: {date: {total: 5, taken: 3, available: 2}}
+            appointments: [] // Store appointments locally
+        };
+
+        function formatDate(d) {
+            var y = d.getFullYear();
+            var m = String(d.getMonth() + 1).padStart(2, '0');
+            var day = String(d.getDate()).padStart(2, '0');
+            return y + '-' + m + '-' + day;
+        }
+
+        function monthLabel(d) {
+            return d.toLocaleString(undefined, { month: 'long', year: 'numeric' });
+        }
+
+        function loadAvailability() {
+            state.unavailableSet.clear();
+            state.dateSlots.clear();
+            
+            // Load from localStorage if available
+            try {
+                const stored = localStorage.getItem('appointments');
+                if (stored) {
+                    state.appointments = JSON.parse(stored);
+                    
+                    // Count appointments per date
+                    state.appointments.forEach(appt => {
+                        const appointmentDate = appt.date;
+                        if (appointmentDate) {
+                            if (!state.dateSlots.has(appointmentDate)) {
+                                state.dateSlots.set(appointmentDate, { total: 5, taken: 0, available: 5 });
+                            }
+                            const slots = state.dateSlots.get(appointmentDate);
+                            slots.taken += 1;
+                            slots.available = slots.total - slots.taken;
+                            
+                            // If all slots are taken, mark date as unavailable
+                            if (slots.available <= 0) {
+                                state.unavailableSet.add(appointmentDate);
+                            }
+                        }
+                    });
+                }
+            } catch (e) {
+                console.warn('Failed to load appointments:', e);
+            }
+        }
+
+        function renderCalendar() {
+            var grid = document.getElementById('calGrid');
+            var title = document.getElementById('calTitle');
+            if (!grid || !title) return;
+            grid.innerHTML = '';
+            title.textContent = monthLabel(state.current);
+
+            var year = state.current.getFullYear();
+            var month = state.current.getMonth();
+            var firstOfMonth = new Date(year, month, 1);
+            var startDay = firstOfMonth.getDay();
+            var daysInMonth = new Date(year, month + 1, 0).getDate();
+            var prevMonthDays = new Date(year, month, 0).getDate();
+
+            // Fill leading days from previous month
+            for (var i = 0; i < startDay; i++) {
+                var dayNum = prevMonthDays - startDay + 1 + i;
+                var cell = document.createElement('div');
+                cell.className = 'cal-cell muted';
+                cell.innerHTML = '<div class="cal-date">' + dayNum + '</div>';
+                grid.appendChild(cell);
+            }
+
+            // Current month days
+            var today = new Date();
+            today.setHours(0,0,0,0);
+            var todayKey = formatDate(today);
+            for (var d = 1; d <= daysInMonth; d++) {
+                var cellDate = new Date(year, month, d);
+                var key = formatDate(cellDate);
+                var cell = document.createElement('div');
+                var isPast = cellDate < today;
+                var isUnavailable = isPast || state.unavailableSet.has(key);
+                var classes = 'cal-cell' + (key === todayKey ? ' today' : '') + (state.selected === key ? ' selected' : '');
+                cell.className = classes;
+                
+                // Get slot information for this date
+                var slots = state.dateSlots.get(key);
+                var availableSlots = slots ? slots.available : 5;
+                var totalSlots = slots ? slots.total : 5;
+                
+                var pill;
+                if (isUnavailable) {
+                    if (isPast) {
+                        pill = '<span class="pill past">Not Available</span>';
+                    } else {
+                        pill = '<span class="pill full">Fully Booked</span>';
+                    }
+                } else {
+                    if (availableSlots === totalSlots) {
+                        pill = '<span class="pill available">Available</span>';
+                    } else {
+                        pill = '<span class="pill available">' + availableSlots + '/' + totalSlots + ' slots</span>';
+                    }
+                }
+                
+                cell.innerHTML = '<div class="cal-date">' + d + '</div>' + pill;
+                if (!isUnavailable) {
+                    cell.style.cursor = 'pointer';
+                    cell.addEventListener('click', function(k, el){ return function(){
+                        el.classList.add('pressed');
+                        setTimeout(function(){ el.classList.remove('pressed'); }, 160);
+                        state.selected = k;
+                        // Do not block the date yet; only mark unavailable after successful booking
+                        renderCalendar();
+                        try { var apptDate = document.getElementById('apptDate'); if (apptDate) apptDate.value = k; } catch (_) {}
+                    }}(key, cell));
+                }
+                grid.appendChild(cell);
+            }
+
+            // Trailing days to complete the grid to full weeks
+            var cellsSoFar = grid.children.length;
+            var remainder = cellsSoFar % 7;
+            if (remainder !== 0) {
+                var trailing = 7 - remainder;
+                for (var t = 1; t <= trailing; t++) {
+                    var cell = document.createElement('div');
+                    cell.className = 'cal-cell muted';
+                    cell.innerHTML = '<div class="cal-date">' + t + '</div>';
+                    grid.appendChild(cell);
+                }
+            }
+        }
+
+        function initCalendar() { loadAvailability(); renderCalendar(); }
+
+        document.getElementById('prevBtn').addEventListener('click', function(){
+            state.current = new Date(state.current.getFullYear(), state.current.getMonth() - 1, 1);
+            renderCalendar();
+        });
+        document.getElementById('nextBtn').addEventListener('click', function(){
+            state.current = new Date(state.current.getFullYear(), state.current.getMonth() + 1, 1);
+            renderCalendar();
+        });
+        document.getElementById('todayBtn').addEventListener('click', function(){
+            state.current = new Date();
+            state.current.setDate(1);
+            renderCalendar();
+        });
+
+        // Initialize on load
+        initCalendar();
+
+        // Handle appointment type dropdown change
+        document.addEventListener('DOMContentLoaded', function() {
+            const apptTypeSelect = document.getElementById('apptType');
+            const customTypeField = document.getElementById('customTypeField');
+            const customApptTypeInput = document.getElementById('customApptType');
+            
+            if (apptTypeSelect && customTypeField && customApptTypeInput) {
+                apptTypeSelect.addEventListener('change', function() {
+                    if (this.value === 'Other') {
+                        customTypeField.style.display = 'block';
+                        customApptTypeInput.required = true;
+                    } else {
+                        customTypeField.style.display = 'none';
+                        customApptTypeInput.required = false;
+                        customApptTypeInput.value = '';
+                    }
+                });
+            }
+        });
+
+        // Submit form (local storage only) with confirmation and success navigation
+        var form = document.getElementById('appointmentForm');
+        if (form) {
+            form.addEventListener('submit', function(e){
+                e.preventDefault();
+                console.log('Form submit triggered');
+                
+                var date = state.selected;
+                var type = document.getElementById('apptType').value;
+                var customType = document.getElementById('customApptType')?.value?.trim() || '';
+                var urgency = (document.querySelector('input[name="urgency"]:checked')||{}).value || 'Low';
+                var desc = document.getElementById('apptDesc').value.trim();
+                var site = document.getElementById('apptSite')?.value || '';
+                
+                // Use custom type if "Other" is selected and custom type is provided
+                if (type === 'Other' && customType) {
+                    type = customType;
+                }
+                
+                // Use simulated user
+                var email = window.currentUser ? window.currentUser.email : 'demo@company.com';
+                
+                var btn = this.querySelector('button[type="submit"]');
+                var statusEl = document.getElementById('submitStatus');
+                
+                if (!date) {
+                    showModal('Select a date', 'Please choose a date from the calendar first.');
+                    if (statusEl) statusEl.textContent = 'Please select a date to continue.';
+                    return;
+                }
+                
+                // Validate custom type if "Other" is selected
+                if (type === 'Other' && !customType) {
+                    showModal('Custom Type Required', 'Please specify the appointment type in the custom field.');
+                    if (statusEl) statusEl.textContent = 'Please specify the custom appointment type.';
+                    return;
+                }
+                
+                // Check if selected date has available slots
+                const slotsCheck = state.dateSlots.get(date);
+                if (slotsCheck && slotsCheck.available <= 0) {
+                    showModal('Fully Booked', 'All appointment slots for this date have been reserved. Please select a different date with available slots.');
+                    if (statusEl) statusEl.textContent = 'Selected date is fully booked. Please choose another date.';
+                    return;
+                }
+
+                // Build confirmation message element
+                var confirmEl = document.createElement('div');
+                confirmEl.innerHTML = '<div style="line-height:1.7">' +
+                    '<div><strong>Date:</strong> ' + date + '</div>' +
+                    '<div><strong>Type:</strong> ' + type + '</div>' +
+                    '<div><strong>Urgency:</strong> ' + urgency + '</div>' +
+                    (desc ? '<div><strong>Description:</strong> ' + (desc.replace(/</g,'&lt;')) + '</div>' : '') +
+                    (site ? '<div><strong>Site:</strong> ' + (site.replace(/</g,'&lt;')) + '</div>' : '') +
+                '</div>';
+
+                function generateTicketNumber() {
+                    const now = new Date();
+                    const year = now.getFullYear().toString().slice(-2);
+                    const month = (now.getMonth() + 1).toString().padStart(2, '0');
+                    const day = now.getDate().toString().padStart(2, '0');
+                    const time = now.getTime().toString().slice(-4);
+                    return `TKT-${year}${month}${day}-${time}`;
+                }
+
+                function performSubmission(){
+                    const ticketNumber = generateTicketNumber();
+                    console.log('Form data:', { date, type, urgency, desc, email, ticketNumber });
+                    try { var apptDate = document.getElementById('apptDate'); if (apptDate) apptDate.value = date; } catch(_) {}
+                    if (btn) { btn.disabled = true; btn.textContent = 'Submitting...'; }
+                    if (statusEl) { statusEl.style.color = '#0b1020'; statusEl.textContent = 'Submitting…'; }
+                    
+                    setTimeout(function() {
+                        try {
+                            // Create appointment object
+                            const appointment = {
+                                id: Date.now().toString(),
+                                date,
+                                type,
+                                urgency,
+                                description: desc,
+                                userEmail: email,
+                                ticketNumber: ticketNumber,
+                                site: site,
+                                status: 'Pending',
+                                priority: urgency,
+                                createdAt: new Date().toISOString()
+                            };
+                            
+                            // Save to localStorage
+                            state.appointments.push(appointment);
+                            localStorage.setItem('appointments', JSON.stringify(state.appointments));
+                            
+                            // Update slot count for this date
+                            if (!state.dateSlots.has(date)) {
+                                state.dateSlots.set(date, { total: 5, taken: 0, available: 5 });
+                            }
+                            const slots = state.dateSlots.get(date);
+                            slots.taken += 1;
+                            slots.available = slots.total - slots.taken;
+                            
+                            if (slots.available <= 0) {
+                                state.unavailableSet.add(date);
+                            }
+                            
+                            renderCalendar();
+                            if (statusEl) { statusEl.style.color = '#059669'; statusEl.textContent = 'Saved! Ticket ' + ticketNumber + ' created for ' + date + '.'; }
+                            form.reset();
+                            state.selected = null;
+                            if (btn) { btn.disabled = false; btn.textContent = 'Submit'; }
+
+                            // Success modal leading to status page
+                            var successMsg = 'Your ticket ' + ticketNumber + ' has been created for ' + date + '. Your request is now waiting for approval.';
+                            showModal('Ticket Created Successfully', successMsg, [
+                                { label: 'OK', primary: true, onClick: function(){ window.location.href = 'status.html'; } }
+                            ]);
+                        } catch (err) {
+                            console.error('Error:', err);
+                            showModal('Submission Failed', 'Could not save your appointment. Please try again.');
+                            if (statusEl) { statusEl.style.color = '#b91c1c'; statusEl.textContent = 'Failed to save appointment.'; }
+                            if (btn) { btn.disabled = false; btn.textContent = 'Submit'; }
+                        }
+                    }, 800);
+                }
+
+                // Ask for confirmation
+                showModal('Confirm Submission', confirmEl, [
+                    { label: 'No', onClick: function(){ /* do nothing, just close */ } },
+                    { label: 'Yes', primary: true, onClick: function(){ performSubmission(); } }
+                ]);
+            });
+        }
+    </script>
+</body>
+</html>
+
+
