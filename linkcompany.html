@@ -258,7 +258,7 @@
                         <div class="grid-3">
                             <div class="field">
                                 <label for="firstName">First Name <span style="color: #ef4444;">*</span></label>
-                                <input type="text" id="firstName" name="firstName">
+                                <input type="text" id="firstName" name="firstName" required>
                             </div>
                             <div class="field">
                                 <label for="middleName">Middle Name</label>
@@ -266,40 +266,40 @@
                             </div>
                             <div class="field">
                                 <label for="surname">Surname <span style="color: #ef4444;">*</span></label>
-                                <input type="text" id="surname" name="surname">
+                                <input type="text" id="surname" name="surname" required>
                             </div>
                         </div>
 
                         <div class="grid-2">
                             <div class="field">
                                 <label for="companyEmail">Company Email <span style="color: #ef4444;">*</span></label>
-                                <input type="email" id="companyEmail" name="companyEmail">
+                                <input type="email" id="companyEmail" name="companyEmail" required>
                             </div>
                             <div class="field">
                                 <label for="contactNumber">Contact Number <span style="color: #ef4444;">*</span></label>
-                                <input type="tel" id="contactNumber" name="contactNumber" placeholder="09xx xxx xxxx">
+                                <input type="tel" id="contactNumber" name="contactNumber" placeholder="09xx xxx xxxx" required>
                             </div>
                         </div>
 
                         <div class="grid-2">
                             <div class="field">
                                 <label for="location">Location <span style="color: #ef4444;">*</span></label>
-                                <input type="text" id="location" name="location" placeholder="City/Province">
+                                <input type="text" id="location" name="location" placeholder="City/Province" required>
                             </div>
                             <div class="field">
                                 <label for="companyName">Company Name <span style="color: #ef4444;">*</span></label>
-                                <input type="text" id="companyName" name="companyName">
+                                <input type="text" id="companyName" name="companyName" required>
                             </div>
                         </div>
 
                         <div class="grid-2">
                             <div class="field">
                                 <label for="password">Password <span style="color: #ef4444;">*</span></label>
-                                <input type="password" id="password" name="password">
+                                <input type="password" id="password" name="password" minlength="6" required>
                             </div>
                             <div class="field">
                                 <label for="confirmPassword">Confirm Password <span style="color: #ef4444;">*</span></label>
-                                <input type="password" id="confirmPassword" name="confirmPassword">
+                                <input type="password" id="confirmPassword" name="confirmPassword" minlength="6" required>
                             </div>
                         </div>
 
@@ -312,7 +312,6 @@
         </section>
     </main>
 
-    <!-- Confirmation Modal -->
     <div id="confirmationModal" class="modal-overlay">
         <div class="modal">
             <div class="modal-header">
@@ -324,12 +323,11 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn-secondary" onclick="closeConfirmationModal()">Cancel</button>
-                <button type="button" class="btn-primary" onclick="sendOTP()">Confirm & Send OTP</button>
+                <button type="button" class="btn-primary" id="confirm-send-btn" onclick="sendOTP()">Confirm & Send OTP</button>
             </div>
         </div>
     </div>
 
-    <!-- OTP Verification Modal -->
     <div id="otpModal" class="modal-overlay">
         <div class="modal">
             <div class="modal-header">
@@ -353,12 +351,11 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn-secondary" onclick="closeOTPModal()">Cancel</button>
-                <button type="button" class="btn-primary" onclick="verifyOTP()">Verify & Register</button>
+                <button type="button" class="btn-primary" id="verify-btn" onclick="verifyOTP()">Verify & Register</button>
             </div>
         </div>
     </div>
 
-    <!-- Validation Pending Modal -->
     <div id="validationModal" class="modal-overlay">
         <div class="modal">
             <div class="modal-header">
@@ -394,21 +391,31 @@
         </div>
     </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabaseClient.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script>
+        // ---
+        // ================================================================
+        // INITIALIZE EMAILJS
+        // ================================================================
+        // ---
+        // ❗️ This is your Public Key from EmailJS (Account -> API Keys)
+        emailjs.init('09jja8DopIKMKbCtE');
+
+
+        // --- YOUR EXISTING UI FUNCTIONS (NO CHANGES) ---
         function toggleMenu() {
             var menu = document.getElementById('menu');
             if (menu) menu.classList.toggle('open');
         }
         window.toggleMenu = toggleMenu;
 
-        // Store form data
-        let registrationData = {};
+        let registrationData = {}; // Store form data
 
-        // Handle form submission
         document.getElementById('registrationForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
-            // Get form values
             registrationData = {
                 firstName: document.getElementById('firstName').value,
                 middleName: document.getElementById('middleName').value,
@@ -421,13 +428,15 @@
                 confirmPassword: document.getElementById('confirmPassword').value
             };
 
-            // Validate passwords match
             if (registrationData.password !== registrationData.confirmPassword) {
                 showToast('Passwords do not match!', 'error');
                 return;
             }
+            if (registrationData.password.length < 6) {
+                showToast('Password must be at least 6 characters long', 'error');
+                return;
+            }
 
-            // Show confirmation modal
             showConfirmationModal();
         });
 
@@ -435,7 +444,7 @@
             const detailsHTML = `
                 <div class="info-row">
                     <div class="info-label">Full Name:</div>
-                    <div class="info-value">${registrationData.firstName} ${registrationData.middleName} ${registrationData.surname}</div>
+                    <div class="info-value">${registrationData.firstName} ${registrationData.middleName || ''} ${registrationData.surname}</div>
                 </div>
                 <div class="info-row">
                     <div class="info-label">Company Email:</div>
@@ -466,26 +475,8 @@
             document.getElementById('confirmationModal').classList.remove('show');
         }
 
-        function sendOTP() {
-            // Close confirmation modal
-            closeConfirmationModal();
-            
-            // Simulate sending OTP (in real implementation, this would call backend)
-            showToast('OTP sent to ' + registrationData.companyEmail, 'success');
-            
-            // Show OTP modal
-            document.getElementById('otpEmailDisplay').textContent = registrationData.companyEmail;
-            document.getElementById('otpModal').classList.add('show');
-            
-            // Focus first OTP input
-            setTimeout(() => {
-                document.getElementById('otp1').focus();
-            }, 300);
-        }
-
         function closeOTPModal() {
             document.getElementById('otpModal').classList.remove('show');
-            // Clear OTP inputs
             for (let i = 1; i <= 6; i++) {
                 document.getElementById('otp' + i).value = '';
             }
@@ -502,39 +493,7 @@
                 document.getElementById(prevId).focus();
             }
         }
-
-        function resendOTP() {
-            // Simulate resending OTP
-            showToast('OTP resent to ' + registrationData.companyEmail, 'success');
-            // Clear OTP inputs
-            for (let i = 1; i <= 6; i++) {
-                document.getElementById('otp' + i).value = '';
-            }
-            document.getElementById('otp1').focus();
-        }
-
-        function verifyOTP() {
-            // Get OTP value
-            let otp = '';
-            for (let i = 1; i <= 6; i++) {
-                otp += document.getElementById('otp' + i).value;
-            }
-
-            if (otp.length !== 6) {
-                showToast('Please enter the complete 6-digit code', 'error');
-                return;
-            }
-
-            // Simulate OTP verification (in real implementation, this would call backend)
-            showToast('OTP verified successfully!', 'success');
-            
-            // Close OTP modal and show validation pending modal
-            setTimeout(() => {
-                closeOTPModal();
-                showValidationModal();
-            }, 1000);
-        }
-
+        
         function showValidationModal() {
             document.getElementById('validationEmail').textContent = registrationData.companyEmail;
             document.getElementById('validationModal').classList.add('show');
@@ -542,14 +501,12 @@
 
         function closeValidationModal() {
             document.getElementById('validationModal').classList.remove('show');
-            // Reset form after closing
             document.getElementById('registrationForm').reset();
-            // In real implementation, could redirect to login
-            // window.location.href = 'login.html';
+            // Redirect to login page after success
+            window.location.href = 'login.html';
         }
 
         function showToast(message, type = 'success') {
-            // Create toast element if it doesn't exist
             let toast = document.getElementById('toast');
             if (!toast) {
                 toast = document.createElement('div');
@@ -557,20 +514,195 @@
                 toast.className = 'toast';
                 document.body.appendChild(toast);
             }
-            
             toast.textContent = message;
             toast.className = 'toast ' + type;
-            
-            // Show toast
             setTimeout(() => toast.classList.add('show'), 10);
-            
-            // Hide toast after 3 seconds
             setTimeout(() => {
                 toast.classList.remove('show');
             }, 3000);
         }
+
+        // ---
+        // ================================================================
+        // MODIFIED SUPABASE & EMAILJS FUNCTIONS
+        // ================================================================
+        // ---
+
+        /**
+         * Step 1 - Send a custom OTP using EmailJS
+         */
+        async function sendOTP() {
+            const btn = document.getElementById('confirm-send-btn');
+            btn.disabled = true;
+            btn.textContent = 'Sending...';
+            closeConfirmationModal();
+
+            try {
+                // Generate a 6-digit OTP
+                const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+                // Store OTP for verification. 
+                // WARNING: localStorage is not secure. This is for demonstration.
+                localStorage.setItem('registrationOTP', otp);
+                localStorage.setItem('registrationEmail', registrationData.companyEmail);
+
+                // Send OTP via EmailJS
+                const templateParams = {
+                    to_email: registrationData.companyEmail,
+                    otp_code: otp,
+                    user_name: registrationData.firstName + ' ' + registrationData.surname
+                };
+
+                // ❗️ These are your real EmailJS keys
+                await emailjs.send('service_qj1yc6w', 'template_fbiv2i9', templateParams);
+                
+                showToast('OTP sent to ' + registrationData.companyEmail, 'success');
+
+                // Show OTP modal
+                document.getElementById('otpEmailDisplay').textContent = registrationData.companyEmail;
+                document.getElementById('otpModal').classList.add('show');
+                setTimeout(() => {
+                    document.getElementById('otp1').focus();
+                }, 300);
+
+            } catch (err) {
+                console.error('EmailJS Error:', err);
+                showToast('Failed to send OTP. Check EmailJS keys.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Confirm & Send OTP';
+            }
+        }
+
+        /**
+         * Step 2 - Verify the EmailJS OTP and create the Supabase user
+         */
+        async function verifyOTP() {
+            const btn = document.getElementById('verify-btn');
+            btn.disabled = true;
+            btn.textContent = 'Verifying...';
+
+            let otp = '';
+            for (let i = 1; i <= 6; i++) {
+                otp += document.getElementById('otp' + i).value;
+            }
+
+            // 1. Check OTP against stored value
+            const storedOTP = localStorage.getItem('registrationOTP');
+            const storedEmail = localStorage.getItem('registrationEmail');
+
+            if (otp !== storedOTP || storedEmail !== registrationData.companyEmail) {
+                showToast('Invalid OTP code', 'error');
+                btn.disabled = false;
+                btn.textContent = 'Verify & Register';
+                return;
+            }
+
+            // 2. OTP is valid! Now, create the Supabase user.
+            try {
+                // Sign up the user. 'Confirm email' MUST be OFF in Supabase.
+                const { data, error } = await supabase.auth.signUp({
+                    email: registrationData.companyEmail,
+                    password: registrationData.password,
+                });
+
+                if (error) {
+                    showToast('Error creating account: ' + error.message, 'error');
+                    btn.disabled = false;
+                    btn.textContent = 'Verify & Register';
+                    return;
+                }
+                
+                // 3. THE FIX: Check if data.user exists
+                if (!data || !data.user) {
+                    showToast('Account creation failed. Is "Confirm email" OFF in Supabase?', 'error');
+                    btn.disabled = false;
+                    btn.textContent = 'Verify & Register';
+                    return;
+                }
+
+                showToast('Account created successfully!', 'success');
+
+                // 4. Insert user profile into facility_owner_records
+                //    !! USE data.user.id FROM THE SIGNUP RESPONSE !!
+                //    !! COLUMN NAMES ARE NOW CORRECTED !!
+                const { error: insertError } = await supabase
+                    .from('facility_owner_records')
+                    .insert([
+                        {
+                            user_id: data.user.id, // <-- THE FIX
+                            "firstName": registrationData.firstName,
+                            "middleName": registrationData.middleName,
+                            surname: registrationData.surname,
+                            email: registrationData.companyEmail,
+                            phone_number: registrationData.contactNumber,
+                            address: registrationData.location,
+                            company_name: registrationData.companyName
+                        }
+                    ]);
+
+                if (insertError) {
+                    showToast('Error saving profile: ' + insertError.message, 'error');
+                    // In a real app, you might want to delete the auth user here for cleanup
+                    btn.disabled = false;
+                    btn.textContent = 'Verify & Register';
+                    return;
+                }
+
+                // 5. Clear stored OTP and sign out
+                localStorage.removeItem('registrationOTP');
+                localStorage.removeItem('registrationEmail');
+                await supabase.auth.signOut();
+
+                // 6. Show validation pending modal
+                setTimeout(() => {
+                    closeOTPModal();
+                    showValidationModal();
+                }, 1000);
+
+            } catch (err) {
+                console.error(err);
+                showToast('Registration failed. Please try again.', 'error');
+            } finally {
+                // This runs whether it succeeds or fails, to re-enable the button
+                btn.disabled = false;
+                btn.textContent = 'Verify & Register';
+            }
+        }
+
+        /**
+         * Step 3 - Resend the EmailJS OTP
+         */
+        async function resendOTP() {
+            showToast('Resending code...', 'success');
+            try {
+                // Generate a new 6-digit OTP
+                const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+                // Update stored OTP
+                localStorage.setItem('registrationOTP', otp);
+
+                // Send OTP via EmailJS
+                const templateParams = {
+                    to_email: registrationData.companyEmail,
+                    otp_code: otp,
+                    user_name: registrationData.firstName + ' ' + registrationData.surname
+                };
+                
+                // ❗️ These are your real EmailJS keys
+                await emailjs.send('service_qj1yc6w', 'template_fbiv2i9', templateParams);
+
+                showToast('OTP resent to ' + registrationData.companyEmail, 'success');
+                for (let i = 1; i <= 6; i++) {
+                    document.getElementById('otp' + i).value = '';
+                }
+                document.getElementById('otp1').focus();
+
+            } catch (err) {
+                console.error(err);
+                showToast('Failed to resend OTP. Please try again.', 'error');
+            }
+        }
     </script>
 </body>
 </html>
-
-
