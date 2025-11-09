@@ -577,99 +577,82 @@
         /**
          * Step 2 - Verify the EmailJS OTP and create the Supabase user
          */
-        async function verifyOTP() {
-            const btn = document.getElementById('verify-btn');
-            btn.disabled = true;
-            btn.textContent = 'Verifying...';
+ /**
+     * Step 2 - Verify EmailJS OTP and send data to NODE.JS BACKEND
+     */
+    async function verifyOTP() {
+        const btn = document.getElementById('verify-btn');
+        btn.disabled = true;
+        btn.textContent = 'Verifying...';
 
-            let otp = '';
-            for (let i = 1; i <= 6; i++) {
-                otp += document.getElementById('otp' + i).value;
-            }
-
-            // 1. Check OTP against stored value
-            const storedOTP = localStorage.getItem('registrationOTP');
-            const storedEmail = localStorage.getItem('registrationEmail');
-
-            if (otp !== storedOTP || storedEmail !== registrationData.companyEmail) {
-                showToast('Invalid OTP code', 'error');
-                btn.disabled = false;
-                btn.textContent = 'Verify & Register';
-                return;
-            }
-
-            // 2. OTP is valid! Now, create the Supabase user.
-            try {
-                // Sign up the user. 'Confirm email' MUST be OFF in Supabase.
-                const { data, error } = await supabase.auth.signUp({
-                    email: registrationData.companyEmail,
-                    password: registrationData.password,
-                });
-
-                if (error) {
-                    showToast('Error creating account: ' + error.message, 'error');
-                    btn.disabled = false;
-                    btn.textContent = 'Verify & Register';
-                    return;
-                }
-                
-                // 3. THE FIX: Check if data.user exists
-                if (!data || !data.user) {
-                    showToast('Account creation failed. Is "Confirm email" OFF in Supabase?', 'error');
-                    btn.disabled = false;
-                    btn.textContent = 'Verify & Register';
-                    return;
-                }
-
-                showToast('Account created successfully!', 'success');
-
-                // 4. Insert user profile into facility_owner_records
-                //    !! USE data.user.id FROM THE SIGNUP RESPONSE !!
-                //    !! COLUMN NAMES ARE NOW CORRECTED !!
-                const { error: insertError } = await supabase
-                    .from('facility_owner_records')
-                    .insert([
-                        {
-                            user_id: data.user.id, // <-- THE FIX
-                            "firstName": registrationData.firstName,
-                            "middleName": registrationData.middleName,
-                            surname: registrationData.surname,
-                            email: registrationData.companyEmail,
-                            phone_number: registrationData.contactNumber,
-                            address: registrationData.location,
-                            company_name: registrationData.companyName
-                        }
-                    ]);
-
-                if (insertError) {
-                    showToast('Error saving profile: ' + insertError.message, 'error');
-                    // In a real app, you might want to delete the auth user here for cleanup
-                    btn.disabled = false;
-                    btn.textContent = 'Verify & Register';
-                    return;
-                }
-
-                // 5. Clear stored OTP and sign out
-                localStorage.removeItem('registrationOTP');
-                localStorage.removeItem('registrationEmail');
-                await supabase.auth.signOut();
-
-                // 6. Show validation pending modal
-                setTimeout(() => {
-                    closeOTPModal();
-                    showValidationModal();
-                }, 1000);
-
-            } catch (err) {
-                console.error(err);
-                showToast('Registration failed. Please try again.', 'error');
-            } finally {
-                // This runs whether it succeeds or fails, to re-enable the button
-                btn.disabled = false;
-                btn.textContent = 'Verify & Register';
-            }
+        let otp = '';
+        for (let i = 1; i <= 6; i++) {
+            otp += document.getElementById('otp' + i).value;
         }
 
+        // 1. Check OTP from localStorage (EmailJS)
+        const storedOTP = localStorage.getItem('registrationOTP');
+        const storedEmail = localStorage.getItem('registrationEmail');
+
+        if (otp !== storedOTP || storedEmail !== registrationData.companyEmail) {
+            showToast('Invalid OTP code', 'error');
+            btn.disabled = false;
+            btn.textContent = 'Verify & Register';
+            return;
+        }
+
+        // 2. OTP is valid! Send ALL data to our Node.js backend
+        try {
+            const response = await fetch('http://localhost:3000/api/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                // Send all data from the form
+                body: JSON.stringify({
+                    email: registrationData.companyEmail,
+                    password: registrationData.password,
+                    firstName: registrationData.firstName,
+                    middleName: registrationData.middleName,
+                    surname: registrationData.surname,
+                    contactNumber: registrationData.contactNumber,
+                    location: registrationData.location,
+                    companyName: registrationData.companyName
+                })
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                // Handle errors from the backend (e.g., "User already exists")
+                throw new Error(result.error || 'Registration failed.');
+            }
+            
+            // 3. Success!
+            showToast('Account created successfully!', 'success');
+            
+            localStorage.removeItem('registrationOTP');
+            localStorage.removeItem('registrationEmail');
+
+            // 4. Show the "Success" modal (which you named validationModal)
+            // We'll rename the title to be more accurate
+            document.getElementById('validationModal').querySelector('.modal-title').textContent = 'Registration Successful!';
+            document.getElementById('validationModal').querySelector('h3').textContent = 'Your account has been created.';
+            document.getElementById('validationModal').querySelector('p').textContent = 'You can now log in with your new credentials.';
+            
+            setTimeout(() => {
+                closeOTPModal();
+                showValidationModal();
+            }, 1000);
+
+        } catch (err) {
+            console.error(err);
+            showToast(err.message, 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Verify & Register';
+        }
+    }
         /**
          * Step 3 - Resend the EmailJS OTP
          */
