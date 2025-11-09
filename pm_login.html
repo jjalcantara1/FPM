@@ -1,189 +1,168 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>FINSI — Project Manager Login</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --finsi-orange: #ff6a00;
-      --finsi-orange-deep: #ff4d00;
-      --text: #111827;
-      --muted: #6b7280;
-      --card-border: #e5e7eb;
-      --field-bg: #e5e5e5;
-      --field-text: #111827;
-      --shadow: 0 10px 25px rgba(0,0,0,0.08);
-    }
+    <meta charset="utf8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>PM Login — FINSI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="login.css">
+    <style>
+        /* (Using login.css, so styles are already present) */
+        :root {
+            --brand-700: #0a3cff;
+            --brand-600: #155bff;
+            --brand-500: #4b79ff;
+            --accent-500: #22d3ee;
+            --text-900: #0b1020;
+            --text-700: #2a3347;
+            --text-500: #66748a;
+            --bg-50: #f6f8ff;
+            --white: #ffffff;
+            --orange-600: #ff6b00;
+            --orange-500: #ff8b13;
+        }
+        * { box-sizing: border-box; }
+        html, body { height: 100%; }
+        body {
+            margin: 0;
+            font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+            color: var(--text-900);
+            background: radial-gradient(1200px 600px at 80% -20%, #e8efff, transparent 60%), var(--bg-50);
+            line-height: 1.6;
+        }
+        a { color: inherit; text-decoration: none; }
+        .container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(255,255,255,0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #e6ecf7;
+        }
+        .nav { display: flex; align-items: center; justify-content: space-between; height: 80px; }
+        .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 800; font-size: 24px; letter-spacing: 0.4px; }
+        .page-hero { padding: 24px 0 10px; }
+        h1 { font-size: 36px; margin: 12px 0 6px; }
+        .sub { color: var(--text-500); }
+        .wrap { display: grid; place-items: center; padding: 24px 0 40px; }
+        .card { width: 100%; max-width: 520px; background: var(--white); border: 1px solid #e6ecf7; border-radius: 18px; box-shadow: 0 16px 40px rgba(21,91,255,0.08); padding: 22px; }
+        .card-header { text-align: center; margin-bottom: 10px; }
+        .form-title { margin: 0; font-size: 24px; letter-spacing: -0.2px; }
+        .form-sub { color: var(--text-500); margin-top: 4px; font-size: 14px; }
+        .field { margin: 12px 0; }
+        label { display: block; font-weight: 700; margin-bottom: 6px; font-size: 14px; }
+        input { width: 100%; padding: 12px 12px; border: 1px solid #dce6f5; border-radius: 12px; font: inherit; transition: border-color .15s ease, box-shadow .15s ease; }
+        input:focus { outline: none; border-color: var(--brand-600); box-shadow: 0 0 0 3px rgba(21,91,255,0.12); }
+        .actions { display: flex; justify-content: center; }
+        .btn-primary { width: 100%; background: linear-gradient(135deg, var(--brand-600), var(--brand-700)); color: #fff; padding: 14px 24px; border: 0; border-radius: 12px; font-weight: 800; cursor: pointer; box-shadow: 0 12px 26px rgba(21,91,255,0.22); transition: transform .06s ease, filter .15s ease; }
+        .btn-primary:hover { filter: brightness(1.04); }
+        .btn-primary:active { transform: translateY(1px); }
+        .status { font-size: 13px; text-align: center; margin-top: 8px; }
+        .status.error { color: #ef4444; }
+        .status.success { color: #059669; }
+        footer { padding: 34px 0; border-top: 1px solid #e6ecf7; background: #fbfdff; color: var(--text-500); }
+        @media (max-width: 900px) {
+            .card { margin: 0 10px; }
+        }
+    </style>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabaseClient.js"></script>
+    <script>
+        async function handlePMLogin(e) {
+            e.preventDefault();
+            
+            var email = document.getElementById('email').value.trim();
+            var password = document.getElementById('password').value;
+            var statusEl = document.getElementById('loginStatus');
+            var submitBtn = document.querySelector('.btn-primary');
+            
+            if (statusEl) { statusEl.textContent = ''; statusEl.className = 'status'; }
+            if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Signing in...'; }
+            
+            try {
+                // 1. Sign in the user with Supabase Auth
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
 
-    * { box-sizing: border-box; }
-    html, body { height: 100%; }
-    body {
-      margin: 0;
-      font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-      color: var(--text);
-      background: #ffffff;
-      background-image:
-        radial-gradient(1200px 600px at 100% 100%, rgba(255,106,0,0.15), transparent 60%),
-        radial-gradient(1200px 600px at 0% 0%, rgba(255,106,0,0.12), transparent 60%),
-        linear-gradient(180deg, #ffffff 0%, #ffffff 45%, #fff7f2 45%, #fff7f2 60%, #ffffff 60%, #ffffff 100%);
-      background-attachment: fixed;
-    }
+                if (error) throw new Error('Invalid login credentials.');
+                if (!data.user) throw new Error('No user data found after login.');
 
-    .page {
-      min-height: 100%;
-      display: grid;
-      place-items: center;
-      padding: 32px;
-    }
+                // 2. Login successful, check if they are a Project Manager
+                const { data: profile, error: profileError } = await supabase
+                    .from('project_manager_records')
+                    .select('user_id') // We just need to see if the row exists
+                    .eq('user_id', data.user.id)
+                    .single();
 
-    .card {
-      width: min(1100px, 96vw);
-      display: grid;
-      grid-template-columns: 1.2fr 1fr;
-      gap: 40px;
-      background: #fff;
-      border: 1px solid var(--card-border);
-      border-radius: 8px;
-      box-shadow: var(--shadow);
-      padding: 48px 56px;
-    }
+                if (profileError || !profile) {
+                    await supabase.auth.signOut(); // Log them back out
+                    throw new Error('This login is for Project Managers only.');
+                }
 
-    @media (max-width: 760px) {
-      .card { grid-template-columns: 1fr; padding: 28px; }
-      .brand { order: -1; justify-content: center; }
-    }
+                // 3. Success! They are a real Project Manager.
+                statusEl.textContent = 'Login successful. Redirecting...';
+                statusEl.className = 'status success';
+                
+                setTimeout(() => {
+                    window.location.href = 'projectmanager.html'; // Redirect to PM dashboard
+                }, 500);
 
-    .title {
-      margin: 0 0 22px 0;
-      font-size: 36px;
-      font-weight: 700;
-      color: var(--finsi-orange);
-      letter-spacing: 0.4px;
-      text-shadow: 0 2px 0 rgba(0,0,0,0.05);
-    }
-
-    .field { margin-bottom: 22px; }
-    label { display: block; font-size: 14px; color: #222; margin: 0 0 10px 0; font-weight: 600; }
-
-    .input-wrap {
-      position: relative;
-      display: flex;
-      align-items: center;
-    }
-
-    .input-icon {
-      position: absolute;
-      left: 14px;
-      width: 22px;
-      height: 22px;
-      color: #444;
-      opacity: 0.8;
-      pointer-events: none;
-    }
-
-    input[type="email"],
-    input[type="password"] {
-      width: 100%;
-      height: 48px;
-      padding: 10px 14px 10px 48px;
-      border-radius: 6px;
-      border: none;
-      outline: none;
-      background: var(--field-bg);
-      color: var(--field-text);
-      font-size: 16px;
-      transition: box-shadow 120ms ease, background 120ms ease;
-    }
-
-    input[type="email"]:focus,
-    input[type="password"]:focus {
-      background: #efefef;
-      box-shadow: inset 0 0 0 2px rgba(255,106,0,0.3);
-    }
-
-    .actions { margin-top: 12px; }
-    .btn {
-      display: inline-block;
-      width: 220px;
-      height: 44px;
-      line-height: 44px;
-      text-align: center;
-      border: none;
-      border-radius: 6px;
-      font-weight: 700;
-      font-size: 16px;
-      color: #fff;
-      background: linear-gradient(180deg, var(--finsi-orange) 0%, var(--finsi-orange-deep) 100%);
-      cursor: pointer;
-      box-shadow: 0 6px 12px rgba(255,106,0,0.25);
-      transition: transform 120ms ease, box-shadow 120ms ease;
-    }
-    .btn:hover { transform: translateY(-1px); box-shadow: 0 8px 16px rgba(255,106,0,0.3); }
-    .btn:active { transform: translateY(0); box-shadow: 0 4px 10px rgba(255,106,0,0.25); }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 8px;
-    }
-    .brand img { max-width: 260px; width: 100%; height: auto; }
-
-    .card::after {
-      content: "";
-      position: absolute;
-      inset: -8px;
-      border-radius: 10px;
-      pointer-events: none;
-    }
-
-    .form-col { position: relative; }
-  </style>
-</head>
+            } catch (err) {
+                console.error(err);
+                if (statusEl) { statusEl.textContent = err.message; statusEl.className = 'status error'; }
+            } finally {
+                if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Login'; }
+            }
+        }
+    </script>
+    </head>
 <body>
-  <main class="page">
-    <section class="card" role="region" aria-labelledby="login-title">
-      <div class="form-col">
-        <h1 id="login-title" class="title">Project Manager</h1>
-
-        <form method="get" action="projectmanager.html" novalidate>
-          <div class="field">
-            <label for="email">Email</label>
-            <div class="input-wrap">
-              <svg class="input-icon" viewBox="0 0 24 24" aria-hidden="true">
-                <path fill="currentColor" d="M12 12.713L1.2 6h21.6L12 12.713zm0 2.574L0 7.2V18a2 2 0 002 2h20a2 2 0 002-2V7.2L12 15.287z"/>
-              </svg>
-              <input id="email" name="email" type="email" autocomplete="username" placeholder="name@company.com" required />
+    <header>
+        <div class="container nav">
+            <a href="landingpage.html#home" class="brand"><img src="finsi.png" alt="FINSI" style="height:56px; width:auto;"></a>
             </div>
-          </div>
+    </header>
 
-          <div class="field">
-            <label for="password">Password</label>
-            <div class="input-wrap">
-              <svg class="input-icon" viewBox="0 0 24 24" aria-hidden="true">
-                <path fill="currentColor" d="M17 9V7a5 5 0 10-10 0v2H5a2 2 0 00-2 2v8a2 2 0 002 2h14a2 2 0 002-2v-8a2 2 0 00-2-2h-2zm-8 0V7a3 3 0 116 0v2H9z"/>
-              </svg>
-              <input id="password" name="password" type="password" autocomplete="current-password" placeholder="••••••••" required />
+    <main>
+        <section class="page-hero">
+            <div class="container">
+                <h1>Project Manager Login</h1>
+                <div class="sub">Sign in to the management dashboard.</div>
             </div>
-          </div>
+        </section>
+        <section>
+            <div class="container wrap">
+                <form class="card" onsubmit="handlePMLogin(event)">
+                    <div class="card-header">
+                        <h2 class="form-title">PM Sign In</h2>
+                        <div class="form-sub">Use your internal credentials</div>
+                    </div>
+                    <div class="field">
+                        <label>Email</label>
+                        <input id="email" type="email" placeholder="you@finsi.com" required>
+                    </div>
+                    <div class="field">
+                        <label>Password</label>
+                        <input id="password" type="password" placeholder="••••••••" minlength="6" required>
+                    </div>
+                    <div class="actions" style="margin-top:10px">
+                        <button type="submit" class="btn-primary">Login</button>
+                    </div>
+                    <div id="loginStatus" class="status"></div>
+                </form>
+            </div>
+        </section>
 
-          <div class="actions">
-            <button class="btn" type="submit">Login</button>
-          </div>
-        </form>
-      </div>
-
-      <div class="brand" aria-hidden="true">
-        <img src="Finsi.png" alt="FINSI" />
-      </div>
-    </section>
-  </main>
+    <footer>
+        <div class="container" style="margin-top:10px; text-align:center; font-size:14px">
+            © 2021 FINSI. All rights reserved.
+        </div>
+    </footer>
 </body>
 </html>
-
-
-

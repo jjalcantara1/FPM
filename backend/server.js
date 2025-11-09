@@ -82,6 +82,88 @@ app.post('/api/register', async (req, res) => {
     }
 });
 
+// This endpoint loads ALL data the PM dashboard needs at once
+app.get('/api/pm/dashboard-data', async (req, res) => {
+    try {
+        // 1. Get all pending appointments
+        const { data: appointments, error: apptError } = await supabase
+            .from('appointment_records')
+            .select('*') // Get all columns
+            .eq('status', 'Pending'); // Only where status is 'Pending'
+        
+        if (apptError) throw new Error(apptError.message);
+
+        // 2. Get all pending facility owner accounts
+        const { data: accounts, error: acctError } = await supabase
+            .from('facility_owner_records')
+            .select('*')
+            .eq('status', 'pending'); // Only where status is 'pending'
+
+        if (acctError) throw new Error(acctError.message);
+
+        // 3. Get all engineers
+        const { data: engineers, error: engError } = await supabase
+            .from('engineer_records')
+            .select('*');
+
+        if (engError) throw new Error(engError.message);
+
+        // 4. Send all data back to the frontend
+        res.status(200).json({
+            pendingAppointments: appointments,
+            pendingAccounts: accounts,
+            engineers: engineers
+        });
+
+    } catch (error) {
+        console.error('Error fetching dashboard data:', error.message);
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// This endpoint approves a facility owner
+app.post('/api/pm/approve-account', async (req, res) => {
+    const { user_id } = req.body; // We only need the ID of the user to approve
+
+    try {
+        const { data, error } = await supabase
+            .from('facility_owner_records')
+            .update({ status: 'approved' })
+            .eq('user_id', user_id);
+
+        if (error) throw new Error(error.message);
+
+        res.status(200).json({ message: 'Account approved successfully!' });
+
+    } catch (error) {
+        console.error('Error approving account:', error.message);
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// This endpoint assigns an engineer to an appointment
+app.post('/api/pm/assign-appointment', async (req, res) => {
+    const { appointment_id, engineer_id, pm_remarks } = req.body;
+
+    try {
+        const { data, error } = await supabase
+            .from('appointment_records')
+            .update({
+                engineer_user_id: engineer_id, // We'll need to add this column
+                status: 'Assigned', // Update status from 'Pending'
+                pm_remarks: pm_remarks // Add the PM's notes
+            })
+            .eq('id', appointment_id);
+
+        if (error) throw new Error(error.message);
+
+        res.status(200).json({ message: 'Appointment assigned successfully!' });
+
+    } catch (error) {
+        console.error('Error assigning appointment:', error.message);
+        res.status(400).json({ error: error.message });
+    }
+});
 
 // (Keep your other endpoints, like /api/test)
 app.get('/api/test', (req, res) => {
