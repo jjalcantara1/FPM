@@ -163,6 +163,7 @@
                             <h2 class="card-title">Facility Owner Accounts</h2>
                             <div class="header-actions">
                                 <input id="searchFacilityOwners" type="text" placeholder="Search facility owners by name, company, or location">
+                                <button id="addFacilityOwnerBtn" class="action-btn" onclick="openFacilityOwnerModal()" style="cursor: pointer; z-index: 999;">Add Facility Owner</button>
                             </div>
                         </div>
                         <table class="table" id="facilityOwnersTable">
@@ -454,7 +455,7 @@
                     <div class="detail-row"><span class="detail-label">Full Name:</span><span id="accountDetailName">-</span></div>
                     <div class="detail-row"><span class="detail-label">Company:</span><span id="accountDetailCompany">-</span></div>
                     <div class="detail-row"><span class="detail-label">Email:</span><span id="accountDetailEmail">-</span></div>
-                    <div class="detail-row"><span class="detail-label">Phone:</span><span id="accountDetailPhone">-</span></div>
+                    <div class="detail-row"><span class_regular="detail-label">Phone:</span><span id="accountDetailPhone">-</span></div>
                     <div class="detail-row"><span class="detail-label">Location:</span><span id="accountDetailLocation">-</span></div>
                     <div class="detail-row"><span class="detail-label">Status:</span><span id="accountDetailStatus" class="status-pill status-pending">-</span></div>
                     <div class="detail-row"><span class="detail-label">Registered At:</span><span id="accountDetailCreated">-</span></div>
@@ -473,9 +474,65 @@
 
     <div id="facilityOwnerModal" class="modal-overlay" style="display:none" onclick="closeFacilityOwnerModal()">
         <div class="assignment-modal-card" onclick="event.stopPropagation()">
+            <div class="assignment-modal-header">
+                <div class="assignment-modal-title">
+                    <span class="assignment-icon">🏢</span>
+                    <h3 id="foModalTitle">Add Facility Owner</h3>
+                </div>
+                <button type="button" class="assignment-close-btn" onclick="closeFacilityOwnerModal()">×</button>
             </div>
+            <div class="assignment-modal-body">
+                <form id="facilityOwnerForm">
+                    <input type="hidden" id="foHiddenId">
+                    <div class="assignment-form-row">
+                        <div class="assignment-form-field">
+                            <label class="assignment-label">Given Name</label>
+                            <input type="text" class="assignment-input" id="foGivenName" required>
+                        </div>
+                        <div class="assignment-form-field">
+                            <label class="assignment-label">Middle Name</label>
+                            <input type="text" class="assignment-input" id="foMiddleName">
+                        </div>
+                    </div>
+                    <div class="assignment-form-row">
+                        <div class="assignment-form-field">
+                            <label class="assignment-label">Last Name</label>
+                            <input type="text" class="assignment-input" id="foLastName" required>
+                        </div>
+                        <div class="assignment-form-field">
+                            <label class="assignment-label">Organization</label>
+                            <input type="text" class="assignment-input" id="foOrganization" required>
+                        </div>
+                    </div>
+                    <div class="assignment-form-row">
+                        <div class="assignment-form-field">
+                            <label class="assignment-label">Contact Number</label>
+                            <input type="tel" class="assignment-input" id="foContact" required>
+                        </div>
+                        <div class="assignment-form-field">
+                            <label class="assignment-label">Email Address</label>
+                            <input type="email" class="assignment-input" id="foEmail" required>
+                        </div>
+                    </div>
+                    <div class="assignment-form-row">
+                        <div class="assignment-form-field">
+                            <label class="assignment-label">Location</label>
+                            <input type="text" class="assignment-input" id="foLocation" required>
+                        </div>
+                        <div class="assignment-form-field">
+                            <label class="assignment-label">Password</label>
+                            <input type="password" class="assignment-input" id="foPassword" required>
+                        </div>
+                    </div>
+                    <div class="assignment-form-actions">
+                        <button type="button" class="assignment-btn assignment-btn-cancel" onclick="closeFacilityOwnerModal()">Cancel</button>
+                        <button type="button" id="foDeleteBtn" class="assignment-btn assignment-btn-delete" style="display:none">Delete</button>
+                        <button type="submit" class="assignment-btn assignment-btn-assign">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
-    
     <script src="projectmanager.js"></script>
 </body>
 </html>

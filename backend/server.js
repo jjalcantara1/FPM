@@ -185,22 +185,169 @@ app.post('/api/pm/engineer', async (req, res) => {
     }
 });
 
-// --- NEW ENDPOINT TO DELETE ENGINEER ---
+// --- ++ EDITED ENGINEER DELETE ENDPOINT ++ ---
 app.delete('/api/pm/engineer/:id', async (req, res) => {
     const { id } = req.params;
     if (!id) return res.status(400).json({ error: 'Engineer ID is required.' });
 
     try {
-        // Deleting the auth user should cascade delete the profile record
-        // if the database foreign key is set to ON DELETE CASCADE.
-        // This is the standard way to handle this.
-        const { error: authError } = await supabase.auth.admin.deleteUser(id);
+        // STEP 1: Un-assign all appointments from this engineer
+        const { error: apptError } = await supabase
+            .from('appointment_records')
+            .update({ engineer_user_id: null, status: 'Pending' }) // Set them back to Pending
+            .eq('engineer_user_id', id);
+        
+        if (apptError) {
+             console.error('Error un-assigning appointments:', apptError.message);
+             throw new Error(`Database error un-assigning appointments: ${apptError.message}`);
+        }
 
+        // STEP 2: Delete the engineer's profile record
+        const { error: profileError } = await supabase
+            .from('engineer_records')
+            .delete()
+            .eq('user_id', id);
+
+        if (profileError) {
+             console.error('Error deleting engineer profile:', profileError.message);
+             throw new Error(`Database error deleting profile: ${profileError.message}`);
+        }
+        
+        // STEP 3: Delete the auth user
+        const { error: authError } = await supabase.auth.admin.deleteUser(id);
         if (authError) throw new Error(authError.message);
 
-        res.status(200).json({ message: 'Engineer deleted successfully.' });
+        res.status(200).json({ message: 'Engineer deleted successfully. Associated appointments are now unassigned.' });
     } catch (error) {
         console.error('Engineer Delete Error:', error.message);
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// --- ENDPOINT TO CREATE/UPDATE FACILITY OWNER ---
+app.post('/api/pm/facility-owner', async (req, res) => {
+    // Note: 'organization' from form maps to 'company_name'
+    // 'givenName' -> 'firstName', 'lastName' -> 'surname', 'location' -> 'address'
+    const { id, email, password, givenName, middleName, lastName, phone, location, organization } = req.body;
+
+    try {
+        if (id) {
+            // --- UPDATE ---
+            const { data: profile, error: profileError } = await supabase
+                .from('facility_owner_records')
+                .update({
+                    firstName: givenName,
+                    middleName: middleName,
+                    surname: lastName,
+                    phone_number: phone,
+                    email: email,
+                    address: location,
+                    company_name: organization
+                })
+                .eq('user_id', id)
+                .select();
+
+            if (profileError) throw new Error(profileError.message);
+
+            const authUpdates = {};
+            if (email) authUpdates.email = email;
+            if (password && password !== '******') authUpdates.password = password; // Only update if new pass is provided
+
+            if (Object.keys(authUpdates).length > 0) {
+                const { error: authError } = await supabase.auth.admin.updateUserById(id, authUpdates);
+                if (authError) throw new Error(authError.message);
+            }
+
+            res.status(200).json({ message: 'Facility Owner updated successfully!', data: profile });
+        } else {
+            // --- CREATE ---
+            if (!email || !password) {
+                return res.status(400).json({ error: 'Email and password are required for new facility owner.' });
+            }
+
+            // 1. Create auth user
+            const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+                email: email,
+                password: password,
+                email_confirm: true // Auto-confirm them
+            });
+
+            if (authError) throw new Error(authError.message);
+            if (!authData || !authData.user) throw new Error('User creation failed in Supabase Auth.');
+            
+            const newUserId = authData.user.id;
+
+            // 2. Create profile record
+            const { data: profile, error: insertError } = await supabase
+                .from('facility_owner_records')
+                .insert([
+                    {
+                        user_id: newUserId,
+                        firstName: givenName,
+                        middleName: middleName,
+                        surname: lastName,
+                        email: email,
+                        phone_number: phone,
+                        address: location,
+                        company_name: organization,
+                        status: 'approved' // PM-created accounts are auto-approved
+                    }
+                ])
+                .select();
+            
+            if (insertError) {
+                // Rollback auth user creation
+                await supabase.auth.admin.deleteUser(newUserId);
+                throw new Error(insertError.message);
+            }
+
+            res.status(201).json({ message: 'Facility Owner created successfully!', data: profile });
+        }
+    } catch (error) {
+        console.error('Facility Owner Save Error:', error.message);
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// --- ++ EDITED FACILITY OWNER DELETE ENDPOINT ++ ---
+app.delete('/api/pm/facility-owner/:id', async (req, res) => {
+    const { id } = req.params;
+    if (!id) return res.status(400).json({ error: 'Facility Owner ID is required.' });
+
+    try {
+        // STEP 1: Delete all appointments associated with this user.
+        const { error: apptError } = await supabase
+            .from('appointment_records')
+            .delete()
+            .eq('user_id', id);
+        
+        if (apptError) {
+            console.error('Error deleting user appointments:', apptError.message);
+            throw new Error(`Database error deleting appointments: ${apptError.message}`);
+        }
+
+        // STEP 2: Delete the profile record from facility_owner_records.
+        const { error: profileError } = await supabase
+            .from('facility_owner_records')
+            .delete()
+            .eq('user_id', id);
+
+        if (profileError) {
+            console.error('Error deleting profile record:', profileError.message);
+            throw new Error(`Database error deleting profile: ${profileError.message}`);
+        }
+
+        // STEP 3: Now that no records reference the user, delete the auth user.
+        const { error: authError } = await supabase.auth.admin.deleteUser(id);
+        if (authError) {
+            console.error('Error deleting auth user:', authError.message);
+            throw new Error(`Database error deleting user: ${authError.message}`);
+        }
+        
+        res.status(200).json({ message: 'Facility Owner and all associated data deleted successfully.' });
+    } catch (error) {
+        console.error('Facility Owner Delete Error:', error.message);
+        // Send the more specific error message to the frontend
         res.status(400).json({ error: error.message });
     }
 });

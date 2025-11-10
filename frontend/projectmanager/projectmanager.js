@@ -81,8 +81,8 @@ function renderAllTables() {
     renderApprovedAppointments();
     renderAccounts(); 
     renderEngineers();
-    // This table is not in your HTML, so we don't call it
-    // renderFacilityOwners(); 
+    // THIS FUNCTION IS NOW CALLED
+    renderFacilityOwners(); 
 }
 
 function getStatusClass(status) {
@@ -414,7 +414,7 @@ function renderFacilityOwners() {
             <td>${acc.email || 'N/A'}</td>
             <td>${acc.address || 'N/A'}</td>
             <td>******</td>
-            <td><button class="action-btn" onclick="alert('Edit FO not built yet')">Edit</button></td>
+            <td><button class="action-btn" onclick="editFacilityOwner('${acc.user_id}')">Edit</button></td>
         `;
         tbody.appendChild(row);
     });
@@ -655,6 +655,136 @@ function switchView(viewName) {
 }
 window.switchView = switchView;
 
+
+// --- ++ NEW: Facility Owner Modal Functions ++ ---
+
+function openFacilityOwnerModal() {
+    document.getElementById('foModalTitle').textContent = 'Add Facility Owner';
+    document.getElementById('foHiddenId').value = '';
+    document.getElementById('foGivenName').value = '';
+    document.getElementById('foMiddleName').value = '';
+    document.getElementById('foLastName').value = '';
+    document.getElementById('foOrganization').value = '';
+    document.getElementById('foContact').value = '';
+    document.getElementById('foEmail').value = '';
+    document.getElementById('foLocation').value = '';
+    document.getElementById('foPassword').value = '';
+    document.getElementById('foPassword').placeholder = 'Required for new account';
+    document.getElementById('foPassword').required = true;
+
+    const delBtn = document.getElementById('foDeleteBtn');
+    if (delBtn) {
+        delBtn.style.display = 'none';
+        delBtn.onclick = null;
+    }
+    
+    document.getElementById('facilityOwnerModal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function closeFacilityOwnerModal() {
+    document.getElementById('facilityOwnerModal').style.display = 'none';
+    document.body.style.overflow = 'auto';
+}
+
+// REPLACED the stub function
+window.editFacilityOwner = function(userId) {
+    const fo = (state.allAccounts || []).find(f => f.user_id === userId);
+    if (!fo) {
+        alert('Error: Facility Owner not found in state.');
+        return;
+    }
+    
+    document.getElementById('foModalTitle').textContent = 'Edit Facility Owner';
+    document.getElementById('foHiddenId').value = fo.user_id || '';
+    document.getElementById('foGivenName').value = fo.firstName || '';
+    document.getElementById('foMiddleName').value = fo.middleName || '';
+    document.getElementById('foLastName').value = fo.surname || ''; // Match state.allAccounts field
+    document.getElementById('foOrganization').value = fo.company_name || ''; // Match state.allAccounts field
+    document.getElementById('foContact').value = fo.phone_number || ''; // Match state.allAccounts field
+    document.getElementById('foEmail').value = fo.email || '';
+    document.getElementById('foLocation').value = fo.address || ''; // Match state.allAccounts field
+    document.getElementById('foPassword').value = ''; // Clear password field
+    document.getElementById('foPassword').placeholder = 'Leave blank to keep unchanged';
+    document.getElementById('foPassword').required = false; // Not required for edit
+
+    const delBtn = document.getElementById('foDeleteBtn');
+    if (delBtn) {
+        delBtn.style.display = 'inline-flex';
+        delBtn.onclick = function() { deleteFacilityOwner(fo.user_id); };
+    }
+    
+    document.getElementById('facilityOwnerModal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+// UPDATED function to call API
+async function saveFacilityOwner(ev) {
+    ev.preventDefault();
+    
+    const id = document.getElementById('foHiddenId').value.trim();
+    const password = document.getElementById('foPassword').value;
+
+    const facilityOwnerData = {
+        id: id || null,
+        givenName: document.getElementById('foGivenName').value.trim(),
+        middleName: document.getElementById('foMiddleName').value.trim(),
+        lastName: document.getElementById('foLastName').value.trim(),
+        organization: document.getElementById('foOrganization').value.trim(),
+        phone: document.getElementById('foContact').value.trim(),
+        email: document.getElementById('foEmail').value.trim(),
+        location: document.getElementById('foLocation').value.trim(),
+        password: password ? password : null
+    };
+
+    if (!id && !password) {
+        alert('Password is required for a new Facility Owner.');
+        return;
+    }
+
+    try {
+        const response = await fetch('http://localhost:3000/api/pm/facility-owner', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(facilityOwnerData)
+        });
+        
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error);
+
+        alert(`Facility Owner ${id ? 'updated' : 'created'} successfully!`);
+        closeFacilityOwnerModal();
+        loadDashboardData(); // Reload all data from backend
+        
+    } catch (error) {
+        alert('Error saving Facility Owner: ' + error.message);
+    }
+}
+
+// UPDATED function to call API
+async function deleteFacilityOwner(userId) {
+    if (!confirm('Are you sure you want to delete this Facility Owner? This action will also delete their login and cannot be undone.')) return;
+    
+    try {
+        const response = await fetch(`http://localhost:3000/api/pm/facility-owner/${userId}`, {
+            method: 'DELETE'
+        });
+
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error);
+        
+        alert('Facility Owner deleted successfully.');
+        closeFacilityOwnerModal();
+        loadDashboardData(); // Reload all data
+        
+    } catch (error) {
+        alert('Error deleting Facility Owner: ' + error.message);
+    }
+}
+
+// --- End of new/updated functions ---
+
+
 // --- DOMCONTENTLOADED ---
 // This is the main entry point that runs when the page is ready.
 // We define functions first, then attach listeners.
@@ -778,10 +908,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // --- Other stubs ---
-    window.editFacilityOwner = function(id) { alert('Edit FO not built yet.'); }
-    window.deleteFacilityOwner = function(id) { alert('Delete FO not built yet.'); }
-    window.saveFacilityOwner = function(ev) { ev.preventDefault(); alert('Save FO not built yet.'); }
-    window.closeFacilityOwnerModal = function() { document.getElementById('facilityOwnerModal').style.display = 'none'; }
+    // window.editFacilityOwner = function(id) { alert('Edit FO not built yet.'); } // THIS IS NOW REPLACED
+    // window.deleteFacilityOwner = function(id) { alert('Delete FO not built yet.'); } // THIS IS NOW REPLACED
+    // window.saveFacilityOwner = function(ev) { ev.preventDefault(); alert('Save FO not built yet.'); } // THIS IS NOW REPLACED
+    // window.closeFacilityOwnerModal = function() { document.getElementById('facilityOwnerModal').style.display = 'none'; } // THIS IS NOW REPLACED
     window.approveAccountStatus = function(id) { alert('Please use the "View" button to approve.'); }
     window.rejectAccountStatus = function(id) { alert('Reject not connected yet.'); }
     window.viewAccountDetails = function(id) { openApproveModal(id); }
@@ -972,6 +1102,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const engineerForm = document.getElementById('engineerForm');
     if (engineerForm) {
         engineerForm.addEventListener('submit', saveEngineer); // This should now work!
+    }
+
+    // --- ++ NEW: Attach Facility Owner form listener ++ ---
+    const facilityOwnerForm = document.getElementById('facilityOwnerForm');
+    if (facilityOwnerForm) {
+        facilityOwnerForm.addEventListener('submit', saveFacilityOwner);
     }
 
     // --- NEW: Add listener for engineer dropdown in modal ---
