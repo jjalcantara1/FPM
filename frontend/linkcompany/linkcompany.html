@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Register Account</title>
+    <meta name="theme-color" content="#0b5cff">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="linkcompany.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../static/supabaseClient.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+</head>
+<body>
+    <header>
+        <div class="container nav">
+            <a href="../landingpage/landingpage.html#home" class="brand"><img src="../static/Finsi.png" alt="FINSI" style="height:56px; width:auto;"></a>
+            <button class="menu-toggle" aria-label="Menu" onclick="toggleMenu()">☰</button>
+            <nav>
+                <ul id="menu">
+                    <li><a href="../landingpage/landingpage.html#home">Home</a></li>
+                    <li><a class="locked" href="../landingpage/landingpage.html#appointment" aria-disabled="true" title="Login required">Appointment</a></li>
+                    <li><a class="locked" href="#status" aria-disabled="true" title="Login required">Status</a></li>
+                </ul>
+            </nav>
+            <div class="auth-actions">
+                <a href="../login/login.html" class="btn-outline">Login</a>
+                <a href="linkcompany.html" class="cta-btn">Register Account</a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="page-hero">
+            <div class="container">
+                <span class="eyebrow">Register your account</span>
+                <h1>Register Account</h1>
+            </div>
+        </section>
+
+        <section>
+            <div class="container">
+                <div class="form-wrap" role="region" aria-labelledby="registration-form-title">
+                    <div class="field">
+                        <label id="registration-form-title" style="font-size: 18px;">Facility Owner Registration</label>
+                        <div class="muted">Please fill in all the required information to register your account.</div>
+                    </div>
+
+                    <form id="registrationForm">
+                        <div class="grid-3">
+                            <div class="field">
+                                <label for="firstName">First Name <span style="color: #ef4444;">*</span></label>
+                                <input type="text" id="firstName" name="firstName" required>
+                            </div>
+                            <div class="field">
+                                <label for="middleName">Middle Name</label>
+                                <input type="text" id="middleName" name="middleName">
+                            </div>
+                            <div class="field">
+                                <label for="surname">Surname <span style="color: #ef4444;">*</span></label>
+                                <input type="text" id="surname" name="surname" required>
+                            </div>
+                        </div>
+
+                        <div class="grid-2">
+                            <div class="field">
+                                <label for="companyEmail">Company Email <span style="color: #ef4444;">*</span></label>
+                                <input type="email" id="companyEmail" name="companyEmail" required>
+                            </div>
+                            <div class="field">
+                                <label for="contactNumber">Contact Number <span style="color: #ef4444;">*</span></label>
+                                <input type="tel" id="contactNumber" name="contactNumber" placeholder="09xx xxx xxxx" required>
+                            </div>
+                        </div>
+
+                        <div class="grid-2">
+                            <div class="field">
+                                <label for="location">Location <span style="color: #ef4444;">*</span></label>
+                                <input type="text" id="location" name="location" placeholder="City/Province" required>
+                            </div>
+                            <div class="field">
+                                <label for="companyName">Company Name <span style="color: #ef4444;">*</span></label>
+                                <input type="text" id="companyName" name="companyName" required>
+                            </div>
+                        </div>
+
+                        <div class="grid-2">
+                            <div class="field">
+                                <label for="password">Password <span style="color: #ef4444;">*</span></label>
+                                <input type="password" id="password" name="password" minlength="6" required>
+                            </div>
+                            <div class="field">
+                                <label for="confirmPassword">Confirm Password <span style="color: #ef4444;">*</span></label>
+                                <input type="password" id="confirmPassword" name="confirmPassword" minlength="6" required>
+                            </div>
+                        </div>
+
+                        <div class="actions" style="margin-top: 24px;">
+                            <button type="submit" class="btn-primary">Register Account</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="confirmationModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Confirm Your Registration Details</h2>
+            </div>
+            <div class="modal-body">
+                <p class="muted" style="margin-bottom: 20px;">Please review your information carefully before proceeding. An OTP will be sent to your company email for verification.</p>
+                <div id="confirmationDetails"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeConfirmationModal()">Cancel</button>
+                <button type="button" class="btn-primary" id="confirm-send-btn" onclick="sendOTP()">Confirm & Send OTP</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="otpModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Verify Your Email</h2>
+            </div>
+            <div class="modal-body">
+                <div class="otp-container">
+                    <p style="color: var(--text-700); margin-bottom: 8px;">Enter the 6-digit code sent to:</p>
+                    <p class="otp-email" id="otpEmailDisplay"></p>
+                    <div class="otp-inputs">
+                        <input type="text" class="otp-input" maxlength="1" id="otp1" oninput="moveToNext(this, 'otp2')" onkeydown="handleBackspace(event, this, null)">
+                        <input type="text" class="otp-input" maxlength="1" id="otp2" oninput="moveToNext(this, 'otp3')" onkeydown="handleBackspace(event, this, 'otp1')">
+                        <input type="text" class="otp-input" maxlength="1" id="otp3" oninput="moveToNext(this, 'otp4')" onkeydown="handleBackspace(event, this, 'otp2')">
+                        <input type="text" class="otp-input" maxlength="1" id="otp4" oninput="moveToNext(this, 'otp5')" onkeydown="handleBackspace(event, this, 'otp3')">
+                        <input type="text" class="otp-input" maxlength="1" id="otp5" oninput="moveToNext(this, 'otp6')" onkeydown="handleBackspace(event, this, 'otp4')">
+                        <input type="text" class="otp-input" maxlength="1" id="otp6" oninput="moveToNext(this, null)" onkeydown="handleBackspace(event, this, 'otp5')">
+                    </div>
+                    <p class="otp-message">Didn't receive the code?</p>
+                    <a class="resend-link" onclick="resendOTP()">Resend OTP</a>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeOTPModal()">Cancel</button>
+                <button type="button" class="btn-primary" id="verify-btn" onclick="verifyOTP()">Verify & Register</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="validationModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Registration Submitted Successfully!</h2>
+            </div>
+            <div class="modal-body">
+                <div style="text-align: center; padding: 20px 0;">
+                    <div style="width: 80px; height: 80px; margin: 0 auto 20px; border-radius: 50%; background: linear-gradient(135deg, #10b981, #059669); display: flex; align-items: center; justify-content: center; font-size: 40px; color: white;">✓</div>
+                    <h3 style="color: var(--text-900); margin-bottom: 12px; font-size: 18px;">Your account is pending validation</h3>
+                    <p style="color: var(--text-700); margin-bottom: 16px; line-height: 1.6;">
+                        Thank you for registering! Your account has been successfully registered and is now waiting for approval.
+                    </p>
+                    <div style="background: #fff8f0; border: 1px solid #ffe4c4; border-radius: 12px; padding: 16px; margin: 20px 0; text-align: left;">
+                        <p style="color: var(--text-700); font-size: 14px; margin: 0 0 8px 0;"><strong>⏳ What's Next?</strong></p>
+                        <p style="color: var(--text-500); font-size: 13px; margin: 0; line-height: 1.6;">
+                            A Project Manager will review and validate your account details. You will receive an email notification once your account has been approved.
+                        </p>
+                    </div>
+                    <p style="color: var(--text-500); font-size: 13px; margin-top: 16px;">
+                        Please check your email (<span class="otp-email" id="validationEmail"></span>) for updates.
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-primary" onclick="closeValidationModal()">Got It</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container" style="margin-top:10px; text-align:center; font-size:14px">
+            © 2021 FINSI. All rights reserved.
+        </div>
+    </footer>
+
+    <script src="linkcompany.js"></script>
+</body>
+</html>

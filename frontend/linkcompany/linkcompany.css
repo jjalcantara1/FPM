@@ -39,4 +39,25 @@ footer { padding: 34px 0; border-top: 1px solid #e6ecf7; background: #fbfdff; co
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 .toast.success { background: linear-gradient(135deg, #10b981, #059669); }
 .toast.error { background: linear-gradient(135deg, #ef4444, #b91c1c); }
-@media (max-width: 900px) { .grid-3 { grid-template-columns: 1fr; } .grid-2 { grid-template-columns: 1fr; } }
+.modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(11, 16, 32, 0.7); backdrop-filter: blur(4px); z-index: 999; align-items: center; justify-content: center; }
+.modal-overlay.show { display: flex; }
+.modal { background: var(--white); border-radius: 18px; box-shadow: 0 24px 60px rgba(21, 91, 255, 0.15); max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; animation: modalSlideIn 0.3s ease; }
+@keyframes modalSlideIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+.modal-header { padding: 24px 24px 16px; border-bottom: 1px solid #e6ecf7; }
+.modal-title { font-size: 20px; font-weight: 800; margin: 0; color: var(--text-900); }
+.modal-body { padding: 24px; }
+.modal-footer { padding: 16px 24px; border-top: 1px solid #e6ecf7; display: flex; gap: 12px; justify-content: flex-end; }
+.info-row { display: grid; grid-template-columns: 140px 1fr; gap: 12px; padding: 10px 0; border-bottom: 1px solid #f0f4ff; }
+.info-row:last-child { border-bottom: none; }
+.info-label { font-weight: 700; color: var(--text-700); font-size: 14px; }
+.info-value { color: var(--text-900); font-size: 14px; }
+.btn-secondary { background: transparent; color: var(--text-700); border: 1px solid #dce6f5; padding: 12px 20px; border-radius: 999px; font-weight: 700; cursor: pointer; font-size: 14px; }
+.btn-secondary:hover { background: #f6f8ff; }
+.otp-container { text-align: center; padding: 20px 0; }
+.otp-inputs { display: flex; gap: 12px; justify-content: center; margin: 24px 0; }
+.otp-input { width: 56px; height: 56px; text-align: center; font-size: 24px; font-weight: 700; border: 2px solid #dce6f5; border-radius: 12px; transition: border-color 0.2s; }
+.otp-input:focus { outline: none; border-color: var(--orange-600); }
+.otp-message { color: var(--text-500); font-size: 14px; margin-top: 16px; }
+.otp-email { color: var(--orange-600); font-weight: 700; }
+.resend-link { color: var(--orange-600); font-weight: 700; cursor: pointer; text-decoration: underline; margin-top: 12px; display: inline-block; }
+@media (max-width: 900px) { .grid-3 { grid-template-columns: 1fr; } .grid-2 { grid-template-columns: 1fr; } .info-row { grid-template-columns: 1fr; } .otp-inputs { gap: 8px; } .otp-input { width: 48px; height: 48px; font-size: 20px; } }

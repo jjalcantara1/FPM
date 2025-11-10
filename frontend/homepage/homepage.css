@@ -1,4 +1,3 @@
-/* Styles extracted from homepage.php */
 :root { --brand-700:#0a3cff; --brand-600:#155bff; --brand-500:#4b79ff; --accent-500:#22d3ee; --text-900:#0b1020; --text-700:#2a3347; --text-500:#66748a; --bg-50:#f6f8ff; --bg-100:#eef2ff; --white:#ffffff; }
 * { box-sizing: border-box; }
 html, body { height: 100%; }
@@ -27,6 +26,14 @@ nav a:hover::after { opacity: 1; transform: scaleX(1); }
 .profile-dropdown.open { display: grid; }
 .profile-dropdown a, .profile-dropdown button { padding: 10px 14px; text-align: left; border: 0; background: none; font: inherit; color: var(--text-700); cursor: pointer; }
 .profile-dropdown a:hover, .profile-dropdown button:hover { background: #f6f8ff; color: var(--brand-700); }
+.modal-overlay { position: fixed; inset: 0; background: rgba(16,24,40,0.5); display: none; align-items: center; justify-content: center; z-index: 200; padding: 16px; }
+.modal-overlay.show { display: flex; }
+.modal-card { width: min(480px, 100%); background: #ffffff; border: 1px solid #e6ecf7; border-radius: 16px; box-shadow: 0 24px 48px rgba(2, 8, 23, 0.18); overflow: hidden; }
+.modal-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid #eef2ff; }
+.modal-title { margin: 0; font-weight: 800; font-size: 16px; color: #0b1020; }
+.modal-body { padding: 16px; color: var(--text-700); }
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; padding: 0 16px 16px; }
+.modal-close { background: transparent; border: 1px solid #e6ecf7; border-radius: 10px; padding: 8px 12px; font-weight: 700; color: var(--text-700); cursor: pointer; }
 .hero { padding: 0; background: radial-gradient(1400px 600px at 20% -30%, #e5f4ff, transparent 60%); }
 .hero-grid { display: grid; grid-template-columns: 1fr; gap: 18px; align-items: start; }
 .eyebrow { display: inline-flex; align-items: center; gap: 10px; color: var(--brand-700); background: #eaf1ff; padding: 8px 14px; border-radius: 999px; font-weight: 800; font-size: 12px; letter-spacing: .6px; text-transform: uppercase; }
@@ -49,20 +56,13 @@ h1 { font-size: 36px; margin: 12px 0 6px; }
 .carousel .next { right: 12px; }
 .full-bleed { position: relative; left: 50%; right: 50%; margin-left: -50vw; margin-right: -50vw; width: 100vw; }
 .carousel.hero-carousel { border-radius: 0; border: none; box-shadow: none; aspect-ratio: unset; height: 60vh; max-height: 520px; min-height: 320px; }
-#services { padding: 24px 0 36px; }
-.services-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1100px; margin: 0 auto; }
-.service-card { background: #fff; border: 1px solid #e6ecf7; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 24px rgba(21,91,255,0.06); }
-.service-media { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; }
-.service-body { padding: 14px 16px; }
-.service-title { margin: 0 0 6px 0; font-size: 18px; font-weight: 800; color: #0b1020; }
-.service-desc { margin: 0; color: var(--text-700); font-size: 14px; }
 .appointment-card { background: var(--white); border: 1px solid #e6ecf7; border-radius: 18px; padding: 22px; box-shadow: 0 10px 28px rgba(21,91,255,0.06); }
 .field { margin-bottom: 14px; }
 label { display: block; font-weight: 600; margin-bottom: 6px; }
 input, textarea { width: 100%; padding: 12px 12px; border: 1px solid #dce6f5; border-radius: 12px; font: inherit; }
 textarea { min-height: 100px; }
 .btn-primary { background: linear-gradient(135deg, var(--brand-600), var(--brand-700)); color: #fff; padding: 12px 18px; border: 0; border-radius: 999px; font-weight: 800; cursor: pointer; box-shadow: 0 10px 24px rgba(21,91,255,0.18); }
-#home, #services, #appointment { scroll-margin-top: 80px; }
+#home, #appointment { scroll-margin-top: 80px; }
 footer { padding: 34px 0; border-top: 1px solid #e6ecf7; background: #fbfdff; color: var(--text-500); }
 .foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 @media (max-width: 720px) {

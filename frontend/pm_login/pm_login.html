@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>PM Login — FINSI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="pm_login.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../static/supabaseClient.js"></script>
+</head>
+<body>
+    <header>
+        <div class="container nav">
+            <a href="../landingpage/landingpage.html#home" class="brand"><img src="../static/Finsi.png" alt="FINSI" style="height:56px; width:auto;"></a>
+            </div>
+    </header>
+
+    <main>
+        <section class="page-hero">
+            <div class="container">
+                <h1>Project Manager Login</h1>
+                <div class="sub">Sign in to the management dashboard.</div>
+            </div>
+        </section>
+        <section>
+            <div class="container wrap">
+                <form class="card" onsubmit="handlePMLogin(event)">
+                    <div class="card-header">
+                        <h2 class="form-title">PM Sign In</h2>
+                        <div class="form-sub">Use your internal credentials</div>
+                    </div>
+                    <div class="field">
+                        <label>Email</label>
+                        <input id="email" type="email" placeholder="you@finsi.com" required>
+                    </div>
+                    <div class="field">
+                        <label>Password</label>
+                        <input id="password" type="password" placeholder="••••••••" minlength="6" required>
+                    </div>
+                    <div class="actions" style="margin-top:10px">
+                        <button type="submit" class="btn-primary">Login</button>
+                    </div>
+                    <div id="loginStatus" class="status"></div>
+                </form>
+            </div>
+        </section>
+
+    <footer>
+        <div class="container" style="margin-top:10px; text-align:center; font-size:14px">
+            © 2021 FINSI. All rights reserved.
+        </div>
+    </footer>
+
+    <script src="pm_login.js"></script>
+</body>
+</html>

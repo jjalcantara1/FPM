@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Login — FINSI</title>
+    <meta name="theme-color" content="#0b5cff">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="login.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../static/supabaseClient.js"></script>
+</head>
+<body>
+    <header>
+        <div class="container nav">
+            <a href="../landingpage/landingpage.html#home" class="brand"><img src="../static/Finsi.png" alt="FINSI" style="height:56px; width:auto;"></a>
+            <button class="menu-toggle" aria-label="Menu" onclick="toggleMenu()">☰</button>
+            <nav>
+                <ul id="menu">
+                    <li><a href="../landingpage/landingpage.html#home">Home</a></li>
+                    <li><a href="../landingpage/landingpage.html#services">Services</a></li>
+                    <li><a class="locked" href="../landingpage/landingpage.html#appointment" aria-disabled="true" title="Login required">Appointment</a></li>
+                    <li><a class="locked" href="#status" aria-disabled="true" title="Login required">Status</a></li>
+                </ul>
+            </nav>
+            <div class="auth-actions">
+                <a href="login.html" class="btn-outline">Login</a>
+                <a href="../linkcompany/linkcompany.html" class="cta-btn">Link Company</a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="page-hero">
+            <div class="container">
+                <h1>Welcome back</h1>
+                <div class="sub">Sign in to continue to your dashboard.</div>
+            </div>
+        </section>
+        <section>
+            <div class="container wrap">
+                <form class="card" onsubmit="handleLogin(event)">
+                    <div class="card-header">
+                        <h2 class="form-title">Sign in</h2>
+                        <div class="form-sub">Use your company email and password</div>
+                    </div>
+                    <div class="field">
+                        <label>Email</label>
+                        <input id="email" type="email" placeholder="you@company.com" required>
+                    </div>
+                    <div class="field">
+                        <label>Password</label>
+                        <input id="password" type="password" placeholder="••••••••" minlength="6" required>
+                    </div>
+                    <div class="actions" style="margin-top:10px">
+                        <button type="submit" class="btn-primary">Login</button>
+                    </div>
+                    <div id="loginStatus" class="status"></div>
+                    <div class="form-footer">
+                        <div class="help-row">
+                            <span class="muted">Don't have an account?</span>
+                            <a href="../linkcompany/linkcompany.html">Link your company</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+    <footer>
+        <div class="container" style="margin-top:10px; text-align:center; font-size:14px">
+            © 2021 FINSI. All rights reserved.
+        </div>
+    </footer>
+
+    <script src="login.js"></script>
+</body>
+</html>

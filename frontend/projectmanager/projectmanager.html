@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>FINSI — Project Manager</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="projectmanager.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../static/supabaseClient.js"></script>
+</head>
+<body>
+    <div class="layout">
+        <aside class="sidebar">
+            <div class="userbox">
+                <img class="avatar" src="../static/profile.jpg" alt="Profile">
+                <div class="username" id="pmName">Loading...</div>
+            </div>
+            <nav>
+                <ul class="navlist">
+                    <li><a class="nav-link active" data-view="dashboard" href="#"><span class="nav-icon">📊</span>Dashboard</a></li>
+                    <li>
+                        <a class="nav-link has-children" data-toggle="accounts" href="#"><span class="nav-icon">👥</span>Accounts<span class="nav-caret">▾</span></a>
+                        <ul class="nav-sublist" id="accounts-subnav" style="display:none;">
+                            <li><a class="nav-link" data-view="account-management" href="#">Facility Owner Account Management</a></li>
+                            <li><a class="nav-link" data-view="engineers" href="#">Engineers</a></li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a class="nav-link has-children" data-toggle="appointments" href="#"><span class="nav-icon">📅</span>Appointments<span class="nav-caret">▾</span></a>
+                        <ul class="nav-sublist" id="appointments-subnav" style="display:none;">
+                            <li><a class="nav-link" data-view="request-appointments" href="#">Request Appointments</a></li>
+                            </ul>
+                    </li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <a class="logout" onclick="logout()"><span class="nav-icon">↗</span>Logout</a>
+            </div>
+        </aside>
+        <div>
+            <div class="topbar">
+                <div class="welcome-text" id="welcomeText">Welcome, Project Manager!</div>
+                <div class="finsi-logo">
+                    <img src="../static/Finsi.png" alt="FINSI Logo" class="logo-image">
+                </div>
+            </div>
+            <div class="content">
+                <div id="dashboard-view" class="view-section active">
+                    <div class="dashboard-grid">
+                        <div class="dashboard-overview">
+                            <h2 class="overview-title">Dashboard Overview</h2>
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-icon">🎫</div>
+                                <div class="stat-number" id="totalTickets">0</div>
+                                <div class="stat-label">Pending Appointments</div>
+                            </div>
+                            <div class="stat-card" onclick="navigateToAccounts('pending')" style="cursor: pointer;">
+                                <div class="stat-icon">👥</div>
+                                <div class="stat-number" id="pendingFOAccounts">0</div>
+                                <div class="stat-label">Pending FO Accounts</div>
+                            </div>
+                        </div>
+                        </div>
+                        
+                        <div class="calendar-widget">
+                            <div class="calendar-header">
+                                <h3 class="calendar-title" id="calendarTitle">Calendar</h3>
+                            </div>
+                            <div class="calendar-grid" id="calendarGrid">
+                                <p style="text-align: center; padding: 20px; color: var(--text-500);">Calendar view coming soon.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="account-management-view" class="view-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">Facility Owner Account Management</h2>
+                            <input id="searchAccounts" type="text" placeholder="Search by name, company, or email">
+                        </div>
+                        <div style="overflow-x: auto;">
+                            <table class="table" id="accountsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Full Name</th>
+                                        <th>Company Name</th>
+                                        <th>Email</th>
+                                        <th>Contact Number</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="accountsBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="engineers-view" class="view-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">Engineers</h2>
+                            <input id="searchEngineers" type="text" placeholder="Search engineers">
+                        </div>
+                        <table class="table" id="engineersTable">
+                            <thead>
+                                <tr>
+                                    <th>Full Name</th>
+                                    <th>Email Address</th>
+                                    <th>Phone Number</th>
+                                    <th>Location/Coverage</th>
+                                </tr>
+                            </thead>
+                            <tbody id="engineersBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="request-appointments-view" class="view-section">
+                    <div class="card">
+                        <div class="card-header"><h2 class="card-title">Request Appointments</h2></div>
+                        <div class="searchbar"><input id="searchRequestAppointments" type="text" placeholder="Search appointments..."></div>
+                        <table class="table" id="requestAppointmentsTable">
+                            <thead>
+                                <tr>
+                                    <th>Ticket</th>
+                                    <th>Date</th>
+                                    <th>Site</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                    <th>Status</th>
+                                    <th>Priority</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="requestAppointmentsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div id="ticketOverviewModal" class="modal-overlay" onclick="closeTicketOverviewModal()">
+        <div class="ticket-overview-modal-card" onclick="event.stopPropagation()">
+            <div class="ticket-overview-modal-header">
+                <h3 class="ticket-overview-modal-title">Assign Appointment</h3>
+                <button type="button" class="ticket-overview-close-btn" onclick="closeTicketOverviewModal()">×</button>
+            </div>
+            <div class="ticket-overview-modal-body">
+                <div class="ticket-info-section">
+                    <h4 class="section-title">Ticket Information</h4>
+                    <div class="ticket-info-grid">
+                        <div class="info-item">
+                            <label class="info-label">Ticket Number</label>
+                            <div class="info-value" id="overviewTicket">—</div>
+                        </div>
+                        <div class="info-item">
+                            <label class="info-label">Date & Time</label>
+                            <div class="info-value" id="overviewDate">—</div>
+                        </div>
+                        <div class="info-item">
+                            <label class="info-label">Priority</label>
+                            <div class="info-value" id="overviewPriority">—</div>
+                        </div>
+                        <div class="info-item full-width">
+                            <label class="info-label">Site Location</label>
+                            <div class="info-value" id="overviewSite">—</div>
+                        </div>
+                        <div class="info-item full-width">
+                            <label class="info-label">Task Description / Issue</label>
+                            <div class="info-value" id="overviewDescription">—</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="engineer-assignment-section" id="engineerAssignmentSection">
+                    <h4 class="section-title">Engineer Assignment</h4>
+                    <form id="assignmentForm">
+                        <input type="hidden" id="currentAppointmentId">
+                        <div class="form-field">
+                            <label class="form-label">Assign Engineer</label>
+                            <select class="form-select" id="engineerSelect" required>
+                                <option value="">Select an engineer...</option>
+                            </select>
+                        </div>
+                        <div class="form-field" id="pmRemarksField">
+                            <label class="form-label">PM Remarks to Engineer</label>
+                            <textarea class="form-textarea" id="pmRemarksText" rows="3" placeholder="Enter remarks for the assigned engineer..."></textarea>
+                        </div>
+                        <div class="action-buttons-section" style="margin-top: 20px;">
+                            <button type="submit" class="action-btn process-btn" id="processBtn">
+                                <span class="btn-icon">⚡</span>
+                                Assign & Process Ticket
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="accountDetailModal" class="modal-overlay" style="display:none" onclick="closeAccountDetailModal()">
+        <div class="assignment-modal-card" onclick="event.stopPropagation()" style="max-width: 600px;">
+            <div class="assignment-modal-header">
+                <div class="assignment-modal-title"><span class="assignment-icon">👤</span><h3>Account Details</h3></div>
+            </div>
+            <div class="assignment-modal-body">
+                <div style="display: flex; flex-direction: column; gap: 16px;">
+                    <div class="detail-row"><span class="detail-label">Full Name:</span><span id="accountDetailName">-</span></div>
+                    <div class="detail-row"><span class="detail-label">Company:</span><span id="accountDetailCompany">-</span></div>
+                    <div class="detail-row"><span class="detail-label">Email:</span><span id="accountDetailEmail">-</span></div>
+                    <div class="detail-row"><span class="detail-label">Phone:</span><span id="accountDetailPhone">-</span></div>
+                    <div class="detail-row"><span class="detail-label">Location:</span><span id="accountDetailLocation">-</span></div>
+                    <div class="detail-row"><span class="detail-label">Status:</span><span id="accountDetailStatus" class="status-pill status-pending">-</span></div>
+                </div>
+                <div class="assignment-form-actions" style="margin-top: 24px;">
+                    <button type="button" class="assignment-btn assignment-btn-cancel" onclick="closeAccountDetailModal()">Close</button>
+                    <button type="button" id="accountApproveBtn" class="assignment-btn assignment-btn-assign" style="background: #10b981;">Approve</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="projectmanager.js"></script>
+</body>
+</html>

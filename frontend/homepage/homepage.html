@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>FINSI — Home</title>
+    <meta name="theme-color" content="#0b5cff">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="homepage.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../static/supabaseClient.js"></script>
+</head>
+<body>
+    <div id="home" style="height:0; scroll-margin-top: 80px;"></div>
+    <header>
+        <div class="container nav">
+            <a href="#home" class="brand"><img src="../static/Finsi.png" alt="FINSI" style="height:56px; width:auto;"></a>
+            <nav>
+                <ul id="menu">
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="../appointment/appointment.html" id="appointmentLink" class="disabled-link" aria-disabled="true" title="Login required">Appointment</a></li>
+                    <li><a id="statusLink" class="disabled-link" href="../status/status.html" aria-disabled="true" title="Login required">Status</a></li>
+                </ul>
+            </nav>
+            <div class="auth-actions">
+            <div class="profile">
+                <button type="button" class="profile-btn" id="profileBtn">
+                    <span id="welcomeLabel">Loading...</span>
+                    <span class="badge pending">...</span>
+                </button>
+                <div class="profile-dropdown" id="profileMenu">
+                    <button type="button" onclick="logout()">Logout</button>
+                </div>
+            </div>
+        </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container hero-grid">
+                <div class="full-bleed">
+                    <div class="carousel hero-carousel" data-images="../static/building1.jpg, ../static/building2.jpg, ../static/building3.jpg">
+                        <img id="carousel-image-a" class="layer show" src="" alt="FINSI showcase">
+                        <img id="carousel-image-b" class="layer" src="" alt="FINSI showcase">
+                        <button class="arrow prev" type="button" onclick="handlePrevClick()" aria-label="Previous">‹</button>
+                        <button class="arrow next" type="button" onclick="handleNextClick()" aria-label="Next">›</button>
+                    </div>
+                </div>
+                <div style="text-align:center; padding: 12px 20px 18px;">
+                    <span class="eyebrow about-eyebrow">About FINSI</span>
+                    <h1>Our Vision & Mission</h1>
+                    <div class="about-details">
+                        <div class="info-card">
+                            <div style="display:flex; align-items:center; gap:8px">
+                                <div class="info-icon">V</div>
+                                <div class="info-title">Our Vision</div>
+                            </div>
+                            <div class="info-text">To be the leading edge local solutions provider for the Telecommunications and Technology industries.</div>
+                        </div>
+                        <div class="info-card">
+                            <div style="display:flex; align-items:center; gap:8px">
+                                <div class="info-icon">M</div>
+                                <div class="info-title">Our Mission</div>
+                            </div>
+                            <div class="info-text">To accelerate the Philippines into a connected nation, using innovative, leading-edge technologies and world-class local expertise.</div>
+                        </div>
+                        <div class="info-card">
+                            <div style="display:flex; align-items:center; gap:8px">
+                                <div class="info-icon">L</div>
+                                <div class="info-title">Location</div>
+                            </div>
+                            <div class="info-text">4/F Globe Telecom Plaza 2, Pioneer cor. Madison Street<br/>Mandaluyong City, 1550, PH</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container" style="margin-top:10px; text-align:center; font-size:14px">
+            © 2021 FINSI. All rights reserved.
+        </div>
+    </footer>
+
+    <script src="homepage.js"></script>
+</body>
+</html>
