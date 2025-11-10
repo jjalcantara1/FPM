@@ -1,6 +1,3 @@
-//
-// REPLACE your entire appointment.js file with this
-//
 let currentUser = null;
 let userProfile = null;
 
@@ -9,7 +6,6 @@ function toggleMenu() {
     menu.classList.toggle('open');
 }
 
-// NEW: Real Logout function
 async function logout() {
     const { error } = await supabase.auth.signOut();
     if (error) {
@@ -18,25 +14,22 @@ async function logout() {
     window.location.href = '../landingpage/landingpage.html#home';
 }
 
-// NEW: Check user session on page load
 async function checkUserSession() {
     const { data, error } = await supabase.auth.getSession();
     if (error) {
         console.error('Error getting session:', error.message);
-        window.location.href = '../login/login.html'; // Redirect if error
+        window.location.href = '../login/login.html';
         return;
     }
 
     if (!data.session) {
         console.log('No session found, redirecting to login.');
-        window.location.href = '../login/login.html'; // Redirect if no session
+        window.location.href = '../login/login.html';
         return;
     }
 
-    // Session exists, store the user
     currentUser = data.session.user;
 
-    // Now, get the user's profile from 'facility_owner_records'
     const { data: profile, error: profileError } = await supabase
         .from('facility_owner_records')
         .select('*')
@@ -45,32 +38,31 @@ async function checkUserSession() {
 
     if (profileError) {
         console.error('Error fetching profile:', profileError.message);
-        logout(); 
+        logout();
         return;
     }
 
     userProfile = profile;
-    
+
     const label = document.getElementById('welcomeLabel');
     if (label && userProfile) {
-        label.textContent = userProfile.company_name ? 
-            ('Welcome, ' + userProfile.company_name) : 
+        label.textContent = userProfile.company_name ?
+            ('Welcome, ' + userProfile.company_name) :
             ('Welcome, ' + userProfile.email);
     }
-    
+
     var badge = document.querySelector('.profile-btn .badge');
     if (badge) {
         badge.textContent = 'Approved';
         badge.classList.remove('pending');
         badge.classList.add('approved');
     }
-    
+
     var statusLink = document.getElementById('statusLink');
     if (statusLink) {
         statusLink.classList.remove('disabled-link');
     }
 
-    // Now that we have a user, load their appointments
     initCalendar();
 }
 
