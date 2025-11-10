@@ -1,3 +1,6 @@
+//
+// REPLACE your entire appointment.js file with this
+//
 let currentUser = null;
 let userProfile = null;
 
@@ -6,6 +9,7 @@ function toggleMenu() {
     menu.classList.toggle('open');
 }
 
+// NEW: Real Logout function
 async function logout() {
     const { error } = await supabase.auth.signOut();
     if (error) {
@@ -14,22 +18,25 @@ async function logout() {
     window.location.href = '../landingpage/landingpage.html#home';
 }
 
+// NEW: Check user session on page load
 async function checkUserSession() {
     const { data, error } = await supabase.auth.getSession();
     if (error) {
         console.error('Error getting session:', error.message);
-        window.location.href = '../login/login.html';
+        window.location.href = '../login/login.html'; // Redirect if error
         return;
     }
 
     if (!data.session) {
         console.log('No session found, redirecting to login.');
-        window.location.href = '../login/login.html';
+        window.location.href = '../login/login.html'; // Redirect if no session
         return;
     }
 
+    // Session exists, store the user
     currentUser = data.session.user;
 
+    // Now, get the user's profile from 'facility_owner_records'
     const { data: profile, error: profileError } = await supabase
         .from('facility_owner_records')
         .select('*')
@@ -38,36 +45,36 @@ async function checkUserSession() {
 
     if (profileError) {
         console.error('Error fetching profile:', profileError.message);
-        logout();
+        logout(); 
         return;
     }
 
     userProfile = profile;
-
+    
     const label = document.getElementById('welcomeLabel');
     if (label && userProfile) {
-        label.textContent = userProfile.company_name ?
-            ('Welcome, ' + userProfile.company_name) :
+        label.textContent = userProfile.company_name ? 
+            ('Welcome, ' + userProfile.company_name) : 
             ('Welcome, ' + userProfile.email);
     }
-
+    
     var badge = document.querySelector('.profile-btn .badge');
     if (badge) {
         badge.textContent = 'Approved';
         badge.classList.remove('pending');
         badge.classList.add('approved');
     }
-
+    
     var statusLink = document.getElementById('statusLink');
     if (statusLink) {
         statusLink.classList.remove('disabled-link');
     }
 
+    // Now that we have a user, load their appointments
     initCalendar();
 }
 
-document.addEventListener('DOMContentLoaded', checkUserSession);
-
+// Modal functions
 document.addEventListener('DOMContentLoaded', function(){
     window.showModal = function(title, message, actions){
         var overlay = document.querySelector('.modal-overlay');
@@ -138,12 +145,14 @@ document.addEventListener('DOMContentLoaded', function(){
     }
 });
 
+
+// --- CALENDAR & FORM SCRIPT ---
+
 const state = {
     current: new Date(),
     selected: null,
     unavailableSet: new Set(),
-    dateSlots: new Map(),
-    appointments: []
+    dateSlots: new Map(), // Track slots per date: {date: {total: 5, taken: 3, available: 2}}
 };
 
 function formatDate(d) {
@@ -157,39 +166,56 @@ function monthLabel(d) {
     return d.toLocaleString(undefined, { month: 'long', year: 'numeric' });
 }
 
+// UPDATED: Load availability from our Node.js backend
 async function loadAvailability() {
-    if (!currentUser) return;
+    if (!currentUser) return; 
+
     state.unavailableSet.clear();
     state.dateSlots.clear();
+    
+    const month = state.current.getMonth(); // 0-11
+    const year = state.current.getFullYear();
+    
+    // Clear the calendar while we fetch
+    var grid = document.getElementById('calGrid');
+    if (grid) grid.innerHTML = '<div class="cal-cell-loading">Loading slots...</div>';
 
-    const { data, error } = await supabase
-        .from('appointment_records')
-        .select('date');
+    try {
+        // Call our new backend endpoint
+        const response = await fetch(`http://localhost:3000/api/appointments/availability?month=${month}&year=${year}`);
+        
+        if (!response.ok) {
+            throw new Error(`Failed to fetch slot availability (${response.status})`);
+        }
+        
+        const dailyCounts = await response.json(); 
 
-    if (error) {
-        console.warn('Failed to load appointments:', error.message);
-        return;
-    }
+        const totalSlotsPerDay = 5; 
 
-    state.appointments = data;
+        for (const date in dailyCounts) {
+            const takenSlots = dailyCounts[date];
+            const availableSlots = totalSlotsPerDay - takenSlots;
+            
+            state.dateSlots.set(date, {
+                total: totalSlotsPerDay,
+                taken: takenSlots,
+                available: availableSlots
+            });
 
-    state.appointments.forEach(appt => {
-        const appointmentDate = appt.date;
-        if (appointmentDate) {
-            if (!state.dateSlots.has(appointmentDate)) {
-                state.dateSlots.set(appointmentDate, { total: 5, taken: 0, available: 5 });
-            }
-            const slots = state.dateSlots.get(appointmentDate);
-            slots.taken += 1;
-            slots.available = slots.total - slots.taken;
-
-            if (slots.available <= 0) {
-                state.unavailableSet.add(appointmentDate);
+            if (availableSlots <= 0) {
+                state.unavailableSet.add(date);
             }
         }
-    });
+        
+        renderCalendar(); // Now render with the new data
+
+    } catch (error) {
+        console.warn('Failed to load appointments:', error.message);
+        if (grid) grid.innerHTML = `<div class="cal-cell-loading" style="color: red;">Error: ${error.message}</div>`;
+    }
 }
 
+// Render function (no changes needed)
 function renderCalendar() {
     var grid = document.getElementById('calGrid');
     var title = document.getElementById('calTitle');
@@ -220,14 +246,14 @@ function renderCalendar() {
         var key = formatDate(cellDate);
         var cell = document.createElement('div');
         var isPast = cellDate < today;
-        var isUnavailable = isPast || state.unavailableSet.has(key);
+        var isUnavailable = isPast || state.unavailableSet.has(key); // Check our new set
         var classes = 'cal-cell' + (key === todayKey ? ' today' : '') + (state.selected === key ? ' selected' : '');
         cell.className = classes;
-
+        
         var slots = state.dateSlots.get(key);
         var availableSlots = slots ? slots.available : 5;
         var totalSlots = slots ? slots.total : 5;
-
+        
         var pill;
         if (isUnavailable) {
             if (isPast) {
@@ -242,58 +268,49 @@ function renderCalendar() {
                 pill = '<span class="pill available">' + availableSlots + '/' + totalSlots + ' slots</span>';
             }
         }
-
+        
         cell.innerHTML = '<div class="cal-date">' + d + '</div>' + pill;
         if (!isUnavailable) {
             cell.style.cursor = 'pointer';
-            cell.addEventListener('click', function(k, el){ return function(){
+            cell.addEventListener('click', (function(k, el){ return function(){
                 el.classList.add('pressed');
                 setTimeout(function(){ el.classList.remove('pressed'); }, 160);
                 state.selected = k;
-                renderCalendar();
+                renderCalendar(); // Just re-render to show selection
                 try { var apptDate = document.getElementById('apptDate'); if (apptDate) apptDate.value = k; } catch (_) {}
-            }}(key, cell));
+            }})(key, cell));
         }
         grid.appendChild(cell);
     }
-
-    var cellsSoFar = grid.children.length;
-    var remainder = cellsSoFar % 7;
-    if (remainder !== 0) {
-        var trailing = 7 - remainder;
-        for (var t = 1; t <= trailing; t++) {
-            var cell = document.createElement('div');
-            cell.className = 'cal-cell muted';
-            cell.innerHTML = '<div class="cal-date">' + t + '</div>';
-            grid.appendChild(cell);
-        }
-    }
 }
 
-async function initCalendar() {
-    await loadAvailability();
-    renderCalendar();
+// UPDATED: initCalendar now fetches data
+async function initCalendar() { 
+    await loadAvailability(); 
+    // renderCalendar() is now called by loadAvailability
 }
 
+// UPDATED: Nav buttons must re-fetch data
 document.getElementById('prevBtn').addEventListener('click', function(){
     state.current = new Date(state.current.getFullYear(), state.current.getMonth() - 1, 1);
-    renderCalendar();
+    initCalendar(); // <-- This will re-fetch data for the new month
 });
 document.getElementById('nextBtn').addEventListener('click', function(){
     state.current = new Date(state.current.getFullYear(), state.current.getMonth() + 1, 1);
-    renderCalendar();
+    initCalendar(); // <-- This will re-fetch data for the new month
 });
 document.getElementById('todayBtn').addEventListener('click', function(){
     state.current = new Date();
     state.current.setDate(1);
-    renderCalendar();
+    initCalendar(); // <-- This will re-fetch data for this month
 });
 
+// Handle appointment type dropdown change
 document.addEventListener('DOMContentLoaded', function() {
     const apptTypeSelect = document.getElementById('apptType');
     const customTypeField = document.getElementById('customTypeField');
     const customApptTypeInput = document.getElementById('customApptType');
-
+    
     if (apptTypeSelect && customTypeField && customApptTypeInput) {
         apptTypeSelect.addEventListener('change', function() {
             if (this.value === 'Other') {
@@ -308,57 +325,59 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+// UPDATED: Submit form to Supabase (no longer uses localStorage)
 var form = document.getElementById('appointmentForm');
 if (form) {
     form.addEventListener('submit', async function(e){
         e.preventDefault();
-        console.log('Form submit triggered');
-
+        
         var date = state.selected;
         var type = document.getElementById('apptType').value;
         var customType = document.getElementById('customApptType')?.value?.trim() || '';
         var urgency = (document.querySelector('input[name="urgency"]:checked')||{}).value || 'Low';
         var desc = document.getElementById('apptDesc').value.trim();
         var site = document.getElementById('apptSite')?.value || '';
-
+        
         if (type === 'Other' && customType) {
             type = customType;
         }
-
+        
         if (!currentUser || !currentUser.id) {
             showModal('Error', 'You are not logged in. Please log in again.');
             return;
         }
-
+        
         var btn = this.querySelector('button[type="submit"]');
         var statusEl = document.getElementById('submitStatus');
-
+        
         if (!date) {
             showModal('Select a date', 'Please choose a date from the calendar first.');
             if (statusEl) statusEl.textContent = 'Please select a date to continue.';
             return;
         }
-
+        
         if (type === 'Other' && !customType) {
             showModal('Custom Type Required', 'Please specify the appointment type in the custom field.');
             if (statusEl) statusEl.textContent = 'Please specify the custom appointment type.';
             return;
         }
-
+        
+        // Re-check slots just in case
         const slotsCheck = state.dateSlots.get(date);
         if (slotsCheck && slotsCheck.available <= 0) {
-            showModal('Fully Booked', 'All appointment slots for this date have been reserved. Please select a different date with available slots.');
+            showModal('Fully Booked', 'All appointment slots for this date have been reserved. Please select a different date.');
             if (statusEl) statusEl.textContent = 'Selected date is fully booked. Please choose another date.';
             return;
         }
 
+        // Build confirmation message element
         var confirmEl = document.createElement('div');
         confirmEl.innerHTML = '<div style="line-height:1.7">' +
             '<div><strong>Date:</strong> ' + date + '</div>' +
             '<div><strong>Type:</strong> ' + type + '</div>' +
             '<div><strong>Urgency:</strong> ' + urgency + '</div>' +
-            (desc ? '<div><strong>Description:</strong> ' + (desc.replace(/</g,'<')) + '</div>' : '') +
-            (site ? '<div><strong>Site:</strong> ' + (site.replace(/</g,'<')) + '</div>' : '') +
+            (desc ? '<div><strong>Description:</strong> ' + (desc.replace(/</g,'&lt;')) + '</div>' : '') +
+            (site ? '<div><strong>Site:</strong> ' + (site.replace(/</g,'&lt;')) + '</div>' : '') +
         '</div>';
 
         function generateTicketNumber() {
@@ -372,13 +391,12 @@ if (form) {
 
         async function performSubmission(){
             const ticketNumber = generateTicketNumber();
-            console.log('Form data:', { date, type, urgency, desc, site, ticketNumber });
-
+            
             if (btn) { btn.disabled = true; btn.textContent = 'Submitting...'; }
             if (statusEl) { statusEl.style.color = '#0b1020'; statusEl.textContent = 'Submitting…'; }
-
+            
             const newAppointment = {
-                user_id: currentUser.id,
+                user_id: currentUser.id, 
                 date: date,
                 type_of_appointment: type,
                 priority_level: urgency,
@@ -389,6 +407,7 @@ if (form) {
             };
 
             try {
+                // Insert into Supabase
                 const { data, error } = await supabase
                     .from('appointment_records')
                     .insert(newAppointment)
@@ -398,12 +417,13 @@ if (form) {
                     throw new Error(error.message);
                 }
 
-                await initCalendar();
-
+                // Success! Reload the calendar with the new counts
+                await initCalendar(); 
+                
                 if (statusEl) { statusEl.style.color = '#059669'; statusEl.textContent = 'Saved! Ticket ' + ticketNumber + ' created for ' + date + '.'; }
                 form.reset();
                 state.selected = null;
-
+                
                 var successMsg = 'Your ticket ' + ticketNumber + ' has been created for ' + date + '. Your request is now waiting for approval.';
                 showModal('Ticket Created Successfully', successMsg, [
                     { label: 'OK', primary: true, onClick: function(){ window.location.href = '../status/status.html'; } }
@@ -418,9 +438,13 @@ if (form) {
             }
         }
 
+        // Ask for confirmation
         showModal('Confirm Submission', confirmEl, [
-            { label: 'No', onClick: function(){  } },
+            { label: 'No', onClick: function(){ /* do nothing, just close */ } },
             { label: 'Yes', primary: true, onClick: function(){ performSubmission(); } }
         ]);
     });
 }
+
+// Run the user check first
+document.addEventListener('DOMContentLoaded', checkUserSession);

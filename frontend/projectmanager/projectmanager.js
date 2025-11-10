@@ -1,13 +1,17 @@
+//
+// REPLACE your entire projectmanager.js file with this
+//
+
 // Global state to hold all our data
 const state = {
     currentUser: null,
     pmProfile: null,
     pendingAppointments: [],
-    pendingAccounts: [],
+    allAccounts: [],
     engineers: []
 };
 
-// --- 1. AUTHENTICATION ---
+// --- 1. AUTHENTICATION & CORE ---
 
 async function logout() {
     await supabase.auth.signOut();
@@ -54,23 +58,22 @@ function updatePMHeader() {
 // --- 2. DATA LOADING ---
 
 async function loadDashboardData() {
-    // Fetch all data from our new backend endpoint
     try {
         const response = await fetch('http://localhost:3000/api/pm/dashboard-data');
         if (!response.ok) {
-            throw new Error('Failed to fetch dashboard data.');
+            const err = await response.json();
+            throw new Error(err.error || 'Failed to fetch dashboard data.');
         }
         const data = await response.json();
 
-        // Store data in our global state
         state.pendingAppointments = data.pendingAppointments || [];
-        state.pendingAccounts = data.pendingAccounts || [];
+        state.allAccounts = data.allAccounts || [];
         state.engineers = data.engineers || [];
 
         // Render all components
         renderDashboardStats();
         renderRequestAppointments();
-        renderAccounts();
+        renderAccounts(); // This will now show ALL accounts
         renderEngineers();
         populateEngineerDropdown();
 
@@ -85,21 +88,26 @@ async function loadDashboardData() {
 function renderDashboardStats() {
     const totalEl = document.getElementById('totalTickets');
     const pendingFOEl = document.getElementById('pendingFOAccounts');
+    
+    const pendingAccountsCount = state.allAccounts.filter(a => a.status === 'pending').length;
+    
     if (totalEl) totalEl.textContent = state.pendingAppointments.length;
-    if (pendingFOEl) pendingFOEl.textContent = state.pendingAccounts.length;
+    if (pendingFOEl) pendingFOEl.textContent = pendingAccountsCount;
 }
 
 function renderRequestAppointments() {
     const tbody = document.getElementById('requestAppointmentsBody');
     if (!tbody) return;
-    tbody.innerHTML = ''; // Clear
+    tbody.innerHTML = ''; 
 
-    if (state.pendingAppointments.length === 0) {
+    const pending = state.pendingAppointments;
+
+    if (pending.length === 0) {
         tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">No pending appointments.</td></tr>';
         return;
     }
 
-    state.pendingAppointments.forEach((appt) => {
+    pending.forEach((appt) => {
         const row = document.createElement('tr');
         const date = new Date(appt.date).toLocaleDateString();
         row.innerHTML = `
@@ -119,21 +127,41 @@ function renderRequestAppointments() {
 function renderAccounts() {
     const tbody = document.getElementById('accountsBody');
     if (!tbody) return;
-    tbody.innerHTML = ''; // Clear
+    tbody.innerHTML = ''; 
 
-    if (state.pendingAccounts.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No accounts to approve.</td></tr>';
+    if (state.allAccounts.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No facility owner accounts found.</td></tr>';
         return;
     }
+    
+    // Filter based on the dropdown
+    const statusFilter = document.getElementById('accountStatusFilter').value;
+    const searchQuery = document.getElementById('searchAccounts').value.toLowerCase();
+    
+    const filteredAccounts = state.allAccounts.filter(acc => {
+        const statusMatch = statusFilter === 'all' || acc.status === statusFilter;
+        
+        const searchMatch = !searchQuery || 
+            (acc.firstName && acc.firstName.toLowerCase().includes(searchQuery)) ||
+            (acc.surname && acc.surname.toLowerCase().includes(searchQuery)) ||
+            (acc.company_name && acc.company_name.toLowerCase().includes(searchQuery)) ||
+            (acc.email && acc.email.toLowerCase().includes(searchQuery));
+            
+        return statusMatch && searchMatch;
+    });
 
-    state.pendingAccounts.forEach(acc => {
+
+    filteredAccounts.forEach(acc => {
         const row = document.createElement('tr');
+        const status = acc.status || 'pending';
+        const statusClass = status === 'approved' ? 'status-approved' : 'status-pending';
+
         row.innerHTML = `
             <td>${acc.firstName || ''} ${acc.surname || ''}</td>
             <td>${acc.company_name || 'N/A'}</td>
             <td>${acc.email || 'N/A'}</td>
             <td>${acc.phone_number || 'N/A'}</td>
-            <td><span class="status-pill status-pending">${acc.status}</span></td>
+            <td><span class="status-pill ${statusClass}">${status}</span></td>
             <td><button class="action-btn" onclick="openApproveModal('${acc.user_id}')">View</button></td>
         `;
         tbody.appendChild(row);
@@ -143,7 +171,7 @@ function renderAccounts() {
 function renderEngineers() {
     const tbody = document.getElementById('engineersBody');
     if (!tbody) return;
-    tbody.innerHTML = ''; // Clear
+    tbody.innerHTML = ''; 
 
     state.engineers.forEach(eng => {
         const row = document.createElement('tr');
@@ -174,18 +202,29 @@ function populateEngineerDropdown() {
 
 // View/Approve Account Modal
 function openApproveModal(userId) {
-    const acc = state.pendingAccounts.find(a => a.user_id === userId);
+    const acc = state.allAccounts.find(a => a.user_id === userId);
     if (!acc) return;
 
     // Set the onclick for the approve button
-    document.getElementById('accountApproveBtn').onclick = () => approveAccount(acc.user_id);
+    const approveBtn = document.getElementById('accountApproveBtn');
+    approveBtn.onclick = () => approveAccount(acc.user_id);
+    
+    // Show or hide the approve button based on status
+    if (acc.status === 'approved') {
+        approveBtn.style.display = 'none';
+    } else {
+        approveBtn.style.display = 'inline-flex';
+    }
     
     document.getElementById('accountDetailName').textContent = `${acc.firstName || ''} ${acc.surname || ''}`;
     document.getElementById('accountDetailCompany').textContent = acc.company_name || 'N/A';
     document.getElementById('accountDetailEmail').textContent = acc.email || 'N/A';
     document.getElementById('accountDetailPhone').textContent = acc.phone_number || 'N/A';
     document.getElementById('accountDetailLocation').textContent = acc.address || 'N/A';
-    document.getElementById('accountDetailStatus').textContent = acc.status;
+    
+    const statusEl = document.getElementById('accountDetailStatus');
+    statusEl.textContent = acc.status;
+    statusEl.className = `status-pill ${acc.status === 'approved' ? 'status-approved' : 'status-pending'}`;
 
     document.getElementById('accountDetailModal').style.display = 'flex';
 }
@@ -230,22 +269,22 @@ function openAssignModal(appointmentId) {
 
     document.getElementById('ticketOverviewModal').style.display = 'flex';
 }
-        
+
 function closeTicketOverviewModal() {
     document.getElementById('ticketOverviewModal').style.display = 'none';
 }
-        
+
 // Handle the "Assign" form submission
 document.getElementById('assignmentForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     const btn = document.getElementById('processBtn');
     btn.disabled = true;
 
-    const appointment_id = document.getElementById('currentAppointmentId').value;
-    const engineer_id = document.getElementById('engineerSelect').value;
+    const appointment_id = parseInt(document.getElementById('currentAppointmentId').value);
+    const engineer_user_id = document.getElementById('engineerSelect').value;
     const pm_remarks = document.getElementById('pmRemarksText').value;
 
-    if (!engineer_id) {
+    if (!engineer_user_id) {
         alert('Please select an engineer.');
         btn.disabled = false;
         return;
@@ -255,7 +294,7 @@ document.getElementById('assignmentForm').addEventListener('submit', async funct
         const response = await fetch('http://localhost:3000/api/pm/assign-appointment', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ appointment_id, engineer_id, pm_remarks })
+            body: JSON.stringify({ appointment_id, engineer_user_id, pm_remarks })
         });
         const result = await response.json();
         if (!response.ok) throw new Error(result.error);
@@ -282,7 +321,7 @@ function initNavigation() {
         link.addEventListener('click', (e) => {
             e.preventDefault();
             const viewName = link.getAttribute('data-view');
-            if (!viewName) return; // Not a view link
+            if (!viewName) return; 
 
             viewSections.forEach(section => section.classList.remove('active'));
             navLinks.forEach(nav => nav.classList.remove('active'));
@@ -291,7 +330,6 @@ function initNavigation() {
             const targetView = document.getElementById(viewName + '-view');
             if (targetView) targetView.classList.add('active');
 
-            // Handle sub-nav parents
             const parentUl = link.closest('ul.nav-sublist');
             if (parentUl) {
                 const parentLink = parentUl.previousElementSibling;
@@ -300,7 +338,6 @@ function initNavigation() {
         });
     });
 
-    // Handle dropdown toggles
     document.querySelectorAll('[data-toggle]').forEach(toggle => {
         toggle.addEventListener('click', (e) => {
             e.preventDefault();
@@ -312,15 +349,15 @@ function initNavigation() {
         });
     });
 }
-        
+
 function navigateToAccounts(filterStatus) {
      const link = document.querySelector('[data-view="account-management"]');
      if(link) link.click();
-             
+     
      const statusFilter = document.getElementById('accountStatusFilter');
      if (statusFilter && filterStatus) {
          statusFilter.value = filterStatus;
-         // We'll need to add a filter function later
+         renderAccounts(); // Re-render the accounts table with the filter
      }
 }
 
@@ -328,4 +365,8 @@ function navigateToAccounts(filterStatus) {
 document.addEventListener('DOMContentLoaded', function() {
     checkPMSession(); // Start authentication
     initNavigation(); // Set up the sidebar links
+    
+    // Add event listeners for account filters
+    document.getElementById('accountStatusFilter').addEventListener('change', renderAccounts);
+    document.getElementById('searchAccounts').addEventListener('input', renderAccounts);
 });

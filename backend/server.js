@@ -63,7 +63,8 @@ app.post('/api/register', async (req, res) => {
                     email: email,
                     phone_number: contactNumber,
                     address: location,
-                    company_name: companyName
+                    company_name: companyName,
+                    status: 'pending' // New accounts start as 'pending'
                 }
             ]);
         
@@ -164,13 +165,56 @@ app.post('/api/pm/assign-appointment', async (req, res) => {
         res.status(400).json({ error: error.message });
     }
 });
+//
+// PASTE THIS NEW ENDPOINT INTO YOUR backend/server.js
+//
+app.get('/api/appointments/availability', async (req, res) => {
+    // Get the month and year from the query, e.g., /api/availability?month=10&year=2025
+    // Note: JavaScript months are 0-11
+    const { month, year } = req.query;
 
-// (Keep your other endpoints, like /api/test)
+    if (!month || !year) {
+        return res.status(400).json({ error: 'Month and year are required.' });
+    }
+
+    // Calculate the first and last day of the given month
+    // We must format it as YYYY-MM-DD for Supabase 'date' column
+    const startDate = `${year}-${String(parseInt(month) + 1).padStart(2, '0')}-01`;
+    
+    // Get the last day of the month
+    const lastDay = new Date(year, parseInt(month) + 1, 0).getDate();
+    const endDate = `${year}-${String(parseInt(month) + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+
+    try {
+        // Use the admin client to bypass RLS and count all appointments
+        const { data, error } = await supabase
+            .from('appointment_records')
+            .select('date') // We only need the date
+            .gte('date', startDate) // "greater than or equal to" start of month
+            .lte('date', endDate);  // "less than or equal to" end of month
+        
+        if (error) throw new Error(error.message);
+
+        // Now, count the occurrences of each date
+        const counts = {};
+        data.forEach(appt => {
+            const date = appt.date;
+            counts[date] = (counts[date] || 0) + 1;
+        });
+
+        // 'counts' now looks like: { "2025-11-15": 5, "2025-11-12": 2 }
+        res.status(200).json(counts);
+
+    } catch (error) {
+        console.error('Error fetching availability:', error.message);
+        res.status(400).json({ error: error.message });
+    }
+});
+
 app.get('/api/test', (req, res) => {
   res.json({ message: 'Hello from your Node.js backend!' });
 });
 
-// --- Start the Server ---
 app.listen(port, () => {
   console.log(`Backend server listening on http://localhost:${port}`);
 });
