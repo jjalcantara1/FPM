@@ -33,7 +33,7 @@ async function checkPMSession() {
     }
 
     state.pmProfile = profile;
-
+    
     updatePMHeader();
     loadDashboardData();
 }
@@ -61,7 +61,7 @@ async function loadDashboardData() {
 
         renderDashboardStats();
         renderRequestAppointments();
-        renderAccounts();
+        renderAccounts(); 
         renderEngineers();
         populateEngineerDropdown();
 
@@ -74,9 +74,9 @@ async function loadDashboardData() {
 function renderDashboardStats() {
     const totalEl = document.getElementById('totalTickets');
     const pendingFOEl = document.getElementById('pendingFOAccounts');
-
+    
     const pendingAccountsCount = state.allAccounts.filter(a => a.status === 'pending').length;
-
+    
     if (totalEl) totalEl.textContent = state.pendingAppointments.length;
     if (pendingFOEl) pendingFOEl.textContent = pendingAccountsCount;
 }
@@ -84,12 +84,20 @@ function renderDashboardStats() {
 function renderRequestAppointments() {
     const tbody = document.getElementById('requestAppointmentsBody');
     if (!tbody) return;
-    tbody.innerHTML = '';
 
-    const pending = state.pendingAppointments;
+    const searchQuery = document.getElementById('searchRequestAppointments').value.toLowerCase();
+    const pending = state.pendingAppointments.filter(appt => {
+        const searchMatch = !searchQuery ||
+            (appt.ticket_code && appt.ticket_code.toLowerCase().includes(searchQuery)) ||
+            (appt.site && appt.site.toLowerCase().includes(searchQuery)) ||
+            (appt.type_of_appointment && appt.type_of_appointment.toLowerCase().includes(searchQuery)) ||
+            (appt.task_description && appt.task_description.toLowerCase().includes(searchQuery));
+        return searchMatch;
+    });
 
+    tbody.innerHTML = ''; 
     if (pending.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">No pending appointments.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">No matching appointments found.</td></tr>';
         return;
     }
 
@@ -113,28 +121,29 @@ function renderRequestAppointments() {
 function renderAccounts() {
     const tbody = document.getElementById('accountsBody');
     if (!tbody) return;
-    tbody.innerHTML = '';
+    tbody.innerHTML = ''; 
 
     if (state.allAccounts.length === 0) {
         tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No facility owner accounts found.</td></tr>';
         return;
     }
-
-    const statusFilter = document.getElementById('accountStatusFilter').value;
+    
     const searchQuery = document.getElementById('searchAccounts').value.toLowerCase();
-
+    
     const filteredAccounts = state.allAccounts.filter(acc => {
-        const statusMatch = statusFilter === 'all' || acc.status === statusFilter;
-
-        const searchMatch = !searchQuery ||
+        const searchMatch = !searchQuery || 
             (acc.firstName && acc.firstName.toLowerCase().includes(searchQuery)) ||
             (acc.surname && acc.surname.toLowerCase().includes(searchQuery)) ||
             (acc.company_name && acc.company_name.toLowerCase().includes(searchQuery)) ||
             (acc.email && acc.email.toLowerCase().includes(searchQuery));
-
-        return statusMatch && searchMatch;
+            
+        return searchMatch;
     });
 
+    if (filteredAccounts.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No matching accounts found.</td></tr>';
+        return;
+    }
 
     filteredAccounts.forEach(acc => {
         const row = document.createElement('tr');
@@ -156,9 +165,25 @@ function renderAccounts() {
 function renderEngineers() {
     const tbody = document.getElementById('engineersBody');
     if (!tbody) return;
-    tbody.innerHTML = '';
 
-    state.engineers.forEach(eng => {
+    const searchQuery = document.getElementById('searchEngineers').value.toLowerCase();
+    const filteredEngineers = state.engineers.filter(eng => {
+        const searchMatch = !searchQuery ||
+            (eng.firstName && eng.firstName.toLowerCase().includes(searchQuery)) ||
+            (eng.lastName && eng.lastName.toLowerCase().includes(searchQuery)) ||
+            (eng.email && eng.email.toLowerCase().includes(searchQuery)) ||
+            (eng.phone_number && eng.phone_number.includes(searchQuery)) ||
+            (eng.location && eng.location.toLowerCase().includes(searchQuery));
+        return searchMatch;
+    });
+
+    tbody.innerHTML = ''; 
+    if (filteredEngineers.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No matching engineers found.</td></tr>';
+        return;
+    }
+
+    filteredEngineers.forEach(eng => {
         const row = document.createElement('tr');
         row.innerHTML = `
             <td>${eng.firstName || ''} ${eng.lastName || ''}</td>
@@ -173,11 +198,11 @@ function renderEngineers() {
 function populateEngineerDropdown() {
     const select = document.getElementById('engineerSelect');
     if (!select) return;
-    select.innerHTML = '<option value="">Select an engineer...</option>';
-
+    select.innerHTML = '<option value="">Select an engineer...</option>'; 
+    
     state.engineers.forEach(eng => {
         const option = document.createElement('option');
-        option.value = eng.user_id;
+        option.value = eng.user_id; 
         option.textContent = `${eng.firstName || ''} ${eng.lastName || ''} (${eng.location || 'N/A'})`;
         select.appendChild(option);
     });
@@ -189,19 +214,19 @@ function openApproveModal(userId) {
 
     const approveBtn = document.getElementById('accountApproveBtn');
     approveBtn.onclick = () => approveAccount(acc.user_id);
-
+    
     if (acc.status === 'approved') {
         approveBtn.style.display = 'none';
     } else {
         approveBtn.style.display = 'inline-flex';
     }
-
+    
     document.getElementById('accountDetailName').textContent = `${acc.firstName || ''} ${acc.surname || ''}`;
     document.getElementById('accountDetailCompany').textContent = acc.company_name || 'N/A';
     document.getElementById('accountDetailEmail').textContent = acc.email || 'N/A';
     document.getElementById('accountDetailPhone').textContent = acc.phone_number || 'N/A';
     document.getElementById('accountDetailLocation').textContent = acc.address || 'N/A';
-
+    
     const statusEl = document.getElementById('accountDetailStatus');
     statusEl.textContent = acc.status;
     statusEl.className = `status-pill ${acc.status === 'approved' ? 'status-approved' : 'status-pending'}`;
@@ -225,7 +250,7 @@ async function approveAccount(userId) {
 
         alert('Account approved!');
         closeAccountDetailModal();
-        loadDashboardData();
+        loadDashboardData(); 
 
     } catch (error) {
         alert('Error approving account: ' + error.message);
@@ -242,9 +267,9 @@ function openAssignModal(appointmentId) {
     document.getElementById('overviewPriority').textContent = appt.priority_level || 'N/A';
     document.getElementById('overviewSite').textContent = appt.site || 'N/A';
     document.getElementById('overviewDescription').textContent = appt.task_description || 'N/A';
-
-    document.getElementById('pmRemarksText').value = '';
-    document.getElementById('engineerSelect').value = '';
+    
+    document.getElementById('pmRemarksText').value = ''; 
+    document.getElementById('engineerSelect').value = ''; 
 
     document.getElementById('ticketOverviewModal').style.display = 'flex';
 }
@@ -253,50 +278,15 @@ function closeTicketOverviewModal() {
     document.getElementById('ticketOverviewModal').style.display = 'none';
 }
 
-document.getElementById('assignmentForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    const btn = document.getElementById('processBtn');
-    btn.disabled = true;
-
-    const appointment_id = parseInt(document.getElementById('currentAppointmentId').value);
-    const engineer_user_id = document.getElementById('engineerSelect').value;
-    const pm_remarks = document.getElementById('pmRemarksText').value;
-
-    if (!engineer_user_id) {
-        alert('Please select an engineer.');
-        btn.disabled = false;
-        return;
-    }
-
-    try {
-        const response = await fetch('http://localhost:3000/api/pm/assign-appointment', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ appointment_id, engineer_user_id, pm_remarks })
-        });
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.error);
-
-        alert('Appointment assigned successfully!');
-        closeTicketOverviewModal();
-        loadDashboardData();
-
-    } catch (error) {
-        alert('Error assigning appointment: ' + error.message);
-    } finally {
-        btn.disabled = false;
-    }
-});
-
 function initNavigation() {
     const navLinks = document.querySelectorAll('.nav-link');
     const viewSections = document.querySelectorAll('.view-section');
-
+    
     navLinks.forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
             const viewName = link.getAttribute('data-view');
-            if (!viewName) return;
+            if (!viewName) return; 
 
             viewSections.forEach(section => section.classList.remove('active'));
             navLinks.forEach(nav => nav.classList.remove('active'));
@@ -328,18 +318,72 @@ function initNavigation() {
 function navigateToAccounts(filterStatus) {
      const link = document.querySelector('[data-view="account-management"]');
      if(link) link.click();
-
-     const statusFilter = document.getElementById('accountStatusFilter');
-     if (statusFilter && filterStatus) {
-         statusFilter.value = filterStatus;
-         renderAccounts();
-     }
+     
+     // Note: accountStatusFilter was removed, so this part is simplified
+     renderAccounts(); 
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    checkPMSession();
-    initNavigation();
-
-    document.getElementById('accountStatusFilter').addEventListener('change', renderAccounts);
-    document.getElementById('searchAccounts').addEventListener('input', renderAccounts);
+    checkPMSession(); 
+    initNavigation(); 
+    
+    // THIS IS THE FIX
+    // We only attach listeners for elements that exist in projectmanager.html
+    
+    // Connect filter/search for Accounts
+    const searchAccounts = document.getElementById('searchAccounts');
+    if (searchAccounts) {
+        searchAccounts.addEventListener('input', renderAccounts);
+    }
+    
+    // Connect filter/search for Engineers
+    const searchEngineers = document.getElementById('searchEngineers');
+    if (searchEngineers) {
+        searchEngineers.addEventListener('input', renderEngineers);
+    }
+    
+    // Connect filter/search for Appointments
+    const searchRequestAppointments = document.getElementById('searchRequestAppointments');
+    if (searchRequestAppointments) {
+        searchRequestAppointments.addEventListener('input', renderRequestAppointments);
+    }
+    
+    // Connect the "Assign" form
+    const assignmentForm = document.getElementById('assignmentForm');
+    if (assignmentForm) {
+        assignmentForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('processBtn');
+            btn.disabled = true;
+        
+            const appointment_id = parseInt(document.getElementById('currentAppointmentId').value);
+            const engineer_user_id = document.getElementById('engineerSelect').value;
+            const pm_remarks = document.getElementById('pmRemarksText').value;
+        
+            if (!engineer_user_id) {
+                alert('Please select an engineer.');
+                btn.disabled = false;
+                return;
+            }
+        
+            try {
+                const response = await fetch('http://localhost:3000/api/pm/assign-appointment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ appointment_id, engineer_user_id, pm_remarks })
+                });
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.error);
+        
+                alert('Appointment assigned successfully!');
+                closeTicketOverviewModal();
+                loadDashboardData();
+        
+            } catch (error) {
+                alert('Error assigning appointment: ' + error.message);
+            } finally {
+                btn.disabled = false;
+            }
+        });
+    }
 });

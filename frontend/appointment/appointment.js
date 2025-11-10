@@ -66,7 +66,6 @@ async function checkUserSession() {
     initCalendar();
 }
 
-// Modal functions
 document.addEventListener('DOMContentLoaded', function(){
     window.showModal = function(title, message, actions){
         var overlay = document.querySelector('.modal-overlay');
@@ -138,13 +137,11 @@ document.addEventListener('DOMContentLoaded', function(){
 });
 
 
-// --- CALENDAR & FORM SCRIPT ---
-
 const state = {
     current: new Date(),
     selected: null,
     unavailableSet: new Set(),
-    dateSlots: new Map(), // Track slots per date: {date: {total: 5, taken: 3, available: 2}}
+    dateSlots: new Map(), 
 };
 
 function formatDate(d) {
@@ -158,22 +155,19 @@ function monthLabel(d) {
     return d.toLocaleString(undefined, { month: 'long', year: 'numeric' });
 }
 
-// UPDATED: Load availability from our Node.js backend
 async function loadAvailability() {
     if (!currentUser) return; 
 
     state.unavailableSet.clear();
     state.dateSlots.clear();
     
-    const month = state.current.getMonth(); // 0-11
+    const month = state.current.getMonth();
     const year = state.current.getFullYear();
     
-    // Clear the calendar while we fetch
     var grid = document.getElementById('calGrid');
     if (grid) grid.innerHTML = '<div class="cal-cell-loading">Loading slots...</div>';
 
     try {
-        // Call our new backend endpoint
         const response = await fetch(`http://localhost:3000/api/appointments/availability?month=${month}&year=${year}`);
         
         if (!response.ok) {
@@ -199,7 +193,7 @@ async function loadAvailability() {
             }
         }
         
-        renderCalendar(); // Now render with the new data
+        renderCalendar(); 
 
     } catch (error) {
         console.warn('Failed to load appointments:', error.message);
@@ -207,7 +201,6 @@ async function loadAvailability() {
     }
 }
 
-// Render function (no changes needed)
 function renderCalendar() {
     var grid = document.getElementById('calGrid');
     var title = document.getElementById('calTitle');
@@ -238,7 +231,7 @@ function renderCalendar() {
         var key = formatDate(cellDate);
         var cell = document.createElement('div');
         var isPast = cellDate < today;
-        var isUnavailable = isPast || state.unavailableSet.has(key); // Check our new set
+        var isUnavailable = isPast || state.unavailableSet.has(key);
         var classes = 'cal-cell' + (key === todayKey ? ' today' : '') + (state.selected === key ? ' selected' : '');
         cell.className = classes;
         
@@ -268,7 +261,7 @@ function renderCalendar() {
                 el.classList.add('pressed');
                 setTimeout(function(){ el.classList.remove('pressed'); }, 160);
                 state.selected = k;
-                renderCalendar(); // Just re-render to show selection
+                renderCalendar();
                 try { var apptDate = document.getElementById('apptDate'); if (apptDate) apptDate.value = k; } catch (_) {}
             }})(key, cell));
         }
@@ -276,28 +269,25 @@ function renderCalendar() {
     }
 }
 
-// UPDATED: initCalendar now fetches data
 async function initCalendar() { 
     await loadAvailability(); 
-    // renderCalendar() is now called by loadAvailability
 }
 
-// UPDATED: Nav buttons must re-fetch data
 document.getElementById('prevBtn').addEventListener('click', function(){
     state.current = new Date(state.current.getFullYear(), state.current.getMonth() - 1, 1);
-    initCalendar(); // <-- This will re-fetch data for the new month
+    initCalendar(); 
 });
 document.getElementById('nextBtn').addEventListener('click', function(){
     state.current = new Date(state.current.getFullYear(), state.current.getMonth() + 1, 1);
-    initCalendar(); // <-- This will re-fetch data for the new month
+    initCalendar(); 
 });
 document.getElementById('todayBtn').addEventListener('click', function(){
     state.current = new Date();
     state.current.setDate(1);
-    initCalendar(); // <-- This will re-fetch data for this month
+    initCalendar(); 
 });
 
-// Handle appointment type dropdown change
+
 document.addEventListener('DOMContentLoaded', function() {
     const apptTypeSelect = document.getElementById('apptType');
     const customTypeField = document.getElementById('customTypeField');
@@ -317,7 +307,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// UPDATED: Submit form to Supabase (no longer uses localStorage)
+
 var form = document.getElementById('appointmentForm');
 if (form) {
     form.addEventListener('submit', async function(e){
@@ -354,7 +344,7 @@ if (form) {
             return;
         }
         
-        // Re-check slots just in case
+
         const slotsCheck = state.dateSlots.get(date);
         if (slotsCheck && slotsCheck.available <= 0) {
             showModal('Fully Booked', 'All appointment slots for this date have been reserved. Please select a different date.');
@@ -362,7 +352,7 @@ if (form) {
             return;
         }
 
-        // Build confirmation message element
+
         var confirmEl = document.createElement('div');
         confirmEl.innerHTML = '<div style="line-height:1.7">' +
             '<div><strong>Date:</strong> ' + date + '</div>' +
@@ -399,7 +389,7 @@ if (form) {
             };
 
             try {
-                // Insert into Supabase
+
                 const { data, error } = await supabase
                     .from('appointment_records')
                     .insert(newAppointment)
@@ -409,7 +399,7 @@ if (form) {
                     throw new Error(error.message);
                 }
 
-                // Success! Reload the calendar with the new counts
+
                 await initCalendar(); 
                 
                 if (statusEl) { statusEl.style.color = '#059669'; statusEl.textContent = 'Saved! Ticket ' + ticketNumber + ' created for ' + date + '.'; }
@@ -430,9 +420,11 @@ if (form) {
             }
         }
 
-        // Ask for confirmation
+
         showModal('Confirm Submission', confirmEl, [
-            { label: 'No', onClick: function(){ /* do nothing, just close */ } },
+            { label: 'No', onClick: function(){ 
+                
+            } },
             { label: 'Yes', primary: true, onClick: function(){ performSubmission(); } }
         ]);
     });
