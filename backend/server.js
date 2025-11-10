@@ -63,37 +63,32 @@ app.post('/api/register', async (req, res) => {
     }
 });
 
-// UPDATED DASHBOARD ENDPOINT
 app.get('/api/pm/dashboard-data', async (req, res) => {
     try {
-        // 1. Get ALL appointments and join owner/engineer info
         const { data: appointments, error: apptError } = await supabase
             .from('appointment_records')
             .select(`
                 *,
                 facility_owner_records (email, firstName, surname),
                 engineer_records (firstName, lastName)
-            `); // No filter!
+            `);
 
         if (apptError) throw new Error(apptError.message);
 
-        // 2. Get ALL facility owner accounts
         const { data: accounts, error: acctError } = await supabase
             .from('facility_owner_records')
             .select('*'); 
 
         if (acctError) throw new Error(acctError.message);
 
-        // 3. Get all engineers
         const { data: engineers, error: engError } = await supabase
             .from('engineer_records')
             .select('*');
 
         if (engError) throw new Error(engError.message);
 
-        // 4. Send all data back to the frontend
         res.status(200).json({
-            allAppointments: appointments || [], // RENAMED
+            allAppointments: appointments || [],
             allAccounts: accounts || [], 
             engineers: engineers || []
         });
@@ -104,13 +99,11 @@ app.get('/api/pm/dashboard-data', async (req, res) => {
     }
 });
 
-// --- NEW ENDPOINT TO CREATE/UPDATE ENGINEER ---
 app.post('/api/pm/engineer', async (req, res) => {
     const { id, email, password, givenName, middleName, lastName, phone, location } = req.body;
 
     try {
         if (id) {
-            // --- UPDATE ---
             const { data: profile, error: profileError } = await supabase
                 .from('engineer_records')
                 .update({
@@ -118,7 +111,7 @@ app.post('/api/pm/engineer', async (req, res) => {
                     middleName: middleName,
                     lastName: lastName,
                     phone_number: phone,
-                    email: email, // Also update email in profile
+                    email: email,
                     location: location
                 })
                 .eq('user_id', id)
@@ -126,10 +119,9 @@ app.post('/api/pm/engineer', async (req, res) => {
 
             if (profileError) throw new Error(profileError.message);
 
-            // Also update auth user if email/password changed
             const authUpdates = {};
             if (email) authUpdates.email = email;
-            if (password) authUpdates.password = password; // Only provide if it's a new password
+            if (password) authUpdates.password = password; 
 
             if (Object.keys(authUpdates).length > 0) {
                 const { error: authError } = await supabase.auth.admin.updateUserById(id, authUpdates);
@@ -138,16 +130,14 @@ app.post('/api/pm/engineer', async (req, res) => {
 
             res.status(200).json({ message: 'Engineer updated successfully!', data: profile });
         } else {
-            // --- CREATE ---
             if (!email || !password) {
                 return res.status(400).json({ error: 'Email and password are required for new engineer.' });
             }
 
-            // 1. Create auth user
             const { data: authData, error: authError } = await supabase.auth.admin.createUser({
                 email: email,
                 password: password,
-                email_confirm: true // Auto-confirm them
+                email_confirm: true 
             });
 
             if (authError) throw new Error(authError.message);
@@ -155,7 +145,6 @@ app.post('/api/pm/engineer', async (req, res) => {
             
             const newUserId = authData.user.id;
 
-            // 2. Create profile record
             const { data: profile, error: insertError } = await supabase
                 .from('engineer_records')
                 .insert([
@@ -172,7 +161,6 @@ app.post('/api/pm/engineer', async (req, res) => {
                 .select();
             
             if (insertError) {
-                // Rollback auth user creation
                 await supabase.auth.admin.deleteUser(newUserId);
                 throw new Error(insertError.message);
             }
@@ -185,16 +173,14 @@ app.post('/api/pm/engineer', async (req, res) => {
     }
 });
 
-// --- ++ EDITED ENGINEER DELETE ENDPOINT ++ ---
 app.delete('/api/pm/engineer/:id', async (req, res) => {
     const { id } = req.params;
     if (!id) return res.status(400).json({ error: 'Engineer ID is required.' });
 
     try {
-        // STEP 1: Un-assign all appointments from this engineer
         const { error: apptError } = await supabase
             .from('appointment_records')
-            .update({ engineer_user_id: null, status: 'Pending' }) // Set them back to Pending
+            .update({ engineer_user_id: null, status: 'Pending' }) 
             .eq('engineer_user_id', id);
         
         if (apptError) {
@@ -202,7 +188,6 @@ app.delete('/api/pm/engineer/:id', async (req, res) => {
              throw new Error(`Database error un-assigning appointments: ${apptError.message}`);
         }
 
-        // STEP 2: Delete the engineer's profile record
         const { error: profileError } = await supabase
             .from('engineer_records')
             .delete()
@@ -213,7 +198,6 @@ app.delete('/api/pm/engineer/:id', async (req, res) => {
              throw new Error(`Database error deleting profile: ${profileError.message}`);
         }
         
-        // STEP 3: Delete the auth user
         const { error: authError } = await supabase.auth.admin.deleteUser(id);
         if (authError) throw new Error(authError.message);
 
@@ -224,15 +208,11 @@ app.delete('/api/pm/engineer/:id', async (req, res) => {
     }
 });
 
-// --- ENDPOINT TO CREATE/UPDATE FACILITY OWNER ---
 app.post('/api/pm/facility-owner', async (req, res) => {
-    // Note: 'organization' from form maps to 'company_name'
-    // 'givenName' -> 'firstName', 'lastName' -> 'surname', 'location' -> 'address'
     const { id, email, password, givenName, middleName, lastName, phone, location, organization } = req.body;
 
     try {
         if (id) {
-            // --- UPDATE ---
             const { data: profile, error: profileError } = await supabase
                 .from('facility_owner_records')
                 .update({
@@ -251,7 +231,7 @@ app.post('/api/pm/facility-owner', async (req, res) => {
 
             const authUpdates = {};
             if (email) authUpdates.email = email;
-            if (password && password !== '******') authUpdates.password = password; // Only update if new pass is provided
+            if (password && password !== '******') authUpdates.password = password; 
 
             if (Object.keys(authUpdates).length > 0) {
                 const { error: authError } = await supabase.auth.admin.updateUserById(id, authUpdates);
@@ -260,16 +240,14 @@ app.post('/api/pm/facility-owner', async (req, res) => {
 
             res.status(200).json({ message: 'Facility Owner updated successfully!', data: profile });
         } else {
-            // --- CREATE ---
             if (!email || !password) {
                 return res.status(400).json({ error: 'Email and password are required for new facility owner.' });
             }
 
-            // 1. Create auth user
             const { data: authData, error: authError } = await supabase.auth.admin.createUser({
                 email: email,
                 password: password,
-                email_confirm: true // Auto-confirm them
+                email_confirm: true
             });
 
             if (authError) throw new Error(authError.message);
@@ -277,7 +255,6 @@ app.post('/api/pm/facility-owner', async (req, res) => {
             
             const newUserId = authData.user.id;
 
-            // 2. Create profile record
             const { data: profile, error: insertError } = await supabase
                 .from('facility_owner_records')
                 .insert([
@@ -290,13 +267,12 @@ app.post('/api/pm/facility-owner', async (req, res) => {
                         phone_number: phone,
                         address: location,
                         company_name: organization,
-                        status: 'approved' // PM-created accounts are auto-approved
+                        status: 'approved' 
                     }
                 ])
                 .select();
             
             if (insertError) {
-                // Rollback auth user creation
                 await supabase.auth.admin.deleteUser(newUserId);
                 throw new Error(insertError.message);
             }
@@ -309,13 +285,11 @@ app.post('/api/pm/facility-owner', async (req, res) => {
     }
 });
 
-// --- ++ EDITED FACILITY OWNER DELETE ENDPOINT ++ ---
 app.delete('/api/pm/facility-owner/:id', async (req, res) => {
     const { id } = req.params;
     if (!id) return res.status(400).json({ error: 'Facility Owner ID is required.' });
 
     try {
-        // STEP 1: Delete all appointments associated with this user.
         const { error: apptError } = await supabase
             .from('appointment_records')
             .delete()
@@ -326,7 +300,6 @@ app.delete('/api/pm/facility-owner/:id', async (req, res) => {
             throw new Error(`Database error deleting appointments: ${apptError.message}`);
         }
 
-        // STEP 2: Delete the profile record from facility_owner_records.
         const { error: profileError } = await supabase
             .from('facility_owner_records')
             .delete()
@@ -337,7 +310,6 @@ app.delete('/api/pm/facility-owner/:id', async (req, res) => {
             throw new Error(`Database error deleting profile: ${profileError.message}`);
         }
 
-        // STEP 3: Now that no records reference the user, delete the auth user.
         const { error: authError } = await supabase.auth.admin.deleteUser(id);
         if (authError) {
             console.error('Error deleting auth user:', authError.message);
@@ -347,7 +319,6 @@ app.delete('/api/pm/facility-owner/:id', async (req, res) => {
         res.status(200).json({ message: 'Facility Owner and all associated data deleted successfully.' });
     } catch (error) {
         console.error('Facility Owner Delete Error:', error.message);
-        // Send the more specific error message to the frontend
         res.status(400).json({ error: error.message });
     }
 });

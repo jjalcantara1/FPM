@@ -83,6 +83,7 @@ function renderAllTables() {
     renderEngineers();
     // THIS FUNCTION IS NOW CALLED
     renderFacilityOwners(); 
+    renderNotifications(); // <-- ADDED
 }
 
 function getStatusClass(status) {
@@ -94,6 +95,31 @@ function getStatusClass(status) {
     if (k === 'completed' || k === 'done' || k === 'inspected') return 'status-done';
     if (k === 'on hold') return 'status-pending';
     return 'status-pending'; 
+}
+
+// NEW HELPER FUNCTION
+function getTimeAgo(dateString) {
+    if (!dateString) return 'just now';
+    try {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return 'a while ago';
+        const now = new Date();
+        const seconds = Math.floor((now - date) / 1000);
+
+        if (seconds < 60) return `${seconds} seconds ago`;
+        let interval = seconds / 60;
+        if (interval < 60) return Math.floor(interval) + " minutes ago";
+        interval = seconds / 3600;
+        if (interval < 24) return Math.floor(interval) + " hours ago";
+        interval = seconds / 86400;
+        if (interval < 30) return Math.floor(interval) + " days ago";
+        interval = seconds / 2592000;
+        if (interval < 12) return Math.floor(interval) + " months ago";
+        interval = seconds / 31536000;
+        return Math.floor(interval) + " years ago";
+    } catch (e) {
+        return 'a while ago';
+    }
 }
 
 function renderDashboardStats() {
@@ -420,6 +446,93 @@ function renderFacilityOwners() {
     });
 }
 
+// *** MODIFIED FUNCTION ***
+function renderNotifications() {
+    const container = document.getElementById('notificationsContainer');
+    if (!container) return;
+
+    let notificationsHTML = '';
+
+    // 1. Get Pending Account Requests
+    const pendingAccounts = state.allAccounts.filter(acc => acc.status === 'pending');
+    pendingAccounts.forEach(acc => {
+        const name = `${acc.firstName || ''} ${acc.surname || ''}`.trim();
+        const company = acc.company_name || 'Unknown Company';
+        const timeAgo = getTimeAgo(acc.created_at);
+
+        notificationsHTML += `
+            <div class="notification-card">
+                <div class="notification-header">
+                    <div class="notification-title">👥 New Account Request</div>
+                    <div class="notification-time">${timeAgo}</div>
+                </div>
+                <div class="notification-content">
+                    <strong>${name}</strong> from <strong>${company}</strong> has requested an account.
+                </div>
+                <div class="notification-actions">
+                    <button class="notification-btn" onclick="switchView('account-management')">View Request</button>
+                    <button class="notification-btn secondary" onclick="this.closest('.notification-card').remove()">Dismiss</button>
+                </div>
+            </div>
+        `;
+    });
+
+    // 2. Get Pending Appointment Requests
+    const pendingAppointments = state.allAppointments.filter(appt => appt.status === 'Pending');
+    pendingAppointments.forEach(appt => {
+        const timeAgo = getTimeAgo(appt.created_at);
+        const priorityClass = (appt.priority_level || 'low').toLowerCase() === 'high' ? 'priority-critical' : (appt.priority_level || 'low').toLowerCase() === 'medium' ? 'priority-medium' : 'priority-low';
+        
+        // --- THIS IS THE MODIFIED BLOCK ---
+        notificationsHTML += `
+            <div class="notification-card">
+                <div class="notification-header">
+                    <div class="notification-title">⚠️ Engineer Assignment Needed</div>
+                    <div class="notification-time">${timeAgo}</div>
+                </div>
+                <div class="notification-content">
+                    <strong>${appt.ticket_code || 'N/A'}</strong> - ${appt.task_description || 'No description'}<br>
+                    Priority: <span class="${priorityClass}" style="font-weight: 700;">${appt.priority_level || 'Low'}</span> | Awaiting engineer assignment
+                </div>
+                <div class="notification-actions">
+                    <button class="notification-btn" onclick="switchView('request-appointments')">Assign Engineer</button>
+                    <button class="notification-btn secondary" onclick="this.closest('.notification-card').remove()">Dismiss</button>
+                </div>
+            </div>
+        `;
+        // --- END OF MODIFIED BLOCK ---
+    });
+
+    // 3. (Optional) Get "On Hold" appointments that might need attention
+    const onHoldAppointments = state.allAppointments.filter(appt => appt.status === 'On Hold');
+    onHoldAppointments.forEach(appt => {
+        const timeAgo = getTimeAgo(appt.updated_at || appt.created_at); // Use updated_at if available
+        notificationsHTML += `
+            <div class="notification-card" style="border-left: 4px solid #f59e0b;">
+                <div class="notification-header">
+                    <div class="notification-title">⏸️ Task On Hold</div>
+                    <div class="notification-time">${timeAgo}</div>
+                </div>
+                <div class="notification-content">
+                    <strong>${appt.ticket_code || 'N/A'}</strong> at ${appt.site || 'N/A'} is currently on hold.<br>
+                    Reason: <em>${appt.pm_remarks || 'No reason provided.'}</em>
+                </div>
+                <div class="notification-actions">
+                    <button class="notification-btn" onclick="switchView('onhold-appointments')">View Details</button>
+                    <button class="notification-btn secondary" onclick="this.closest('.notification-card').remove()">Dismiss</button>
+                </div>
+            </div>
+        `;
+    });
+
+
+    if (notificationsHTML === '') {
+        notificationsHTML = '<p style="text-align: center; color: #66748a;">No new notifications.</p>';
+    }
+    
+    container.innerHTML = notificationsHTML;
+}
+
 
 function populateEngineerDropdown() {
     const select = document.getElementById('engineerSelect');
@@ -653,7 +766,7 @@ function switchView(viewName) {
         console.error(`No view found for: ${viewName}`);
     }
 }
-window.switchView = switchView;
+window.switchView = switchView; // Make it global for inline onclick
 
 
 // --- ++ NEW: Facility Owner Modal Functions ++ ---
@@ -909,7 +1022,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // --- Other stubs ---
     // window.editFacilityOwner = function(id) { alert('Edit FO not built yet.'); } // THIS IS NOW REPLACED
-    // window.deleteFacilityOwner = function(id) { alert('Delete FO not built yet.'); } // THIS IS NOW REPLACED
+    // window.deleteFacilityOwner = function(id) { alert('Delete FO not built yet.'); } // THIS IS NOW REPLACLED
     // window.saveFacilityOwner = function(ev) { ev.preventDefault(); alert('Save FO not built yet.'); } // THIS IS NOW REPLACED
     // window.closeFacilityOwnerModal = function() { document.getElementById('facilityOwnerModal').style.display = 'none'; } // THIS IS NOW REPLACED
     window.approveAccountStatus = function(id) { alert('Please use the "View" button to approve.'); }
