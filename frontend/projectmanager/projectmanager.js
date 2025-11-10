@@ -374,7 +374,7 @@ function renderEngineers() {
             <td>${eng.email || 'N/A'}</td>
             <td>${eng.location || 'N/A'}</td>
             <td>******</td>
-            <td><button class="action-btn" onclick="alert('Edit engineer not built yet')">Edit</button></td>
+            <td><button class="action-btn" onclick="editEngineer('${eng.user_id}')">Edit</button></td>
         `;
         tbody.appendChild(row);
     });
@@ -652,145 +652,132 @@ function switchView(viewName) {
 }
 window.switchView = switchView;
 
+// --- DOMCONTENTLOADED ---
+// This is the main entry point that runs when the page is ready.
+// We define functions first, then attach listeners.
 document.addEventListener('DOMContentLoaded', function() {
-    checkPMSession(); 
-    initNavigation(); 
     
-    // All filter/search listeners
-    const accountStatusFilter = document.getElementById('accountStatusFilter');
-    if (accountStatusFilter) {
-        accountStatusFilter.addEventListener('change', renderAccounts);
-    }
-    
-    const searchAccounts = document.getElementById('searchAccounts');
-    if (searchAccounts) {
-        searchAccounts.addEventListener('input', renderAccounts);
-    }
-    
-    const searchEngineers = document.getElementById('searchEngineers');
-    if (searchEngineers) {
-        searchEngineers.addEventListener('input', renderEngineers);
-    }
+    // --- DEFINE ALL FUNCTIONS FIRST ---
 
-    const searchFacilityOwners = document.getElementById('searchFacilityOwners');
-    if(searchFacilityOwners) {
-        searchFacilityOwners.addEventListener('input', renderFacilityOwners);
-    }
-    
-    const searchRequestAppointments = document.getElementById('searchRequestAppointments');
-    if(searchRequestAppointments) {
-        searchRequestAppointments.addEventListener('input', renderRequestAppointments);
-    }
+    // --- NEW: Engineer Functions (Replaced stubs) ---
+    window.openEngineerModal = function() {
+        document.getElementById('engineerModalTitle').textContent = 'Add Engineer';
+        document.getElementById('engHiddenId').value = '';
+        document.getElementById('engGivenName').value = '';
+        document.getElementById('engMiddleName').value = '';
+        document.getElementById('engLastName').value = '';
+        document.getElementById('engPhone').value = '';
+        document.getElementById('engEmail').value = '';
+        document.getElementById('engLocation').value = '';
+        document.getElementById('engPassword').value = '';
+        document.getElementById('engPassword').placeholder = 'Required for new engineer';
+        document.getElementById('engPassword').required = true; // Make required for 'add'
 
-    const statusFilterOnHold = document.getElementById('statusFilterOnHold');
-    if(statusFilterOnHold) {
-        statusFilterOnHold.addEventListener('change', renderOnHoldAppointments);
-    }
-
-    const searchOnHoldAppointments = document.getElementById('searchOnHoldAppointments');
-    if(searchOnHoldAppointments) {
-        searchOnHoldAppointments.addEventListener('input', renderOnHoldAppointments);
-    }
-
-    const searchApprovedAppointments = document.getElementById('searchApprovedAppointments');
-    if(searchApprovedAppointments) {
-        searchApprovedAppointments.addEventListener('input', renderApprovedAppointments);
-    }
-    
-    // Form submission listener
-    const assignmentForm = document.getElementById('assignmentForm');
-    if (assignmentForm) {
-        assignmentForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const btn = document.getElementById('processBtn');
-            btn.disabled = true;
-        
-            const appointment_id = parseInt(document.getElementById('currentAppointmentId').value);
-            const engineer_user_id = document.getElementById('engineerSelect').value;
-            const pm_remarks = document.getElementById('pmRemarksText').value;
-        
-            if (!engineer_user_id) {
-                alert('Please select an engineer.');
-                btn.disabled = false;
-                return;
-            }
-        
-            try {
-                const response = await fetch('http://localhost:3000/api/pm/assign-appointment', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ appointment_id, engineer_user_id, pm_remarks })
-                });
-                const result = await response.json();
-                if (!response.ok) throw new Error(result.error);
-        
-                alert('Appointment assigned successfully!');
-                closeTicketOverviewModal();
-                loadDashboardData();
-        
-            } catch (error) {
-                alert('Error assigning appointment: ' + error.message);
-            } finally {
-                btn.disabled = false;
-            }
-        });
-    }
-
-    // --- Calendar (Simplified) ---
-    let currentDate = new Date();
-    const calendarTitle = document.getElementById('calendarTitle');
-    const calendarGrid = document.getElementById('calendarGrid');
-
-    function updateCalendar() {
-        if (!calendarTitle || !calendarGrid) return;
-        const year = currentDate.getFullYear();
-        const month = currentDate.getMonth();
-        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-                          'July', 'August', 'September', 'October', 'November', 'December'];
-        calendarTitle.textContent = `${monthNames[month]} ${year}`;
-        const firstDay = new Date(year, month, 1);
-        const lastDay = new Date(year, month + 1, 0);
-        const daysInMonth = lastDay.getDate();
-        const startingDayOfWeek = firstDay.getDay();
-        let calendarHTML = `<div class="calendar-day">S</div><div class="calendar-day">M</div><div class="calendar-day">T</div><div class="calendar-day">W</div><div class="calendar-day">TH</div><div class="calendar-day">F</div><div class="calendar-day">S</div>`;
-        for (let i = 0; i < startingDayOfWeek; i++) {
-            calendarHTML += '<div class="calendar-date"></div>';
+        const delBtnAdd = document.getElementById('engDeleteBtn');
+        if (delBtnAdd) { 
+            delBtnAdd.style.display = 'none'; 
+            delBtnAdd.onclick = null; 
         }
-        const today = new Date();
-        for (let day = 1; day <= daysInMonth; day++) {
-            const isToday = today.getDate() === day && today.getMonth() === month && today.getFullYear() === year;
-            const selectedClass = isToday ? 'selected' : '';
-            calendarHTML += `<div class="calendar-date ${selectedClass}">${day}</div>`;
-        }
-        calendarGrid.innerHTML = calendarHTML;
+        
+        document.getElementById('engineerModal').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
     }
 
-    const prevMonth = document.getElementById('prevMonth');
-    if(prevMonth) {
-        prevMonth.addEventListener('click', () => {
-            currentDate.setMonth(currentDate.getMonth() - 1);
-            updateCalendar();
-        });
+    window.closeEngineerModal = function() {
+        document.getElementById('engineerModal').style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+
+    window.editEngineer = function(userId) {
+        const eng = (state.engineers || []).find(e => e.user_id === userId);
+        if (!eng) return;
+        
+        document.getElementById('engineerModalTitle').textContent = 'Edit Engineer';
+        document.getElementById('engHiddenId').value = eng.user_id || '';
+        document.getElementById('engGivenName').value = eng.firstName || '';
+        document.getElementById('engMiddleName').value = eng.middleName || '';
+        document.getElementById('engLastName').value = eng.lastName || '';
+        document.getElementById('engPhone').value = eng.phone_number || '';
+        document.getElementById('engEmail').value = eng.email || '';
+        document.getElementById('engLocation').value = eng.location || '';
+        document.getElementById('engPassword').value = '';
+        document.getElementById('engPassword').placeholder = 'Leave blank to keep unchanged';
+        document.getElementById('engPassword').required = false; // Not required for 'edit'
+
+        const delBtn = document.getElementById('engDeleteBtn');
+        if (delBtn) {
+            delBtn.style.display = 'inline-flex';
+            delBtn.onclick = function(){ deleteEngineer(eng.user_id); };
+        }
+        
+        document.getElementById('engineerModal').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+
+    window.saveEngineer = async function(ev) {
+        ev.preventDefault();
+        const id = document.getElementById('engHiddenId').value.trim();
+        const password = document.getElementById('engPassword').value;
+        
+        const engineer = {
+            id: id || null, // This is the user_id
+            givenName: document.getElementById('engGivenName').value.trim(),
+            middleName: document.getElementById('engMiddleName').value.trim(),
+            lastName: document.getElementById('engLastName').value.trim(),
+            phone: document.getElementById('engPhone').value.trim(),
+            email: document.getElementById('engEmail').value.trim(),
+            location: document.getElementById('engLocation').value.trim(),
+            password: password ? password : null // Only send password if it's not empty
+        };
+
+        if (!id && !password) {
+            alert('Password is required for a new engineer.');
+            return;
+        }
+        
+        try {
+            const response = await fetch('http://localhost:3000/api/pm/engineer', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(engineer)
+            });
+            
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error);
+
+            alert(`Engineer ${id ? 'updated' : 'created'} successfully!`);
+            closeEngineerModal();
+            loadDashboardData(); // Reload all data from backend
+            
+        } catch (error) {
+            alert('Error saving engineer: ' + error.message);
+        }
+    }
+
+    window.deleteEngineer = async function(userId) {
+        if (!confirm('Are you sure you want to delete this engineer? This action will also delete their login and cannot be undone.')) return;
+        
+        try {
+            const response = await fetch(`http://localhost:3000/api/pm/engineer/${userId}`, {
+                method: 'DELETE'
+            });
+
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error);
+            
+            alert('Engineer deleted successfully.');
+            closeEngineerModal();
+            loadDashboardData(); // Reload all data
+            
+        } catch (error) {
+            alert('Error deleting engineer: ' + error.message);
+        }
     }
     
-    const nextMonth = document.getElementById('nextMonth');
-    if(nextMonth) {
-        nextMonth.addEventListener('click', () => {
-            currentDate.setMonth(currentDate.getMonth() + 1);
-            updateCalendar();
-        });
-    }
-    updateCalendar();
-    
-    // --- Attach all other functions from your file to window ---
-    window.openEngineerModal = function() { alert('Add Engineer form not connected yet.'); }
-    window.closeEngineerModal = function() { document.getElementById('engineerModal').style.display = 'none'; }
-    window.editEngineer = function(id) { alert('Edit Engineer not connected yet.'); }
-    window.saveEngineer = function(ev) { ev.preventDefault(); alert('Save Engineer not connected yet.'); }
-    window.deleteEngineer = function(id) { alert('Delete Engineer not connected yet.'); }
-    window.editFacilityOwner = function(id) { alert('Edit FO not connected yet.'); }
-    window.deleteFacilityOwner = function(id) { alert('Delete FO not connected yet.'); }
-    window.saveFacilityOwner = function(ev) { ev.preventDefault(); alert('Save FO not connected yet.'); }
+    // --- Other stubs ---
+    window.editFacilityOwner = function(id) { alert('Edit FO not built yet.'); }
+    window.deleteFacilityOwner = function(id) { alert('Delete FO not built yet.'); }
+    window.saveFacilityOwner = function(ev) { ev.preventDefault(); alert('Save FO not built yet.'); }
     window.closeFacilityOwnerModal = function() { document.getElementById('facilityOwnerModal').style.display = 'none'; }
     window.approveAccountStatus = function(id) { alert('Please use the "View" button to approve.'); }
     window.rejectAccountStatus = function(id) { alert('Reject not connected yet.'); }
@@ -891,4 +878,141 @@ document.addEventListener('DOMContentLoaded', function() {
     window.closeAssignmentForm = function() {
         closeTicketOverviewModal();
     };
+
+    // --- NOW, RUN INITIALIZATION & ATTACH LISTENERS ---
+
+    checkPMSession(); 
+    initNavigation(); 
+    
+    // All filter/search listeners
+    const accountStatusFilter = document.getElementById('accountStatusFilter');
+    if (accountStatusFilter) {
+        accountStatusFilter.addEventListener('change', renderAccounts);
+    }
+    
+    const searchAccounts = document.getElementById('searchAccounts');
+    if (searchAccounts) {
+        searchAccounts.addEventListener('input', renderAccounts);
+    }
+    
+    const searchEngineers = document.getElementById('searchEngineers');
+    if (searchEngineers) {
+        searchEngineers.addEventListener('input', renderEngineers);
+    }
+
+    const searchFacilityOwners = document.getElementById('searchFacilityOwners');
+    if(searchFacilityOwners) {
+        searchFacilityOwners.addEventListener('input', renderFacilityOwners);
+    }
+    
+    const searchRequestAppointments = document.getElementById('searchRequestAppointments');
+    if(searchRequestAppointments) {
+        searchRequestAppointments.addEventListener('input', renderRequestAppointments);
+    }
+
+    const statusFilterOnHold = document.getElementById('statusFilterOnHold');
+    if(statusFilterOnHold) {
+        statusFilterOnHold.addEventListener('change', renderOnHoldAppointments);
+    }
+
+    const searchOnHoldAppointments = document.getElementById('searchOnHoldAppointments');
+    if(searchOnHoldAppointments) {
+        searchOnHoldAppointments.addEventListener('input', renderOnHoldAppointments);
+    }
+
+    const searchApprovedAppointments = document.getElementById('searchApprovedAppointments');
+    if(searchApprovedAppointments) {
+        searchApprovedAppointments.addEventListener('input', renderApprovedAppointments);
+    }
+    
+    // Form submission listener
+    const assignmentForm = document.getElementById('assignmentForm');
+    if (assignmentForm) {
+        assignmentForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('processBtn');
+            btn.disabled = true;
+        
+            const appointment_id = parseInt(document.getElementById('currentAppointmentId').value);
+            const engineer_user_id = document.getElementById('engineerSelect').value;
+            const pm_remarks = document.getElementById('pmRemarksText').value;
+        
+            if (!engineer_user_id) {
+                alert('Please select an engineer.');
+                btn.disabled = false;
+                return;
+            }
+        
+            try {
+                const response = await fetch('http://localhost:3000/api/pm/assign-appointment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ appointment_id, engineer_user_id, pm_remarks })
+                });
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.error);
+        
+                alert('Appointment assigned successfully!');
+                closeTicketOverviewModal();
+                loadDashboardData();
+        
+            } catch (error) {
+                alert('Error assigning appointment: ' + error.message);
+            } finally {
+                btn.disabled = false;
+            }
+        });
+    }
+
+    // --- NEW: Attach Engineer form listener ---
+    const engineerForm = document.getElementById('engineerForm');
+    if (engineerForm) {
+        engineerForm.addEventListener('submit', saveEngineer); // This should now work!
+    }
+
+    // --- Calendar (Simplified) ---
+    let currentDate = new Date();
+    const calendarTitle = document.getElementById('calendarTitle');
+    const calendarGrid = document.getElementById('calendarGrid');
+
+    function updateCalendar() {
+        if (!calendarTitle || !calendarGrid) return;
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                          'July', 'August', 'September', 'October', 'November', 'December'];
+        calendarTitle.textContent = `${monthNames[month]} ${year}`;
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+        const daysInMonth = lastDay.getDate();
+        const startingDayOfWeek = firstDay.getDay();
+        let calendarHTML = `<div class="calendar-day">S</div><div class="calendar-day">M</div><div class="calendar-day">T</div><div class="calendar-day">W</div><div class="calendar-day">TH</div><div class="calendar-day">F</div><div class="calendar-day">S</div>`;
+        for (let i = 0; i < startingDayOfWeek; i++) {
+            calendarHTML += '<div class="calendar-date"></div>';
+        }
+        const today = new Date();
+        for (let day = 1; day <= daysInMonth; day++) {
+            const isToday = today.getDate() === day && today.getMonth() === month && today.getFullYear() === year;
+            const selectedClass = isToday ? 'selected' : '';
+            calendarHTML += `<div class="calendar-date ${selectedClass}">${day}</div>`;
+        }
+        calendarGrid.innerHTML = calendarHTML;
+    }
+
+    const prevMonth = document.getElementById('prevMonth');
+    if(prevMonth) {
+        prevMonth.addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            updateCalendar();
+        });
+    }
+    
+    const nextMonth = document.getElementById('nextMonth');
+    if(nextMonth) {
+        nextMonth.addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            updateCalendar();
+        });
+    }
+    updateCalendar();
 });

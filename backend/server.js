@@ -104,6 +104,108 @@ app.get('/api/pm/dashboard-data', async (req, res) => {
     }
 });
 
+// --- NEW ENDPOINT TO CREATE/UPDATE ENGINEER ---
+app.post('/api/pm/engineer', async (req, res) => {
+    const { id, email, password, givenName, middleName, lastName, phone, location } = req.body;
+
+    try {
+        if (id) {
+            // --- UPDATE ---
+            const { data: profile, error: profileError } = await supabase
+                .from('engineer_records')
+                .update({
+                    firstName: givenName,
+                    middleName: middleName,
+                    lastName: lastName,
+                    phone_number: phone,
+                    email: email, // Also update email in profile
+                    location: location
+                })
+                .eq('user_id', id)
+                .select();
+
+            if (profileError) throw new Error(profileError.message);
+
+            // Also update auth user if email/password changed
+            const authUpdates = {};
+            if (email) authUpdates.email = email;
+            if (password) authUpdates.password = password; // Only provide if it's a new password
+
+            if (Object.keys(authUpdates).length > 0) {
+                const { error: authError } = await supabase.auth.admin.updateUserById(id, authUpdates);
+                if (authError) throw new Error(authError.message);
+            }
+
+            res.status(200).json({ message: 'Engineer updated successfully!', data: profile });
+        } else {
+            // --- CREATE ---
+            if (!email || !password) {
+                return res.status(400).json({ error: 'Email and password are required for new engineer.' });
+            }
+
+            // 1. Create auth user
+            const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+                email: email,
+                password: password,
+                email_confirm: true // Auto-confirm them
+            });
+
+            if (authError) throw new Error(authError.message);
+            if (!authData || !authData.user) throw new Error('User creation failed in Supabase Auth.');
+            
+            const newUserId = authData.user.id;
+
+            // 2. Create profile record
+            const { data: profile, error: insertError } = await supabase
+                .from('engineer_records')
+                .insert([
+                    {
+                        user_id: newUserId,
+                        firstName: givenName,
+                        middleName: middleName,
+                        lastName: lastName,
+                        email: email,
+                        phone_number: phone,
+                        location: location
+                    }
+                ])
+                .select();
+            
+            if (insertError) {
+                // Rollback auth user creation
+                await supabase.auth.admin.deleteUser(newUserId);
+                throw new Error(insertError.message);
+            }
+
+            res.status(201).json({ message: 'Engineer created successfully!', data: profile });
+        }
+    } catch (error) {
+        console.error('Engineer Save Error:', error.message);
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// --- NEW ENDPOINT TO DELETE ENGINEER ---
+app.delete('/api/pm/engineer/:id', async (req, res) => {
+    const { id } = req.params;
+    if (!id) return res.status(400).json({ error: 'Engineer ID is required.' });
+
+    try {
+        // Deleting the auth user should cascade delete the profile record
+        // if the database foreign key is set to ON DELETE CASCADE.
+        // This is the standard way to handle this.
+        const { error: authError } = await supabase.auth.admin.deleteUser(id);
+
+        if (authError) throw new Error(authError.message);
+
+        res.status(200).json({ message: 'Engineer deleted successfully.' });
+    } catch (error) {
+        console.error('Engineer Delete Error:', error.message);
+        res.status(400).json({ error: error.message });
+    }
+});
+
+
 app.post('/api/pm/approve-account', async (req, res) => {
     const { user_id } = req.body; 
     try {

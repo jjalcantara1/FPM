@@ -399,7 +399,49 @@
             </div>
             <div class="assignment-modal-body">
                 <form id="engineerForm">
-                    </form>
+                    <input type="hidden" id="engHiddenId">
+					<div class="assignment-form-row">
+						<div class="assignment-form-field">
+							<label class="assignment-label">Given Name</label>
+							<input type="text" class="assignment-input" id="engGivenName" required>
+						</div>
+					</div>
+					<div class="assignment-form-row">
+						<div class="assignment-form-field">
+							<label class="assignment-label">Middle Name</label>
+							<input type="text" class="assignment-input" id="engMiddleName">
+						</div>
+						<div class="assignment-form-field">
+							<label class="assignment-label">Last Name</label>
+							<input type="text" class="assignment-input" id="engLastName" required>
+						</div>
+					</div>
+					<div class="assignment-form-row">
+						<div class="assignment-form-field">
+							<label class="assignment-label">Phone Number</label>
+							<input type="text" class="assignment-input" id="engPhone" required>
+						</div>
+						<div class="assignment-form-field">
+							<label class="assignment-label">Email Address</label>
+							<input type="email" class="assignment-input" id="engEmail" required>
+						</div>
+					</div>
+					<div class="assignment-form-row">
+						<div class="assignment-form-field">
+							<label class="assignment-label">Location/Coverage Area</label>
+							<input type="text" class="assignment-input" id="engLocation" placeholder="e.g., Metro Manila, Cebu City" required>
+						</div>
+						<div class="assignment-form-field">
+							<label class="assignment-label">Password</label>
+                            <input type="password" class="assignment-input" id="engPassword" placeholder="Required for new engineer">
+						</div>
+					</div>
+					<div class="assignment-form-actions">
+						<button type="button" class="assignment-btn assignment-btn-cancel" onclick="closeEngineerModal()">Cancel</button>
+						<button type="button" id="engDeleteBtn" class="assignment-btn assignment-btn-delete" style="display:none">Delete</button>
+						<button type="submit" class="assignment-btn assignment-btn-assign">Save</button>
+					</div>
+                </form>
             </div>
         </div>
     </div>
