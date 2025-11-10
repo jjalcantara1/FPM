@@ -780,3 +780,22 @@ input[type="text"] { width:100%; padding:10px 12px; border:1px solid #dce6f5; bo
     border-radius: 12px;
     border: 1px solid #6ee7b7;
 }
+
+/* --- NEW STYLE ADDED --- */
+/* This style targets textareas in the overview modal */
+.form-textarea { 
+	width: 100%; 
+	padding: 12px 14px; 
+	border: 1px solid #dce6f5; 
+	border-radius: 10px; 
+	font: inherit; 
+	font-size: 14px; 
+	resize: vertical; 
+	min-height: 90px; 
+	background: #fff; 
+}
+.form-textarea:focus { 
+	outline: none; 
+	border-color: var(--brand-600); 
+	box-shadow: 0 0 0 3px rgba(21,91,255,0.1); 
+}

@@ -509,8 +509,12 @@ function openTicketModal(appointmentId) {
     
     const isPending = status === 'pending';
     document.getElementById('engineerAssignmentSection').style.display = 'block';
+    
+    // Show/hide "Process" button
     document.getElementById('processBtn').style.display = isPending ? 'inline-flex' : 'none';
-    document.getElementById('pmRemarksField').style.display = isPending ? 'block' : 'none';
+    
+    // Hide PM remarks field by default. It will be shown by the dropdown listener
+    document.getElementById('pmRemarksField').style.display = 'none';
     
     // Hide all other action buttons by default
     document.getElementById('markDoneBtn2').style.display = 'none';
@@ -561,7 +565,6 @@ function openTicketModal(appointmentId) {
         }
     }
     
-    // This is the other part of the fix.
     // We check if these elements exist before trying to show them.
     const remarksSection = document.getElementById('remarksSection');
     const currentStatusSection = document.getElementById('currentStatusSection');
@@ -785,7 +788,43 @@ document.addEventListener('DOMContentLoaded', function() {
     window.approveAccountFromModal = function() { /* Handled by button */ }
     window.rejectAccountFromModal = function() { alert('Reject not connected yet.'); }
     window.deleteAccountFromModal = function() { alert('Delete not connected yet.'); }
-    window.processTicket = function() { /* Handled by form */ }
+    
+    // --- THIS IS THE NEW FUNCTION ---
+    window.processTicket = async function() {
+        const btn = document.getElementById('processBtn');
+        btn.disabled = true;
+    
+        const appointment_id = parseInt(document.getElementById('currentAppointmentId').value);
+        const engineer_user_id = document.getElementById('engineerSelect').value;
+        const pm_remarks = document.getElementById('pmRemarksText').value;
+    
+        if (!engineer_user_id) {
+            alert('Please select an engineer.');
+            btn.disabled = false;
+            return;
+        }
+    
+        try {
+            const response = await fetch('http://localhost:3000/api/pm/assign-appointment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ appointment_id, engineer_user_id, pm_remarks })
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error);
+    
+            alert('Appointment assigned successfully!');
+            closeTicketOverviewModal();
+            loadDashboardData();
+    
+        } catch (error) {
+            alert('Error assigning appointment: ' + error.message);
+        } finally {
+            btn.disabled = false;
+        }
+    }
+    // --- END OF NEW FUNCTION ---
+
     window.approveAppointment = function() { alert('Approve not connected yet.'); }
     window.rejectAppointment = function(id) { alert('Reject not connected yet. This will be a new API endpoint.'); }
     window.deleteAppointment = function(id) { alert('Delete not connected yet. This will be a new API endpoint.'); }
@@ -925,49 +964,29 @@ document.addEventListener('DOMContentLoaded', function() {
         searchApprovedAppointments.addEventListener('input', renderApprovedAppointments);
     }
     
-    // Form submission listener
-    const assignmentForm = document.getElementById('assignmentForm');
-    if (assignmentForm) {
-        assignmentForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const btn = document.getElementById('processBtn');
-            btn.disabled = true;
-        
-            const appointment_id = parseInt(document.getElementById('currentAppointmentId').value);
-            const engineer_user_id = document.getElementById('engineerSelect').value;
-            const pm_remarks = document.getElementById('pmRemarksText').value;
-        
-            if (!engineer_user_id) {
-                alert('Please select an engineer.');
-                btn.disabled = false;
-                return;
-            }
-        
-            try {
-                const response = await fetch('http://localhost:3000/api/pm/assign-appointment', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ appointment_id, engineer_user_id, pm_remarks })
-                });
-                const result = await response.json();
-                if (!response.ok) throw new Error(result.error);
-        
-                alert('Appointment assigned successfully!');
-                closeTicketOverviewModal();
-                loadDashboardData();
-        
-            } catch (error) {
-                alert('Error assigning appointment: ' + error.message);
-            } finally {
-                btn.disabled = false;
-            }
-        });
-    }
+    // --- THIS LISTENER IS NOW REMOVED ---
+    // const assignmentForm = document.getElementById('assignmentForm');
+    // if (assignmentForm) { ... }
 
     // --- NEW: Attach Engineer form listener ---
     const engineerForm = document.getElementById('engineerForm');
     if (engineerForm) {
         engineerForm.addEventListener('submit', saveEngineer); // This should now work!
+    }
+
+    // --- NEW: Add listener for engineer dropdown in modal ---
+    const engineerSelectModal = document.getElementById('engineerSelect');
+    if (engineerSelectModal) {
+        engineerSelectModal.addEventListener('change', function() {
+            const pmRemarksField = document.getElementById('pmRemarksField');
+            if (pmRemarksField) {
+                if (this.value) {
+                    pmRemarksField.style.display = 'block'; // Show if engineer is selected
+                } else {
+                    pmRemarksField.style.display = 'none'; // Hide if no engineer is selected
+                }
+            }
+        });
     }
 
     // --- Calendar (Simplified) ---

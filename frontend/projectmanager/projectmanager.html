@@ -332,7 +332,7 @@
 
                 <div class="engineer-assignment-section" id="engineerAssignmentSection">
                     <h4 class="section-title">Engineer Assignment</h4>
-                    <form id="assignmentForm">
+                    <form id="assignmentForm"> 
                         <input type="hidden" id="currentAppointmentId">
                         <div class="form-field">
                             <label class="form-label">Assign Engineer</label>
@@ -350,18 +350,16 @@
                             <label class="form-label">PM Remarks</label>
                             <div class="assigned-engineer" id="pmRemarksDisplay" style="background: #f9fafb; padding: 10px; border-radius: 6px; border: 1px solid #e5e7eb; color: #374151;">—</div>
                         </div>
-                        <div class="action-buttons-section" style="margin-top: 20px;">
-                            <button type="submit" class="action-btn process-btn" id="processBtn">
-                                <span class="btn-icon">⚡</span>
-                                Assign & Process Ticket
-                            </button>
-                        </div>
-                    </form>
+                        </form>
                 </div>
                 
                 <div class="action-buttons-section">
 					<div class="action-buttons-grid">
-						<button type="button" class="action-btn done-btn" id="markDoneBtn2" onclick="markAsDone()" style="display: none; background: #10b981; border-color: #10b981;">
+                        <button type="button" class="action-btn process-btn" id="processBtn" onclick="processTicket()">
+							<span class="btn-icon">⚡</span>
+							Assign & Process Ticket
+						</button>
+                        <button type="button" class="action-btn done-btn" id="markDoneBtn2" onclick="markAsDone()" style="display: none; background: #10b981; border-color: #10b981;">
 							<span class="btn-icon">✅</span>
 							Mark as Done
 						</button>
