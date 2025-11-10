@@ -11,6 +11,9 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../static/supabaseClient.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
     <div class="layout">
@@ -261,8 +264,13 @@
 
                 <div id="approved-appointments-view" class="view-section">
                     <div class="card">
-                        <div class="card-header"><h2 class="card-title">Completed Appointments</h2></div>
-                        <div class="searchbar"><input id="searchApprovedAppointments" type="text" placeholder="Search completed appointments..."></div>
+                        <div class="card-header">
+                            <h2 class="card-title">Completed Appointments</h2>
+                            <div class="header-actions">
+                                <input id="searchApprovedAppointments" type="text" placeholder="Search completed appointments...">
+                                <button id="generateReportBtn" class="action-btn" style="background: #059669; border-color: #059669;">Generate Report (PDF)</button>
+                            </div>
+                        </div>
                         <table class="table approved-table" id="approvedAppointmentsTable">
                             <thead>
                                 <tr>
@@ -281,7 +289,7 @@
                         </table>
                     </div>
                 </div>
-            </div>
+                </div>
         </div>
     </div>
 

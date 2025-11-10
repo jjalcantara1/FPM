@@ -707,6 +707,83 @@ function closeTicketOverviewModal() {
     document.getElementById('ticketOverviewModal').style.display = 'none';
 }
 
+
+// --- MODIFIED FUNCTION TO GENERATE PDF ---
+function generateCompletedReport() {
+    // 1. Check if libraries are loaded
+    if (typeof window.jspdf === 'undefined' || typeof window.jspdf.jsPDF === 'undefined') {
+        alert('jsPDF library is not loaded. Please try again in a moment.');
+        return;
+    }
+    
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    // 2. Check for autotable plugin on the jsPDF prototype
+    if (typeof doc.autoTable === 'undefined') {
+        alert('jsPDF-AutoTable plugin is not loaded. Please try again in a moment.');
+        return;
+    }
+
+    // 3. Get the filtered data (same logic as renderApprovedAppointments)
+    const searchBar = document.getElementById('searchApprovedAppointments');
+    const searchQuery = searchBar ? searchBar.value.toLowerCase() : '';
+    const approved = state.allAppointments.filter(appt => {
+        const isApproved = ['Completed', 'Done'].includes(appt.status);
+        const searchMatch = !searchQuery ||
+            (appt.ticket_code && appt.ticket_code.toLowerCase().includes(searchQuery)) ||
+            (appt.site && appt.site.toLowerCase().includes(searchQuery)) ||
+            (appt.type_of_appointment && appt.type_of_appointment.toLowerCase().includes(searchQuery));
+        return isApproved && searchMatch;
+    });
+
+    if (approved.length === 0) {
+        alert('No completed appointments to report.');
+        return;
+    }
+
+    // 4. Define Columns
+    const head = [['ID', 'Ticket', 'Date', 'Site', 'Type', 'Status', 'Priority', 'Engineer']];
+    
+    // 5. Define Rows
+    const body = approved.map(appt => {
+        const date = new Date(appt.date).toLocaleDateString();
+        let engineerName = '...';
+        if (appt.engineer_records) {
+            engineerName = `${appt.engineer_records.firstName || ''} ${appt.engineer_records.lastName || ''}`.trim();
+        }
+        return [
+            appt.id,
+            appt.ticket_code || 'N/A',
+            date,
+            appt.site || 'N/A',
+            appt.type_of_appointment || 'N/A',
+            appt.status,
+            appt.priority_level || 'N/A',
+            engineerName
+        ];
+    });
+
+    // 6. Add Title and Generate Table
+    doc.setFontSize(18);
+    doc.text('Completed Appointments Report', 14, 22);
+    doc.setFontSize(11);
+    doc.setTextColor(100);
+    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 29);
+
+    doc.autoTable({
+        startY: 35,
+        head: head,
+        body: body,
+        theme: 'striped',
+        headStyles: { fillColor: [42, 51, 71] } // --text-700 color approx.
+    });
+
+    // 7. Save the PDF
+    doc.save('Completed_Appointments_Report.pdf');
+}
+
+
 // --- 5. INITIALIZATION & HELPERS ---
 
 function initNavigation() {
@@ -1205,6 +1282,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const searchApprovedAppointments = document.getElementById('searchApprovedAppointments');
     if(searchApprovedAppointments) {
         searchApprovedAppointments.addEventListener('input', renderApprovedAppointments);
+    }
+
+    // --- ADDED: Listener for the new report button ---
+    const generateReportBtn = document.getElementById('generateReportBtn');
+    if (generateReportBtn) {
+        generateReportBtn.addEventListener('click', generateCompletedReport);
     }
     
     // --- THIS LISTENER IS NOW REMOVED ---
