@@ -36,7 +36,7 @@ async function checkUserSession() {
 
     if (profileError) {
         console.error('Error fetching profile:', profileError.message);
-        logout();
+        logout(); 
         return;
     }
 
@@ -45,7 +45,7 @@ async function checkUserSession() {
     
     loadAndRenderAppointments();
 }
-        
+
 function updateHeaderUI() {
     const label = document.getElementById('welcomeLabel');
     if (label && userProfile) {
@@ -54,9 +54,10 @@ function updateHeaderUI() {
     
     var badge = document.querySelector('.profile-btn .badge');
     if (badge) {
-        badge.textContent = 'Approved';
-        badge.classList.remove('pending');
-        badge.classList.add('approved');
+        const status = userProfile.status || 'pending';
+        badge.textContent = status;
+        badge.classList.remove('pending', 'approved');
+        badge.classList.add(status === 'pending' ? 'pending' : 'approved');
     }
 }
 
@@ -66,24 +67,37 @@ async function loadAndRenderAppointments() {
 
     tableBody.innerHTML = `<tr><td colspan="9" style="text-align: center;">Loading your appointments...</td></tr>`;
 
-    const { data, error } = await supabase
-        .from('appointment_records')
-        .select('*')
-        .order('created_at', { ascending: false });
+    try {
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError || !session) {
+            throw new Error('You are not logged in.');
+        }
 
-    if (error) {
+        const response = await fetch('http://localhost:3000/api/my-appointments', {
+            headers: {
+                'Authorization': `Bearer ${session.access_token}`
+            }
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Server responded with an error:', errorText);
+            throw new Error(`Failed to fetch appointments. Server said: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        allAppointments = data; 
+        renderTable(allAppointments);
+
+    } catch (error) {
         console.error('Error fetching appointments:', error.message);
-        tableBody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: red;">Error loading appointments.</td></tr>`;
-        return;
+        tableBody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: red;">Error: ${error.message}</td></tr>`;
     }
-
-    allAppointments = data;
-    renderTable(allAppointments);
 }
 
 function renderTable(appointments) {
     const tableBody = document.getElementById('statusBody');
-    tableBody.innerHTML = '';
+    tableBody.innerHTML = ''; 
 
     if (!appointments || appointments.length === 0) {
         tableBody.innerHTML = `<tr><td colspan="9" style="text-align: center;">You have not created any appointments yet.</td></tr>`;
@@ -114,7 +128,7 @@ function renderTable(appointments) {
         tableBody.appendChild(row);
     });
 }
-        
+
 window.viewDetails = function(appointmentId) {
     const task = allAppointments.find(appt => appt.id === appointmentId);
     if (!task) return;
@@ -125,6 +139,11 @@ window.viewDetails = function(appointmentId) {
         day: 'numeric'
     });
 
+    let engineerName = 'Not yet assigned';
+    if (task.engineer_records) {
+        engineerName = `${task.engineer_records.firstName || ''} ${task.engineer_records.lastName || ''}`.trim();
+    }
+
     document.getElementById('modalTicketNumber').textContent = task.ticket_code || 'N/A';
     document.getElementById('modalDate').textContent = date;
     document.getElementById('modalSite').textContent = task.site || 'N/A';
@@ -133,9 +152,9 @@ window.viewDetails = function(appointmentId) {
     document.getElementById('modalStatus').textContent = task.status || 'Pending';
     document.getElementById('modalPriority').textContent = task.priority_level || 'N/A';
     
-    document.getElementById('modalRemarks').textContent = 'Waiting for Project Manager review.';
-    document.getElementById('modalEngineer').textContent = 'Not yet assigned';
-    document.getElementById('modalCompletion').textContent = 'TBD';
+    document.getElementById('modalRemarks').textContent = task.pm_remarks || 'Waiting for Project Manager review.';
+    document.getElementById('modalEngineer').textContent = engineerName;
+    document.getElementById('modalCompletion').textContent = 'TBD'; 
 
     document.getElementById('modalContact').textContent = `${userProfile.firstName} ${userProfile.surname}`;
     document.getElementById('modalPhone').textContent = userProfile.phone_number;
@@ -161,20 +180,16 @@ document.addEventListener('DOMContentLoaded', function(){
     if (filterSelect) {
         filterSelect.addEventListener('change', function() {
             var selectedStatus = this.value.toLowerCase();
-            var rows = document.querySelectorAll('#statusBody tr');
             
-            rows.forEach(function(row) {
-                var statusPill = row.querySelector('.status-pill');
-                if (statusPill) {
-                    var rowStatus = statusPill.textContent.toLowerCase();
-                    
-                    if (selectedStatus === 'all' || rowStatus === selectedStatus) {
-                        row.style.display = '';
-                    } else {
-                        row.style.display = 'none';
-                    }
+            const filtered = allAppointments.filter(appt => {
+                if (selectedStatus === 'all') return true;
+                if (selectedStatus === 'ongoing') {
+                    return ['assigned', 'ongoing', 'in_progress'].includes((appt.status || 'pending').toLowerCase());
                 }
+                return (appt.status || 'pending').toLowerCase() === selectedStatus;
             });
+            
+            renderTable(filtered);
         });
     }
 });
