@@ -9,9 +9,8 @@ const SUPABASE_URL = 'https://bicvcqolkaokimtwimhn.supabase.co';
 const SUPABASE_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJpY3ZjcW9sa2Fva2ltdHdpbWhuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MjUzMDIwMCwiZXhwIjoyMDc4MTA2MjAwfQ.eAYHk5c53gz5y2r85Rkz_-48taKCZWii-5cR2glCMP0';
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
-app.use(cors()); 
-app.use(express.json()); 
-
+app.use(cors());
+app.use(express.json());
 
 app.post('/api/register', async (req, res) => {
     const { 
@@ -64,29 +63,37 @@ app.post('/api/register', async (req, res) => {
     }
 });
 
+// UPDATED DASHBOARD ENDPOINT
 app.get('/api/pm/dashboard-data', async (req, res) => {
     try {
+        // 1. Get ALL appointments and join owner/engineer info
         const { data: appointments, error: apptError } = await supabase
             .from('appointment_records')
-            .select('*')
-            .eq('status', 'Pending');
-        
+            .select(`
+                *,
+                facility_owner_records (email, firstName, surname),
+                engineer_records (firstName, lastName)
+            `); // No filter!
+
         if (apptError) throw new Error(apptError.message);
 
+        // 2. Get ALL facility owner accounts
         const { data: accounts, error: acctError } = await supabase
             .from('facility_owner_records')
             .select('*'); 
 
         if (acctError) throw new Error(acctError.message);
 
+        // 3. Get all engineers
         const { data: engineers, error: engError } = await supabase
             .from('engineer_records')
             .select('*');
 
         if (engError) throw new Error(engError.message);
 
+        // 4. Send all data back to the frontend
         res.status(200).json({
-            pendingAppointments: appointments || [],
+            allAppointments: appointments || [], // RENAMED
             allAccounts: accounts || [], 
             engineers: engineers || []
         });
@@ -134,13 +141,57 @@ app.post('/api/pm/assign-appointment', async (req, res) => {
     }
 });
 
+app.post('/api/pm/complete-appointment', async (req, res) => {
+    const { appointment_id, remarks } = req.body;
+    if (!appointment_id || !remarks) {
+        return res.status(400).json({ error: 'Appointment ID and remarks are required.' });
+    }
+    try {
+        const { data, error } = await supabase
+            .from('appointment_records')
+            .update({ 
+                status: 'Completed',
+                pm_remarks: remarks
+            })
+            .eq('id', appointment_id)
+            .select(); 
+        if (error) throw new Error(error.message);
+        if (!data || data.length === 0) throw new Error('Appointment not found.');
+        res.status(200).json({ message: 'Appointment marked as completed!' });
+    } catch (error) {
+        console.error('Error completing appointment:', error.message);
+        res.status(400).json({ error: error.message });
+    }
+});
+
+app.post('/api/pm/hold-appointment', async (req, res) => {
+    const { appointment_id, remarks } = req.body;
+    if (!appointment_id || !remarks) {
+        return res.status(400).json({ error: 'Appointment ID and remarks (reason) are required.' });
+    }
+    try {
+        const { data, error } = await supabase
+            .from('appointment_records')
+            .update({ 
+                status: 'On Hold',
+                pm_remarks: remarks
+            })
+            .eq('id', appointment_id)
+            .select(); 
+        if (error) throw new Error(error.message);
+        if (!data || data.length === 0) throw new Error('Appointment not found.');
+        res.status(200).json({ message: 'Appointment status set to On Hold.' });
+    } catch (error) {
+        console.error('Error setting appointment to on hold:', error.message);
+        res.status(400).json({ error: error.message });
+    }
+});
+
 app.get('/api/appointments/availability', async (req, res) => {
     const { month, year } = req.query;
-
     if (!month || !year) {
         return res.status(400).json({ error: 'Month and year are required.' });
     }
-
     const startDate = `${year}-${String(parseInt(month) + 1).padStart(2, '0')}-01`;
     const lastDay = new Date(year, parseInt(month) + 1, 0).getDate();
     const endDate = `${year}-${String(parseInt(month) + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
@@ -153,15 +204,12 @@ app.get('/api/appointments/availability', async (req, res) => {
             .lte('date', endDate); 
         
         if (error) throw new Error(error.message);
-
         const counts = {};
         data.forEach(appt => {
             const date = appt.date;
             counts[date] = (counts[date] || 0) + 1;
         });
-
         res.status(200).json(counts);
-
     } catch (error) {
         console.error('Error fetching availability:', error.message);
         res.status(400).json({ error: error.message });
@@ -175,7 +223,6 @@ app.get('/api/my-appointments', async (req, res) => {
             return res.status(401).json({ error: 'No authorization token provided.' });
         }
         const token = authHeader.split(' ')[1]; 
-
         const { data: { user }, error: userError } = await supabase.auth.getUser(token);
         if (userError || !user) {
             return res.status(401).json({ error: 'Invalid token.' });
@@ -194,9 +241,7 @@ app.get('/api/my-appointments', async (req, res) => {
             .order('created_at', { ascending: false });
 
         if (error) throw new Error(error.message);
-        
         res.status(200).json(data);
-
     } catch (error) {
         console.error('Error fetching user appointments:', error.message);
         res.status(400).json({ error: error.message });

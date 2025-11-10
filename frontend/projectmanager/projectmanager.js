@@ -1,10 +1,12 @@
 const state = {
     currentUser: null,
     pmProfile: null,
-    pendingAppointments: [],
+    allAppointments: [],
     allAccounts: [],
     engineers: []
 };
+
+// --- 1. AUTHENTICATION & CORE ---
 
 async function logout() {
     await supabase.auth.signOut();
@@ -46,6 +48,8 @@ function updatePMHeader() {
     if (welcomeText) welcomeText.textContent = `Welcome, ${name}!`;
 }
 
+// --- 2. DATA LOADING ---
+
 async function loadDashboardData() {
     try {
         const response = await fetch('http://localhost:3000/api/pm/dashboard-data');
@@ -55,14 +59,11 @@ async function loadDashboardData() {
         }
         const data = await response.json();
 
-        state.pendingAppointments = data.pendingAppointments || [];
+        state.allAppointments = data.allAppointments || [];
         state.allAccounts = data.allAccounts || [];
         state.engineers = data.engineers || [];
 
-        renderDashboardStats();
-        renderRequestAppointments();
-        renderAccounts(); 
-        renderEngineers();
+        renderAllTables();
         populateEngineerDropdown();
 
     } catch (error) {
@@ -71,52 +72,225 @@ async function loadDashboardData() {
     }
 }
 
+// --- 3. DATA RENDERING (WITH FILTERS) ---
+
+function renderAllTables() {
+    renderDashboardStats();
+    renderRequestAppointments();
+    renderOnHoldAppointments();
+    renderApprovedAppointments();
+    renderAccounts(); 
+    renderEngineers();
+    // This table is not in your HTML, so we don't call it
+    // renderFacilityOwners(); 
+}
+
+function getStatusClass(status) {
+    const k = String(status || 'pending').toLowerCase();
+    if (k === 'approved' || k === 'materials approved') return 'status-approved';
+    if (k === 'rejected') return 'status-rejected';
+    if (k === 'assigned') return 'status-assigned';
+    if (k === 'in progress' || k === 'ongoing') return 'status-inprogress';
+    if (k === 'completed' || k === 'done' || k === 'inspected') return 'status-done';
+    if (k === 'on hold') return 'status-pending';
+    return 'status-pending'; 
+}
+
 function renderDashboardStats() {
-    const totalEl = document.getElementById('totalTickets');
-    const pendingFOEl = document.getElementById('pendingFOAccounts');
-    
-    const pendingAccountsCount = state.allAccounts.filter(a => a.status === 'pending').length;
-    
-    if (totalEl) totalEl.textContent = state.pendingAppointments.length;
-    if (pendingFOEl) pendingFOEl.textContent = pendingAccountsCount;
+    const pendingAppointments = state.allAppointments.filter(a => a.status === 'Pending').length;
+    const onHoldAppointments = state.allAppointments.filter(a => ['Assigned', 'In Progress', 'On Hold', 'Inspected'].includes(a.status)).length;
+    const rejectedAppointments = state.allAppointments.filter(a => a.status === 'Rejected').length;
+    const pendingAccounts = state.allAccounts.filter(a => a.status === 'pending').length;
+
+    document.getElementById('totalTickets').textContent = pendingAppointments;
+    document.getElementById('pendingApprovals').textContent = onHoldAppointments;
+    document.getElementById('rejectedTasks').textContent = rejectedAppointments;
+    document.getElementById('pendingFOAccounts').textContent = pendingAccounts;
 }
 
 function renderRequestAppointments() {
     const tbody = document.getElementById('requestAppointmentsBody');
     if (!tbody) return;
-
-    const searchQuery = document.getElementById('searchRequestAppointments').value.toLowerCase();
-    const pending = state.pendingAppointments.filter(appt => {
+    
+    const searchBar = document.getElementById('searchRequestAppointments');
+    const searchQuery = searchBar ? searchBar.value.toLowerCase() : '';
+    
+    const pending = state.allAppointments.filter(appt => {
+        const isPending = appt.status === 'Pending';
         const searchMatch = !searchQuery ||
             (appt.ticket_code && appt.ticket_code.toLowerCase().includes(searchQuery)) ||
             (appt.site && appt.site.toLowerCase().includes(searchQuery)) ||
             (appt.type_of_appointment && appt.type_of_appointment.toLowerCase().includes(searchQuery)) ||
             (appt.task_description && appt.task_description.toLowerCase().includes(searchQuery));
-        return searchMatch;
+        return isPending && searchMatch;
     });
 
     tbody.innerHTML = ''; 
     if (pending.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">No matching appointments found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;">No pending appointments found.</td></tr>';
         return;
     }
 
-    pending.forEach((appt) => {
+    pending.forEach((appt, index) => {
         const row = document.createElement('tr');
         const date = new Date(appt.date).toLocaleDateString();
         row.innerHTML = `
+            <td>${appt.id}</td>
             <td>${appt.ticket_code || 'N/A'}</td>
             <td>${date}</td>
             <td>${appt.site || 'N/A'}</td>
             <td>${appt.type_of_appointment || 'N/A'}</td>
             <td>${appt.task_description || 'N/A'}</td>
-            <td><span class="status-pill status-pending">${appt.status}</span></td>
+            <td><span class="status-pill ${getStatusClass(appt.status)}">${appt.status}</span></td>
             <td>${appt.priority_level || 'N/A'}</td>
-            <td><div class="row-actions"><button class="action-btn" onclick="openAssignModal(${appt.id})">Assign</button></div></td>
+            <td>—</td>
+            <td><div class="row-actions"><button class="action-btn" onclick="openTicketModal(${appt.id})">View/Assign</button></div></td>
         `;
         tbody.appendChild(row);
     });
 }
+
+function renderOnHoldAppointments() {
+    const tbody = document.getElementById('onHoldAppointmentsBody');
+    if (!tbody) return;
+    
+    const statusFilterEl = document.getElementById('statusFilterOnHold');
+    const statusFilter = statusFilterEl ? statusFilterEl.value : 'all';
+    
+    const searchBar = document.getElementById('searchOnHoldAppointments');
+    const searchQuery = searchBar ? searchBar.value.toLowerCase() : '';
+    
+    const onHold = state.allAppointments.filter(appt => {
+        const isInProgress = ['Assigned', 'On Hold', 'In Progress', 'Inspected'].includes(appt.status);
+        
+        let statusMatch = statusFilter === 'all';
+        if (statusFilter !== 'all') {
+            const statusLower = (appt.status || '').toLowerCase().replace(' ', '_');
+            statusMatch = statusLower === statusFilter;
+        }
+
+        const searchMatch = !searchQuery ||
+            (appt.ticket_code && appt.ticket_code.toLowerCase().includes(searchQuery)) ||
+            (appt.site && appt.site.toLowerCase().includes(searchQuery)) ||
+            (appt.type_of_appointment && appt.type_of_appointment.toLowerCase().includes(searchQuery));
+            
+        return isInProgress && statusMatch && searchMatch;
+    });
+
+    tbody.innerHTML = ''; 
+    if (onHold.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;">No matching "In Progress" appointments found.</td></tr>';
+        return;
+    }
+
+    onHold.forEach((appt, index) => {
+        const row = document.createElement('tr');
+        const date = new Date(appt.date).toLocaleDateString();
+        let engineerName = '...';
+        if (appt.engineer_records) {
+            engineerName = `${appt.engineer_records.firstName || ''} ${appt.engineer_records.lastName || ''}`.trim();
+        }
+        
+        row.innerHTML = `
+            <td>${appt.id}</td>
+            <td>${appt.ticket_code || 'N/A'}</td>
+            <td>${date}</td>
+            <td>${appt.site || 'N/A'}</td>
+            <td>${appt.type_of_appointment || 'N/A'}</td>
+            <td>${appt.task_description || 'N/A'}</td>
+            <td><span class="status-pill ${getStatusClass(appt.status)}">${appt.status}</span></td>
+            <td>${appt.priority_level || 'N/A'}</td>
+            <td>${engineerName}</td>
+            <td><div class="row-actions"><button class="action-btn" onclick="openTicketModal(${appt.id})">View</button></div></td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+function renderApprovedAppointments() {
+    const tbody = document.getElementById('approvedAppointmentsBody');
+    if (!tbody) return;
+    
+    const searchBar = document.getElementById('searchApprovedAppointments');
+    const searchQuery = searchBar ? searchBar.value.toLowerCase() : '';
+
+    const approved = state.allAppointments.filter(appt => {
+        const isApproved = ['Completed', 'Done'].includes(appt.status);
+        const searchMatch = !searchQuery ||
+            (appt.ticket_code && appt.ticket_code.toLowerCase().includes(searchQuery)) ||
+            (appt.site && appt.site.toLowerCase().includes(searchQuery)) ||
+            (appt.type_of_appointment && appt.type_of_appointment.toLowerCase().includes(searchQuery));
+        return isApproved && searchMatch;
+    });
+
+    tbody.innerHTML = ''; 
+    if (approved.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;">No completed appointments found.</td></tr>';
+        return;
+    }
+
+    approved.forEach((appt, index) => {
+        const row = document.createElement('tr');
+        const date = new Date(appt.date).toLocaleDateString();
+        let engineerName = '...';
+        if (appt.engineer_records) {
+            engineerName = `${appt.engineer_records.firstName || ''} ${appt.engineer_records.lastName || ''}`.trim();
+        }
+        
+        row.innerHTML = `
+            <td>${appt.id}</td>
+            <td>${appt.ticket_code || 'N/A'}</td>
+            <td>${date}</td>
+            <td>${appt.site || 'N/A'}</td>
+            <td>${appt.type_of_appointment || 'N/A'}</td>
+            <td>${appt.task_description || 'N/A'}</td>
+            <td><span class="status-pill ${getStatusClass(appt.status)}">${appt.status}</span></td>
+            <td>${appt.priority_level || 'N/A'}</td>
+            <td>${engineerName}</td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+function renderRejectedAppointments() {
+    const tbody = document.getElementById('rejectedAppointmentsBody');
+    if (!tbody) return;
+    
+    const searchBar = document.getElementById('searchRejectedAppointments');
+    const searchQuery = searchBar ? searchBar.value.toLowerCase() : '';
+
+    const rejected = state.allAppointments.filter(appt => {
+        const isRejected = appt.status === 'Rejected';
+        const searchMatch = !searchQuery ||
+            (appt.ticket_code && appt.ticket_code.toLowerCase().includes(searchQuery)) ||
+            (appt.site && appt.site.toLowerCase().includes(searchQuery));
+        return isRejected && searchMatch;
+    });
+
+    tbody.innerHTML = ''; 
+    if (rejected.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;">No rejected appointments found.</td></tr>';
+        return;
+    }
+
+    rejected.forEach((appt, index) => {
+        const row = document.createElement('tr');
+        const date = new Date(appt.date).toLocaleDateString();
+        row.innerHTML = `
+            <td>${appt.id}</td>
+            <td>${appt.ticket_code || 'N/A'}</td>
+            <td>${date}</td>
+            <td>${appt.site || 'N/A'}</td>
+            <td>${appt.type_of_appointment || 'N/A'}</td>
+            <td>${appt.task_description || 'N/A'}</td>
+            <td><span class="status-pill ${getStatusClass(appt.status)}">${appt.status}</span></td>
+            <td>${appt.priority_level || 'N/A'}</td>
+            <td><div class="row-actions"><button class="action-btn delete" onclick="deleteAppointment('${appt.id}')">Delete</button></div></td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
 
 function renderAccounts() {
     const tbody = document.getElementById('accountsBody');
@@ -124,38 +298,44 @@ function renderAccounts() {
     tbody.innerHTML = ''; 
 
     if (state.allAccounts.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No facility owner accounts found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">No facility owner accounts found.</td></tr>';
         return;
     }
     
-    const searchQuery = document.getElementById('searchAccounts').value.toLowerCase();
+    const statusFilterEl = document.getElementById('accountStatusFilter');
+    const statusFilter = statusFilterEl ? statusFilterEl.value : 'all';
+
+    const searchBar = document.getElementById('searchAccounts');
+    const searchQuery = searchBar ? searchBar.value.toLowerCase() : '';
     
     const filteredAccounts = state.allAccounts.filter(acc => {
+        const statusMatch = statusFilter === 'all' || (acc.status || 'pending') === statusFilter;
         const searchMatch = !searchQuery || 
             (acc.firstName && acc.firstName.toLowerCase().includes(searchQuery)) ||
             (acc.surname && acc.surname.toLowerCase().includes(searchQuery)) ||
             (acc.company_name && acc.company_name.toLowerCase().includes(searchQuery)) ||
             (acc.email && acc.email.toLowerCase().includes(searchQuery));
-            
-        return searchMatch;
+        return statusMatch && searchMatch;
     });
 
     if (filteredAccounts.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No matching accounts found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">No matching accounts found.</td></tr>';
         return;
     }
 
-    filteredAccounts.forEach(acc => {
+    filteredAccounts.forEach((acc, index) => {
         const row = document.createElement('tr');
         const status = acc.status || 'pending';
-        const statusClass = status === 'approved' ? 'status-approved' : 'status-pending';
+        const statusClass = status === 'approved' ? 'status-approved' : (status === 'rejected' ? 'status-rejected' : 'status-pending');
 
         row.innerHTML = `
+            <td style="text-align: center;">${index + 1}</td>
             <td>${acc.firstName || ''} ${acc.surname || ''}</td>
             <td>${acc.company_name || 'N/A'}</td>
             <td>${acc.email || 'N/A'}</td>
             <td>${acc.phone_number || 'N/A'}</td>
-            <td><span class="status-pill ${statusClass}">${status}</span></td>
+            <td>******</td>
+            <td><span class="status-badge ${statusClass}">${status}</span></td>
             <td><button class="action-btn" onclick="openApproveModal('${acc.user_id}')">View</button></td>
         `;
         tbody.appendChild(row);
@@ -166,34 +346,80 @@ function renderEngineers() {
     const tbody = document.getElementById('engineersBody');
     if (!tbody) return;
 
-    const searchQuery = document.getElementById('searchEngineers').value.toLowerCase();
+    const searchBar = document.getElementById('searchEngineers');
+    const searchQuery = searchBar ? searchBar.value.toLowerCase() : '';
+
     const filteredEngineers = state.engineers.filter(eng => {
         const searchMatch = !searchQuery ||
             (eng.firstName && eng.firstName.toLowerCase().includes(searchQuery)) ||
             (eng.lastName && eng.lastName.toLowerCase().includes(searchQuery)) ||
-            (eng.email && eng.email.toLowerCase().includes(searchQuery)) ||
-            (eng.phone_number && eng.phone_number.includes(searchQuery)) ||
-            (eng.location && eng.location.toLowerCase().includes(searchQuery));
+            (eng.email && eng.email.toLowerCase().includes(searchQuery));
         return searchMatch;
     });
 
     tbody.innerHTML = ''; 
     if (filteredEngineers.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No matching engineers found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;">No matching engineers found.</td></tr>';
         return;
     }
 
-    filteredEngineers.forEach(eng => {
+    filteredEngineers.forEach((eng, index) => {
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td>${eng.firstName || ''} ${eng.lastName || ''}</td>
-            <td>${eng.email || 'N/A'}</td>
+            <td>${index + 1}</td>
+            <td>${eng.firstName || ''}</td>
+            <td>${eng.middleName || ''}</td>
+            <td>${eng.lastName || ''}</td>
             <td>${eng.phone_number || 'N/A'}</td>
+            <td>${eng.email || 'N/A'}</td>
             <td>${eng.location || 'N/A'}</td>
+            <td>******</td>
+            <td><button class="action-btn" onclick="alert('Edit engineer not built yet')">Edit</button></td>
         `;
         tbody.appendChild(row);
     });
 }
+
+function renderFacilityOwners() {
+    const tbody = document.getElementById('facilityOwnersBody');
+    if (!tbody) return;
+
+    const searchBar = document.getElementById('searchFacilityOwners');
+    const searchQuery = searchBar ? searchBar.value.toLowerCase() : '';
+
+    const approvedOwners = state.allAccounts.filter(acc => {
+        const isApproved = acc.status === 'approved';
+        const searchMatch = !searchQuery || 
+            (acc.firstName && acc.firstName.toLowerCase().includes(searchQuery)) ||
+            (acc.surname && acc.surname.toLowerCase().includes(searchQuery)) ||
+            (acc.company_name && acc.company_name.toLowerCase().includes(searchQuery));
+        return isApproved && searchMatch;
+    });
+
+    tbody.innerHTML = ''; 
+    if (approvedOwners.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;">No approved facility owners found.</td></tr>';
+        return;
+    }
+
+    approvedOwners.forEach((acc, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${index + 1}</td>
+            <td>${acc.firstName || ''}</td>
+            <td>${acc.middleName || ''}</td>
+            <td>${acc.surname || ''}</td>
+            <td>${acc.company_name || 'N/A'}</td>
+            <td>${acc.phone_number || 'N/A'}</td>
+            <td>${acc.email || 'N/A'}</td>
+            <td>${acc.address || 'N/A'}</td>
+            <td>******</td>
+            <td><button class="action-btn" onclick="alert('Edit FO not built yet')">Edit</button></td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
 
 function populateEngineerDropdown() {
     const select = document.getElementById('engineerSelect');
@@ -207,6 +433,8 @@ function populateEngineerDropdown() {
         select.appendChild(option);
     });
 }
+
+// --- 4. MODAL & ACTIONS ---
 
 function openApproveModal(userId) {
     const acc = state.allAccounts.find(a => a.user_id === userId);
@@ -226,10 +454,11 @@ function openApproveModal(userId) {
     document.getElementById('accountDetailEmail').textContent = acc.email || 'N/A';
     document.getElementById('accountDetailPhone').textContent = acc.phone_number || 'N/A';
     document.getElementById('accountDetailLocation').textContent = acc.address || 'N/A';
+    document.getElementById('accountDetailCreated').textContent = new Date(acc.created_at).toLocaleDateString();
     
     const statusEl = document.getElementById('accountDetailStatus');
     statusEl.textContent = acc.status;
-    statusEl.className = `status-pill ${acc.status === 'approved' ? 'status-approved' : 'status-pending'}`;
+    statusEl.className = `status-pill ${getStatusClass(acc.status)}`;
 
     document.getElementById('accountDetailModal').style.display = 'flex';
 }
@@ -257,10 +486,40 @@ async function approveAccount(userId) {
     }
 }
 
-function openAssignModal(appointmentId) {
-    const appt = state.pendingAppointments.find(a => a.id === appointmentId);
+// THIS IS THE CORRECTED, SIMPLIFIED FUNCTION
+function openTicketModal(appointmentId) {
+    const appt = state.allAppointments.find(a => a.id === appointmentId);
     if (!appt) return;
 
+    const pmRemarks = document.getElementById('pmRemarksText');
+    if (pmRemarks) pmRemarks.value = '';
+
+    const foRemarks = document.getElementById('foRemarkText');
+    if (foRemarks) foRemarks.value = '';
+
+    const onHoldRemarks = document.getElementById('onHoldReasonText');
+    if (onHoldRemarks) onHoldRemarks.value = '';
+    
+    const onHoldSection = document.getElementById('onHoldRemarksSection');
+    if (onHoldSection) onHoldSection.style.display = 'none';
+
+    document.getElementById('pmRemarksText').value = '';
+
+    const status = (appt.status || 'pending').toLowerCase();
+    
+    const isPending = status === 'pending';
+    document.getElementById('engineerAssignmentSection').style.display = 'block';
+    document.getElementById('processBtn').style.display = isPending ? 'inline-flex' : 'none';
+    document.getElementById('pmRemarksField').style.display = isPending ? 'block' : 'none';
+    
+    // Hide all other action buttons by default
+    document.getElementById('markDoneBtn2').style.display = 'none';
+    document.getElementById('onHoldBtn').style.display = 'none';
+    document.getElementById('deleteBtn').style.display = 'none';
+    document.getElementById('notifyFOApproveBtn').style.display = 'none';
+    document.getElementById('notifyFORejectBtn').style.display = 'none';
+    document.getElementById('markDoneBtn').style.display = 'none';
+    
     document.getElementById('currentAppointmentId').value = appt.id;
     document.getElementById('overviewTicket').textContent = appt.ticket_code || 'N/A';
     document.getElementById('overviewDate').textContent = new Date(appt.date).toLocaleDateString();
@@ -268,15 +527,71 @@ function openAssignModal(appointmentId) {
     document.getElementById('overviewSite').textContent = appt.site || 'N/A';
     document.getElementById('overviewDescription').textContent = appt.task_description || 'N/A';
     
-    document.getElementById('pmRemarksText').value = ''; 
-    document.getElementById('engineerSelect').value = ''; 
+    let ownerEmail = 'N/A';
+    if(appt.facility_owner_records) {
+        ownerEmail = appt.facility_owner_records.email;
+    }
+    document.getElementById('overviewEmail').textContent = ownerEmail;
 
+    const engineerSelect = document.getElementById('engineerSelect');
+    const currentAssignment = document.getElementById('currentAssignment');
+    const assignedEngineer = document.getElementById('assignedEngineer');
+    const currentPMRemarks = document.getElementById('currentPMRemarks');
+    const pmRemarksDisplay = document.getElementById('pmRemarksDisplay');
+    
+    if (isPending) {
+        currentAssignment.style.display = 'none';
+        currentPMRemarks.style.display = 'none';
+        engineerSelect.style.display = 'block';
+        engineerSelect.value = ''; 
+    } else {
+        engineerSelect.style.display = 'none';
+        currentAssignment.style.display = 'block';
+        let engineerName = '...';
+        if (appt.engineer_records) {
+            engineerName = `${appt.engineer_records.firstName || ''} ${appt.engineer_records.lastName || ''}`.trim();
+        }
+        assignedEngineer.textContent = engineerName || 'N/A';
+        
+        if (appt.pm_remarks) {
+            currentPMRemarks.style.display = 'block';
+            pmRemarksDisplay.textContent = appt.pm_remarks;
+        } else {
+            currentPMRemarks.style.display = 'none';
+        }
+    }
+    
+    // This is the other part of the fix.
+    // We check if these elements exist before trying to show them.
+    const remarksSection = document.getElementById('remarksSection');
+    const currentStatusSection = document.getElementById('currentStatusSection');
+    const foRemarksForm = document.getElementById('foRemarksForm');
+
+    if (['assigned', 'in progress', 'on hold', 'inspected'].includes(status)) {
+        if(remarksSection) remarksSection.style.display = 'block';
+        if(currentStatusSection) currentStatusSection.style.display = 'block';
+        if(foRemarksForm) foRemarksForm.style.display = 'block';
+        
+        document.getElementById('markDoneBtn2').style.display = 'inline-flex';
+        document.getElementById('onHoldBtn').style.display = 'inline-flex';
+    } else {
+        if(remarksSection) remarksSection.style.display = 'none';
+        if(currentStatusSection) currentStatusSection.style.display = 'none';
+        if(foRemarksForm) foRemarksForm.style.display = 'none';
+    }
+    
+    if (status === 'completed' || status === 'done' || status === 'rejected') {
+        document.getElementById('deleteBtn').style.display = 'inline-flex';
+    }
+    
     document.getElementById('ticketOverviewModal').style.display = 'flex';
 }
 
 function closeTicketOverviewModal() {
     document.getElementById('ticketOverviewModal').style.display = 'none';
 }
+
+// --- 5. INITIALIZATION & HELPERS ---
 
 function initNavigation() {
     const navLinks = document.querySelectorAll('.nav-link');
@@ -319,36 +634,70 @@ function navigateToAccounts(filterStatus) {
      const link = document.querySelector('[data-view="account-management"]');
      if(link) link.click();
      
-     // Note: accountStatusFilter was removed, so this part is simplified
-     renderAccounts(); 
+     const statusFilter = document.getElementById('accountStatusFilter');
+     if (statusFilter && filterStatus) {
+         statusFilter.value = filterStatus;
+         renderAccounts(); 
+     }
 }
+
+// This helper function is used by your notification buttons
+function switchView(viewName) {
+    const link = document.querySelector(`[data-view="${viewName}"]`);
+    if (link) {
+        link.click();
+    } else {
+        console.error(`No view found for: ${viewName}`);
+    }
+}
+window.switchView = switchView;
 
 document.addEventListener('DOMContentLoaded', function() {
     checkPMSession(); 
     initNavigation(); 
     
-    // THIS IS THE FIX
-    // We only attach listeners for elements that exist in projectmanager.html
+    // All filter/search listeners
+    const accountStatusFilter = document.getElementById('accountStatusFilter');
+    if (accountStatusFilter) {
+        accountStatusFilter.addEventListener('change', renderAccounts);
+    }
     
-    // Connect filter/search for Accounts
     const searchAccounts = document.getElementById('searchAccounts');
     if (searchAccounts) {
         searchAccounts.addEventListener('input', renderAccounts);
     }
     
-    // Connect filter/search for Engineers
     const searchEngineers = document.getElementById('searchEngineers');
     if (searchEngineers) {
         searchEngineers.addEventListener('input', renderEngineers);
     }
-    
-    // Connect filter/search for Appointments
-    const searchRequestAppointments = document.getElementById('searchRequestAppointments');
-    if (searchRequestAppointments) {
-        searchRequestAppointments.addEventListener('input', renderRequestAppointments);
+
+    const searchFacilityOwners = document.getElementById('searchFacilityOwners');
+    if(searchFacilityOwners) {
+        searchFacilityOwners.addEventListener('input', renderFacilityOwners);
     }
     
-    // Connect the "Assign" form
+    const searchRequestAppointments = document.getElementById('searchRequestAppointments');
+    if(searchRequestAppointments) {
+        searchRequestAppointments.addEventListener('input', renderRequestAppointments);
+    }
+
+    const statusFilterOnHold = document.getElementById('statusFilterOnHold');
+    if(statusFilterOnHold) {
+        statusFilterOnHold.addEventListener('change', renderOnHoldAppointments);
+    }
+
+    const searchOnHoldAppointments = document.getElementById('searchOnHoldAppointments');
+    if(searchOnHoldAppointments) {
+        searchOnHoldAppointments.addEventListener('input', renderOnHoldAppointments);
+    }
+
+    const searchApprovedAppointments = document.getElementById('searchApprovedAppointments');
+    if(searchApprovedAppointments) {
+        searchApprovedAppointments.addEventListener('input', renderApprovedAppointments);
+    }
+    
+    // Form submission listener
     const assignmentForm = document.getElementById('assignmentForm');
     if (assignmentForm) {
         assignmentForm.addEventListener('submit', async function(e) {
@@ -386,4 +735,160 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // --- Calendar (Simplified) ---
+    let currentDate = new Date();
+    const calendarTitle = document.getElementById('calendarTitle');
+    const calendarGrid = document.getElementById('calendarGrid');
+
+    function updateCalendar() {
+        if (!calendarTitle || !calendarGrid) return;
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                          'July', 'August', 'September', 'October', 'November', 'December'];
+        calendarTitle.textContent = `${monthNames[month]} ${year}`;
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+        const daysInMonth = lastDay.getDate();
+        const startingDayOfWeek = firstDay.getDay();
+        let calendarHTML = `<div class="calendar-day">S</div><div class="calendar-day">M</div><div class="calendar-day">T</div><div class="calendar-day">W</div><div class="calendar-day">TH</div><div class="calendar-day">F</div><div class="calendar-day">S</div>`;
+        for (let i = 0; i < startingDayOfWeek; i++) {
+            calendarHTML += '<div class="calendar-date"></div>';
+        }
+        const today = new Date();
+        for (let day = 1; day <= daysInMonth; day++) {
+            const isToday = today.getDate() === day && today.getMonth() === month && today.getFullYear() === year;
+            const selectedClass = isToday ? 'selected' : '';
+            calendarHTML += `<div class="calendar-date ${selectedClass}">${day}</div>`;
+        }
+        calendarGrid.innerHTML = calendarHTML;
+    }
+
+    const prevMonth = document.getElementById('prevMonth');
+    if(prevMonth) {
+        prevMonth.addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            updateCalendar();
+        });
+    }
+    
+    const nextMonth = document.getElementById('nextMonth');
+    if(nextMonth) {
+        nextMonth.addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            updateCalendar();
+        });
+    }
+    updateCalendar();
+    
+    // --- Attach all other functions from your file to window ---
+    window.openEngineerModal = function() { alert('Add Engineer form not connected yet.'); }
+    window.closeEngineerModal = function() { document.getElementById('engineerModal').style.display = 'none'; }
+    window.editEngineer = function(id) { alert('Edit Engineer not connected yet.'); }
+    window.saveEngineer = function(ev) { ev.preventDefault(); alert('Save Engineer not connected yet.'); }
+    window.deleteEngineer = function(id) { alert('Delete Engineer not connected yet.'); }
+    window.editFacilityOwner = function(id) { alert('Edit FO not connected yet.'); }
+    window.deleteFacilityOwner = function(id) { alert('Delete FO not connected yet.'); }
+    window.saveFacilityOwner = function(ev) { ev.preventDefault(); alert('Save FO not connected yet.'); }
+    window.closeFacilityOwnerModal = function() { document.getElementById('facilityOwnerModal').style.display = 'none'; }
+    window.approveAccountStatus = function(id) { alert('Please use the "View" button to approve.'); }
+    window.rejectAccountStatus = function(id) { alert('Reject not connected yet.'); }
+    window.viewAccountDetails = function(id) { openApproveModal(id); }
+    window.approveAccountFromModal = function() { /* Handled by button */ }
+    window.rejectAccountFromModal = function() { alert('Reject not connected yet.'); }
+    window.deleteAccountFromModal = function() { alert('Delete not connected yet.'); }
+    window.processTicket = function() { /* Handled by form */ }
+    window.approveAppointment = function() { alert('Approve not connected yet.'); }
+    window.rejectAppointment = function(id) { alert('Reject not connected yet. This will be a new API endpoint.'); }
+    window.deleteAppointment = function(id) { alert('Delete not connected yet. This will be a new API endpoint.'); }
+    
+    window.markAsDone = async function() {
+        const btn = document.getElementById('markDoneBtn2');
+        const appointment_id = parseInt(document.getElementById('currentAppointmentId').value);
+        const remarks = document.getElementById('foRemarkText').value.trim();
+
+        if (!remarks) {
+            alert('Please provide completion remarks to the Facility Owner.');
+            return;
+        }
+        if (!appointment_id) {
+            alert('Error: No appointment ID found.');
+            return;
+        }
+        if (!confirm(`Mark this appointment as "Completed"?\n\nRemarks: ${remarks}`)) {
+            return;
+        }
+        btn.disabled = true;
+
+        try {
+            const response = await fetch('http://localhost:3000/api/pm/complete-appointment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ appointment_id, remarks })
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error);
+
+            alert('Appointment marked as Completed!');
+            closeTicketOverviewModal();
+            loadDashboardData(); 
+        } catch (error) {
+            alert('Error marking as done: ' + error.message);
+        } finally {
+            btn.disabled = false;
+        }
+    }
+    
+    window.showOnHoldInput = function() { 
+        document.getElementById('onHoldRemarksSection').style.display = 'block'; 
+    }
+    window.cancelOnHold = function() { 
+        document.getElementById('onHoldRemarksSection').style.display = 'none';
+        document.getElementById('onHoldReasonText').value = '';
+    }
+    window.confirmOnHold = async function() {
+        const appointment_id = parseInt(document.getElementById('currentAppointmentId').value);
+        const remarks = document.getElementById('onHoldReasonText').value.trim();
+
+        if (!remarks) {
+            alert('Please provide a reason for putting this appointment on hold.');
+            return;
+        }
+        if (!appointment_id) {
+            alert('Error: No appointment ID found.');
+            return;
+        }
+        if (!confirm(`Put appointment on hold?\n\nReason: ${remarks}`)) {
+            return;
+        }
+
+        try {
+            const response = await fetch('http://localhost:3000/api/pm/hold-appointment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ appointment_id, remarks })
+            });
+
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error);
+
+            alert('Appointment status set to "On Hold".');
+            closeTicketOverviewModal();
+            loadDashboardData(); 
+        } catch (error) {
+            alert('Error setting status to On Hold: ' + error.message);
+        }
+    }
+    
+    window.notifyFOApprove = function() { alert('Notify FO not connected yet.'); }
+    window.notifyFOReject = function() { alert('Notify FO not connected yet.'); }
+    
+    window.viewTicketDetails = function(ticketId) {
+        const appt = state.allAppointments.find(a => a.id == ticketId || a.ticketNumber == ticketId);
+        if(appt) openTicketModal(appt.id);
+    };
+    window.closeAssignmentForm = function() {
+        closeTicketOverviewModal();
+    };
 });

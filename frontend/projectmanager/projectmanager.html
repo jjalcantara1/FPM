@@ -27,13 +27,17 @@
                         <ul class="nav-sublist" id="accounts-subnav" style="display:none;">
                             <li><a class="nav-link" data-view="account-management" href="#">Facility Owner Account Management</a></li>
                             <li><a class="nav-link" data-view="engineers" href="#">Engineers</a></li>
+                            <li><a class="nav-link" data-view="facility-owners" href="#">Facility Owner Accounts</a></li> 
                         </ul>
                     </li>
+                    <li><a class="nav-link" data-view="notifications" href="#"><span class="nav-icon">🔔</span>Notifications</a></li>
                     <li>
                         <a class="nav-link has-children" data-toggle="appointments" href="#"><span class="nav-icon">📅</span>Appointments<span class="nav-caret">▾</span></a>
                         <ul class="nav-sublist" id="appointments-subnav" style="display:none;">
                             <li><a class="nav-link" data-view="request-appointments" href="#">Request Appointments</a></li>
-                            </ul>
+                            <li><a class="nav-link" data-view="onhold-appointments" href="#">In Progress Appointments</a></li>
+                            <li><a class="nav-link" data-view="approved-appointments" href="#">Completed Appointments</a></li>
+                        </ul>
                     </li>
                 </ul>
             </nav>
@@ -59,6 +63,16 @@
                                 <div class="stat-number" id="totalTickets">0</div>
                                 <div class="stat-label">Pending Appointments</div>
                             </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">⏰</div>
+                                <div class="stat-number" id="pendingApprovals">0</div>
+                                <div class="stat-label">Pending Approvals</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">🚫</div>
+                                <div class="stat-number" id="rejectedTasks">0</div>
+                                <div class="stat-label">Rejected Tasks</div>
+                            </div>
                             <div class="stat-card" onclick="navigateToAccounts('pending')" style="cursor: pointer;">
                                 <div class="stat-icon">👥</div>
                                 <div class="stat-number" id="pendingFOAccounts">0</div>
@@ -70,10 +84,13 @@
                         <div class="calendar-widget">
                             <div class="calendar-header">
                                 <h3 class="calendar-title" id="calendarTitle">Calendar</h3>
+                                <div class="calendar-nav">
+									<button class="calendar-nav-btn" id="prevMonth">‹</button>
+									<button class="calendar-nav-btn" id="nextMonth">›</button>
+								</div>
                             </div>
                             <div class="calendar-grid" id="calendarGrid">
-                                <p style="text-align: center; padding: 20px; color: var(--text-500);">Calendar view coming soon.</p>
-                            </div>
+                                </div>
                         </div>
                     </div>
                 </div>
@@ -82,18 +99,28 @@
                     <div class="card">
                         <div class="card-header">
                             <h2 class="card-title">Facility Owner Account Management</h2>
-                            <input id="searchAccounts" type="text" placeholder="Search by name, company, or email">
+                            <div class="header-actions">
+                                <select id="accountStatusFilter" style="padding: 8px 12px; border: 1px solid #dce6f5; border-radius: 8px; font-size: 14px; cursor: pointer;">
+                                    <option value="all">All Accounts</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="approved">Approved</option>
+                                    <option value="rejected">Rejected</option>
+                                </select>
+                                <input id="searchAccounts" type="text" placeholder="Search by name, company, or email" style="width: 300px;">
+                            </div>
                         </div>
                         <div style="overflow-x: auto;">
-                            <table class="table" id="accountsTable">
+                            <table class="table" id="accountsTable" style="width: 100%; table-layout: auto;">
                                 <thead>
                                     <tr>
-                                        <th>Full Name</th>
-                                        <th>Company Name</th>
-                                        <th>Email</th>
-                                        <th>Contact Number</th>
-                                        <th>Status</th>
-                                        <th>Action</th>
+                                        <th style="width: 5%; min-width: 50px; text-align: center;">ID</th>
+                                        <th style="width: 18%; min-width: 130px;">Full Name</th>
+                                        <th style="width: 15%; min-width: 120px;">Company Name</th>
+                                        <th style="width: 22%; min-width: 160px;">Email</th>
+                                        <th style="width: 12%; min-width: 100px;">Contact Number</th>
+                                        <th style="width: 13%; min-width: 100px;">Password</th>
+                                        <th style="width: 10%; min-width: 85px; text-align: center;">Status</th>
+                                        <th style="width: 5%; min-width: 70px; text-align: center;">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody id="accountsBody"></tbody>
@@ -106,15 +133,23 @@
                     <div class="card">
                         <div class="card-header">
                             <h2 class="card-title">Engineers</h2>
-                            <input id="searchEngineers" type="text" placeholder="Search engineers">
+                            <div class="header-actions">
+                                <input id="searchEngineers" type="text" placeholder="Search engineers by name, email, or phone">
+                                <button id="addEngineerBtn" class="action-btn" onclick="openEngineerModal()" style="cursor: pointer; z-index: 999;">Add Engineer</button>
+                            </div>
                         </div>
                         <table class="table" id="engineersTable">
                             <thead>
                                 <tr>
-                                    <th>Full Name</th>
-                                    <th>Email Address</th>
+                                    <th>ID</th>
+                                    <th>Given Name</th>
+                                    <th>Middle Name</th>
+                                    <th>Last Name</th>
                                     <th>Phone Number</th>
+                                    <th>Email Address</th>
                                     <th>Location/Coverage</th>
+                                    <th>Password</th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody id="engineersBody"></tbody>
@@ -122,20 +157,63 @@
                     </div>
                 </div>
 
+                <div id="facility-owners-view" class="view-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">Facility Owner Accounts</h2>
+                            <div class="header-actions">
+                                <input id="searchFacilityOwners" type="text" placeholder="Search facility owners by name, company, or location">
+                            </div>
+                        </div>
+                        <table class="table" id="facilityOwnersTable">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Given Name</th>
+                                    <th>Middle Name</th>
+                                    <th>Last Name</th>
+                                    <th>Organization</th>
+                                    <th>Phone Number</th>
+                                    <th>Email Address</th>
+                                    <th>Location</th>
+                                    <th>Password</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="facilityOwnersBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="notifications-view" class="view-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">Notifications</h2>
+                        </div>
+                        <div style="padding:20px;">
+                            <div id="notificationsContainer">
+                                <p>Notifications will appear here.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div id="request-appointments-view" class="view-section">
                     <div class="card">
                         <div class="card-header"><h2 class="card-title">Request Appointments</h2></div>
-                        <div class="searchbar"><input id="searchRequestAppointments" type="text" placeholder="Search appointments..."></div>
+                        <div class="searchbar"><input id="searchRequestAppointments" type="text" placeholder="Search request appointments..."></div>
                         <table class="table" id="requestAppointmentsTable">
                             <thead>
                                 <tr>
+                                    <th>ID</th>
                                     <th>Ticket</th>
-                                    <th>Date</th>
+                                    <th>Date/Time</th>
                                     <th>Site</th>
                                     <th>Type</th>
                                     <th>Description</th>
                                     <th>Status</th>
                                     <th>Priority</th>
+                                    <th>Engineer</th>
                                     <th>Action</th>
                                 </tr>
                             </thead>
@@ -144,6 +222,64 @@
                     </div>
                 </div>
 
+                <div id="onhold-appointments-view" class="view-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">In Progress Appointments</h2>
+                            <div class="header-actions">
+                                <select id="statusFilterOnHold" style="padding: 8px 12px; border: 1px solid #dce6f5; border-radius: 8px; font-size: 14px; cursor: pointer; margin-right: 10px;">
+                                    <option value="all">All Statuses</option>
+                                    <option value="assigned">Assigned</option>
+                                    <option value="in_progress">Ongoing</option>
+                                    <option value="approved">Materials Approved</option>
+                                    <option value="on_hold">On Hold</option>
+                                    <option value="inspected">Inspected</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="searchbar"><input id="searchOnHoldAppointments" type="text" placeholder="Search on hold appointments..."></div>
+                        <table class="table" id="onHoldAppointmentsTable">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Ticket</th>
+                                    <th>Date/Time</th>
+                                    <th>Site</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                    <th>Status</th>
+                                    <th>Priority</th>
+                                    <th>Engineer</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="onHoldAppointmentsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="approved-appointments-view" class="view-section">
+                    <div class="card">
+                        <div class="card-header"><h2 class="card-title">Completed Appointments</h2></div>
+                        <div class="searchbar"><input id="searchApprovedAppointments" type="text" placeholder="Search completed appointments..."></div>
+                        <table class="table approved-table" id="approvedAppointmentsTable">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Ticket</th>
+                                    <th>Date/Time</th>
+                                    <th>Site</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                    <th>Status</th>
+                                    <th>Priority</th>
+                                    <th>Engineer</th>
+                                </tr>
+                            </thead>
+                            <tbody id="approvedAppointmentsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -151,32 +287,45 @@
     <div id="ticketOverviewModal" class="modal-overlay" onclick="closeTicketOverviewModal()">
         <div class="ticket-overview-modal-card" onclick="event.stopPropagation()">
             <div class="ticket-overview-modal-header">
-                <h3 class="ticket-overview-modal-title">Assign Appointment</h3>
+                <h3 class="ticket-overview-modal-title">Ticket Overview</h3>
                 <button type="button" class="ticket-overview-close-btn" onclick="closeTicketOverviewModal()">×</button>
             </div>
             <div class="ticket-overview-modal-body">
                 <div class="ticket-info-section">
                     <h4 class="section-title">Ticket Information</h4>
                     <div class="ticket-info-grid">
-                        <div class="info-item">
-                            <label class="info-label">Ticket Number</label>
-                            <div class="info-value" id="overviewTicket">—</div>
+                        <div class="info-item"><label class="info-label">Ticket Number</label><div class="info-value" id="overviewTicket">—</div></div>
+                        <div class="info-item"><label class="info-label">Date & Time</label><div class="info-value" id="overviewDate">—</div></div>
+                        <div class="info-item"><label class="info-label">Priority</label><div class="info-value" id="overviewPriority">—</div></div>
+                        <div class="info-item"><label class="info-label">Type of Appointment</label><div class="info-value" id="overviewType">—</div></div>
+                        <div class="info-item"><label class="info-label">Site Location</label><div class="info-value" id="overviewSite">—</div></div>
+                        <div class="info-item full-width"><label class="info-label">Task Description / Issue</label><div class="info-value" id="overviewDescription">—</div></div>
+                        <div class="info-item"><label class="info-label">Requestor Email</label><div class="info-value" id="overviewEmail">—</div></div>
+                    </div>
+                </div>
+
+                <div class="current-status-section" id="currentStatusSection" style="display: none; margin-bottom: 20px;">
+                    <h4 class="section-title">Current Status</h4>
+                    <div id="statusIndicator" style="padding: 12px; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 14px;"></div>
+                </div>
+
+                <div class="remarks-section" id="remarksSection" style="display: none;">
+                    <h4 class="section-title">Remarks / Updates</h4>
+                    <div class="remarks-history" id="remarksHistory" style="max-height: 300px; overflow-y: auto; margin-bottom: 16px; padding: 12px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px;"></div>
+                    <div class="fo-remarks-form" id="foRemarksForm" style="margin-top: 20px;">
+                        <div class="form-field">
+                            <label class="form-label" style="font-weight: 600; color: #1f2937; margin-bottom: 8px; display: block;">Remarks to Facility Owner</label>
+                            <textarea id="foRemarkText" class="form-textarea" rows="3" placeholder="Enter remarks that will be visible to the Facility Owner..."></textarea>
                         </div>
-                        <div class="info-item">
-                            <label class="info-label">Date & Time</label>
-                            <div class="info-value" id="overviewDate">—</div>
-                        </div>
-                        <div class="info-item">
-                            <label class="info-label">Priority</label>
-                            <div class="info-value" id="overviewPriority">—</div>
-                        </div>
-                        <div class="info-item full-width">
-                            <label class="info-label">Site Location</label>
-                            <div class="info-value" id="overviewSite">—</div>
-                        </div>
-                        <div class="info-item full-width">
-                            <label class="info-label">Task Description / Issue</label>
-                            <div class="info-value" id="overviewDescription">—</div>
+                    </div>
+                    <div id="onHoldRemarksSection" style="display: none; margin-top: 16px; padding: 12px; background: #fef3c7; border: 1px solid #fbbf24; border-radius: 8px;">
+                        <div class="form-field">
+                            <label class="form-label" style="font-weight: 600; color: #92400e; margin-bottom: 8px; display: block;">On Hold Reason (will be sent to Facility Owner)</label>
+                            <textarea id="onHoldReasonText" class="form-textarea" rows="3" placeholder="Enter reason for putting this appointment on hold..."></textarea>
+                            <div style="margin-top: 8px; display: flex; gap: 8px; justify-content: flex-end;">
+                                <button type="button" onclick="cancelOnHold()" style="padding: 8px 16px; background: #6b7280; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Cancel</button>
+                                <button type="button" onclick="confirmOnHold()" style="padding: 8px 16px; background: #f59e0b; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Confirm On Hold</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -187,13 +336,19 @@
                         <input type="hidden" id="currentAppointmentId">
                         <div class="form-field">
                             <label class="form-label">Assign Engineer</label>
-                            <select class="form-select" id="engineerSelect" required>
-                                <option value="">Select an engineer...</option>
-                            </select>
+                            <select class="form-select" id="engineerSelect" required></select>
                         </div>
-                        <div class="form-field" id="pmRemarksField">
+                        <div class="form-field" id="pmRemarksField" style="display: none;">
                             <label class="form-label">PM Remarks to Engineer</label>
                             <textarea class="form-textarea" id="pmRemarksText" rows="3" placeholder="Enter remarks for the assigned engineer..."></textarea>
+                        </div>
+                        <div class="current-assignment" id="currentAssignment" style="display: none;">
+                            <label class="form-label">Currently Assigned</label>
+                            <div class="assigned-engineer" id="assignedEngineer">—</div>
+                        </div>
+                        <div class="current-assignment" id="currentPMRemarks" style="display: none; margin-top: 12px;">
+                            <label class="form-label">PM Remarks</label>
+                            <div class="assigned-engineer" id="pmRemarksDisplay" style="background: #f9fafb; padding: 10px; border-radius: 6px; border: 1px solid #e5e7eb; color: #374151;">—</div>
                         </div>
                         <div class="action-buttons-section" style="margin-top: 20px;">
                             <button type="submit" class="action-btn process-btn" id="processBtn">
@@ -203,6 +358,48 @@
                         </div>
                     </form>
                 </div>
+                
+                <div class="action-buttons-section">
+					<div class="action-buttons-grid">
+						<button type="button" class="action-btn done-btn" id="markDoneBtn2" onclick="markAsDone()" style="display: none; background: #10b981; border-color: #10b981;">
+							<span class="btn-icon">✅</span>
+							Mark as Done
+						</button>
+						<button type="button" class="action-btn" id="onHoldBtn" onclick="showOnHoldInput()" style="display: none; background: #f59e0b; border-color: #f59e0b;">
+							<span class="btn-icon">⏸️</span>
+							On Hold
+						</button>
+						<button type="button" class="action-btn notify-approve-btn" id="notifyFOApproveBtn" onclick="notifyFOApprove()" style="display: none;">
+							<span class="btn-icon">📧</span>
+							Notify FO - Approved
+						</button>
+						<button type="button" class="action-btn notify-reject-btn" id="notifyFORejectBtn" onclick="notifyFOReject()" style="display: none;">
+							<span class="btn-icon">📧</span>
+							Notify FO - Rejected
+						</button>
+						<button type="button" class="action-btn done-btn" id="markDoneBtn" onclick="markAsDone()" style="display: none; background: #10b981; border-color: #10b981;">
+							<span class="btn-icon">✅</span>
+							Mark as Done
+						</button>
+						<button type="button" class="action-btn delete-btn" id="deleteBtn" onclick="deleteTicket()" style="display: none;">
+							<span class="btn-icon">🗑️</span>
+							Delete
+						</button>
+					</div>
+				</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="engineerModal" class="modal-overlay" style="display:none" onclick="closeEngineerModal()">
+        <div class="assignment-modal-card" onclick="event.stopPropagation()">
+            <div class="assignment-modal-header">
+                <div class="assignment-modal-title"><span class="assignment-icon">🛠️</span><h3 id="engineerModalTitle">Add Engineer</h3></div>
+                <button type="button" class="assignment-close-btn" onclick="closeEngineerModal()">×</button>
+            </div>
+            <div class="assignment-modal-body">
+                <form id="engineerForm">
+                    </form>
             </div>
         </div>
     </div>
@@ -220,15 +417,25 @@
                     <div class="detail-row"><span class="detail-label">Phone:</span><span id="accountDetailPhone">-</span></div>
                     <div class="detail-row"><span class="detail-label">Location:</span><span id="accountDetailLocation">-</span></div>
                     <div class="detail-row"><span class="detail-label">Status:</span><span id="accountDetailStatus" class="status-pill status-pending">-</span></div>
+                    <div class="detail-row"><span class="detail-label">Registered At:</span><span id="accountDetailCreated">-</span></div>
+                    <div id="accountDetailPasswordRow" class="detail-row" style="display: none;"><span class="detail-label">Password:</span><span id="accountDetailPassword">-</span></div>
+                    <div id="accountDetailRejectionRow" class="detail-row" style="display: none;"><span class="detail-label">Rejection Reason:</span><span id="accountDetailRejectionReason">-</span></div>
                 </div>
                 <div class="assignment-form-actions" style="margin-top: 24px;">
                     <button type="button" class="assignment-btn assignment-btn-cancel" onclick="closeAccountDetailModal()">Close</button>
-                    <button type="button" id="accountApproveBtn" class="assignment-btn assignment-btn-assign" style="background: #10b981;">Approve</button>
+                    <button type="button" id="accountDeleteBtn" class="assignment-btn assignment-btn-delete" onclick="deleteAccountFromModal()" style="display:none;">Delete</button>
+                    <button type="button" id="accountRejectBtn" class="assignment-btn assignment-btn-delete" onclick="rejectAccountFromModal()" style="display:none;">Reject</button>
+                    <button type="button" id="accountApproveBtn" class="assignment-btn assignment-btn-assign" onclick="approveAccountFromModal()" style="display:none; background: #10b981; border-color: #10b981;">Approve</button>
                 </div>
             </div>
         </div>
     </div>
 
+    <div id="facilityOwnerModal" class="modal-overlay" style="display:none" onclick="closeFacilityOwnerModal()">
+        <div class="assignment-modal-card" onclick="event.stopPropagation()">
+            </div>
+    </div>
+    
     <script src="projectmanager.js"></script>
 </body>
 </html>
