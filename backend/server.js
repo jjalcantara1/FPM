@@ -1,13 +1,21 @@
 const express = require('express');
 const cors = require('cors');
 const { createClient } = require('@supabase/supabase-js');
-
+const emailjs = require('@emailjs/nodejs');
 const app = express();
 const port = 3000;
 
 const SUPABASE_URL = 'https://bicvcqolkaokimtwimhn.supabase.co';
 const SUPABASE_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJpY3ZjcW9sa2Fva2ltdHdpbWhuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MjUzMDIwMCwiZXhwIjoyMDc4MTA2MjAwfQ.eAYHk5c53gz5y2r85Rkz_-48taKCZWii-5cR2glCMP0';
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+
+emailjs.init({
+  publicKey: '09jja8DopIKMKbCtE', 
+  privateKey: 'OqnClaXTcux0WF6CwWyuW', 
+});
+
+const EMAILJS_SERVICE_ID = 'service_qj1yc6w'; 
+const EMAILJS_APPROVAL_TEMPLATE_ID = 'template_j14xhsp';
 
 app.use(cors());
 app.use(express.json());
@@ -327,13 +335,31 @@ app.delete('/api/pm/facility-owner/:id', async (req, res) => {
 app.post('/api/pm/approve-account', async (req, res) => {
     const { user_id } = req.body; 
     try {
-        const { data, error } = await supabase
+        const { data: userData, error } = await supabase
             .from('facility_owner_records')
             .update({ status: 'approved' })
-            .eq('user_id', user_id);
+            .eq('user_id', user_id)
+            .select('email, "firstName", company_name') 
+            .single(); 
 
         if (error) throw new Error(error.message);
-        res.status(200).json({ message: 'Account approved successfully!' });
+        if (!userData) throw new Error('User not found or could not be updated.');
+
+        const templateParams = {
+            to_email: userData.email,
+            to_name: userData.firstName || 'Valued Partner',
+            company_name: userData.company_name || 'your company',
+        };
+
+        try {
+            await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_APPROVAL_TEMPLATE_ID, templateParams);
+            console.log(`Approval email sent successfully to ${userData.email}`);
+        } catch (emailError) {
+            
+            console.error('Failed to send approval email:', emailError);
+        }
+
+        res.status(200).json({ message: 'Account approved successfully! Email notification sent.' });
     } catch (error) {
         console.error('Error approving account:', error.message);
         res.status(400).json({ error: error.message });
