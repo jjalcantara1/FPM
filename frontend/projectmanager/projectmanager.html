@@ -454,31 +454,75 @@
     </div>
 
     <div id="accountDetailModal" class="modal-overlay" style="display:none" onclick="closeAccountDetailModal()">
-        <div class="assignment-modal-card" onclick="event.stopPropagation()" style="max-width: 600px;">
-            <div class="assignment-modal-header">
-                <div class="assignment-modal-title"><span class="assignment-icon">👤</span><h3>Account Details</h3></div>
-            </div>
-            <div class="assignment-modal-body">
-                <div style="display: flex; flex-direction: column; gap: 16px;">
-                    <div class="detail-row"><span class="detail-label">Full Name:</span><span id="accountDetailName">-</span></div>
-                    <div class="detail-row"><span class="detail-label">Company:</span><span id="accountDetailCompany">-</span></div>
-                    <div class="detail-row"><span class="detail-label">Email:</span><span id="accountDetailEmail">-</span></div>
-                    <div class="detail-row"><span class_regular="detail-label">Phone:</span><span id="accountDetailPhone">-</span></div>
-                    <div class="detail-row"><span class="detail-label">Location:</span><span id="accountDetailLocation">-</span></div>
-                    <div class="detail-row"><span class="detail-label">Status:</span><span id="accountDetailStatus" class="status-pill status-pending">-</span></div>
-                    <div class="detail-row"><span class="detail-label">Registered At:</span><span id="accountDetailCreated">-</span></div>
-                    <div id="accountDetailPasswordRow" class="detail-row" style="display: none;"><span class="detail-label">Password:</span><span id="accountDetailPassword">-</span></div>
-                    <div id="accountDetailRejectionRow" class="detail-row" style="display: none;"><span class="detail-label">Rejection Reason:</span><span id="accountDetailRejectionReason">-</span></div>
-                </div>
-                <div class="assignment-form-actions" style="margin-top: 24px;">
-                    <button type="button" class="assignment-btn assignment-btn-cancel" onclick="closeAccountDetailModal()">Close</button>
-                    <button type="button" id="accountDeleteBtn" class="assignment-btn assignment-btn-delete" onclick="deleteAccountFromModal()" style="display:none;">Delete</button>
-                    <button type="button" id="accountRejectBtn" class="assignment-btn assignment-btn-delete" onclick="rejectAccountFromModal()" style="display:none;">Reject</button>
-                    <button type="button" id="accountApproveBtn" class="assignment-btn assignment-btn-assign" onclick="approveAccountFromModal()" style="display:none; background: #10b981; border-color: #10b981;">Approve</button>
-                </div>
-            </div>
-        </div>
-    </div>
+		<div class="assignment-modal-card" onclick="event.stopPropagation()" style="max-width: 600px;">
+			<div class="assignment-modal-header">
+				<div class="assignment-modal-title">
+					<span class="assignment-icon">👤</span>
+					<h3>Account Details</h3>
+				</div>
+			</div>
+			<div class="assignment-modal-body">
+				<div style="display: flex; flex-direction: column; gap: 16px;">
+					<div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f9fafb; border-radius: 8px;">
+						<span style="font-weight: 600; color: #374151;">Account ID:</span>
+						<span id="accountDetailId" style="font-family: monospace; color: #6b7280;">-</span>
+					</div>
+					
+					<div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f9fafb; border-radius: 8px;">
+						<span style="font-weight: 600; color: #374151;">Full Name:</span>
+						<span id="accountDetailName" style="color: #1f2937;">-</span>
+					</div>
+					
+					<div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f9fafb; border-radius: 8px;">
+						<span style="font-weight: 600; color: #374151;">Company:</span>
+						<span id="accountDetailCompany" style="color: #1f2937;">-</span>
+					</div>
+					
+					<div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f9fafb; border-radius: 8px;">
+						<span style="font-weight: 600; color: #374151;">Email:</span>
+						<span id="accountDetailEmail" style="color: #1f2937; font-size: 13px;">-</span>
+					</div>
+					
+					<div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f9fafb; border-radius: 8px;">
+						<span style="font-weight: 600; color: #374151;">Phone:</span>
+						<span id="accountDetailPhone" style="color: #1f2937;">-</span>
+					</div>
+					
+					<div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f9fafb; border-radius: 8px;">
+						<span style="font-weight: 600; color: #374151;">Location:</span>
+						<span id="accountDetailLocation" style="color: #1f2937;">-</span>
+					</div>
+					
+					<div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f9fafb; border-radius: 8px;">
+						<span style="font-weight: 600; color: #374151;">Status:</span>
+						<span id="accountDetailStatus" style="padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">-</span>
+					</div>
+					
+					<div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f9fafb; border-radius: 8px;">
+						<span style="font-weight: 600; color: #374151;">Registered At:</span>
+						<span id="accountDetailCreated" style="color: #6b7280; font-size: 13px;">-</span>
+					</div>
+					
+					<div id="accountDetailPasswordRow" style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #fef3c7; border-radius: 8px; border: 1px solid #fcd34d;">
+						<span style="font-weight: 600; color: #92400e;">Password:</span>
+						<span id="accountDetailPassword" style="color: #92400e; font-family: monospace; font-weight: 600;">-</span>
+					</div>
+					
+					<div id="accountDetailRejectionRow" style="display: none; flex-direction: column; gap: 8px; padding: 12px; background: #fee2e2; border-radius: 8px; border: 1px solid #fca5a5;">
+						<span style="font-weight: 600; color: #991b1b;">Rejection Reason:</span>
+						<span id="accountDetailRejectionReason" style="color: #7f1d1d; font-size: 13px;">-</span>
+					</div>
+				</div>
+				
+				<div class="assignment-form-actions" style="margin-top: 24px;">
+					<button type="button" class="assignment-btn assignment-btn-cancel" onclick="closeAccountDetailModal()">Close</button>
+					<button type="button" id="accountDeleteBtn" class="assignment-btn assignment-btn-delete" onclick="deleteAccountFromModal()" style="display:none;">Delete</button>
+					<button type="button" id="accountRejectBtn" class="assignment-btn assignment-btn-delete" onclick="rejectAccountFromModal()" style="display:none;">Reject</button>
+					<button type="button" id="accountApproveBtn" class="assignment-btn assignment-btn-assign" onclick="approveAccountFromModal()" style="display:none; background: #10b981; border-color: #10b981;">Approve</button>
+				</div>
+			</div>
+		</div>
+	</div>
 
     <div id="facilityOwnerModal" class="modal-overlay" style="display:none" onclick="closeFacilityOwnerModal()">
         <div class="assignment-modal-card" onclick="event.stopPropagation()">

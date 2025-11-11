@@ -87,7 +87,7 @@ function getStatusClass(status) {
     if (k === 'approved' || k === 'materials approved') return 'status-approved';
     if (k === 'rejected') return 'status-rejected';
     if (k === 'assigned') return 'status-assigned';
-    if (k === 'in progress' || k === 'ongoing') return 'status-inprogress';
+    if (k === 'in progress' || k === 'ongoing' || k === 'in_progress') return 'status-inprogress';
     if (k === 'completed' || k === 'done' || k === 'inspected') return 'status-done';
     if (k === 'on hold') return 'status-pending';
     return 'status-pending'; 
@@ -155,6 +155,11 @@ function renderRequestAppointments() {
     pending.forEach((appt, index) => {
         const row = document.createElement('tr');
         const date = new Date(appt.date).toLocaleDateString();
+        
+        // Priority styling from prototype
+        const priority = appt.priority_level || 'Low';
+        const priorityClass = priority.toLowerCase();
+
         row.innerHTML = `
             <td>${appt.id}</td>
             <td>${appt.ticket_code || 'N/A'}</td>
@@ -163,7 +168,7 @@ function renderRequestAppointments() {
             <td>${appt.type_of_appointment || 'N/A'}</td>
             <td>${appt.task_description || 'N/A'}</td>
             <td><span class="status-pill ${getStatusClass(appt.status)}">${appt.status}</span></td>
-            <td>${appt.priority_level || 'N/A'}</td>
+            <td><span class="priority-${priorityClass}">${priority}</span></td>
             <td>—</td>
             <td><div class="row-actions"><button class="action-btn" onclick="openTicketModal(${appt.id})">View/Assign</button></div></td>
         `;
@@ -182,13 +187,19 @@ function renderOnHoldAppointments() {
     const searchQuery = searchBar ? searchBar.value.toLowerCase() : '';
     
     const onHold = state.allAppointments.filter(appt => {
+        // Use the same logic as the JS file
         const isInProgress = ['Assigned', 'On Hold', 'In Progress', 'Inspected'].includes(appt.status);
         
-        let statusMatch = statusFilter === 'all';
-        if (statusFilter !== 'all') {
-            const statusLower = (appt.status || '').toLowerCase().replace(' ', '_');
-            statusMatch = statusLower === statusFilter;
-        }
+        // Map appt.status to taskStatus for filtering
+        let taskStatusFilter = 'all';
+        if (appt.status === 'Assigned') taskStatusFilter = 'pending';
+        if (appt.status === 'In Progress') taskStatusFilter = 'in_progress';
+        if (appt.status === 'On Hold') taskStatusFilter = 'on_hold';
+        if (appt.status === 'Inspected') taskStatusFilter = 'inspected';
+        // Note: 'approved' (materials) isn't a main status, it's a sub-status.
+        // We will filter based on the main status.
+        
+        let statusMatch = statusFilter === 'all' || taskStatusFilter === statusFilter;
 
         const searchMatch = !searchQuery ||
             (appt.ticket_code && appt.ticket_code.toLowerCase().includes(searchQuery)) ||
@@ -211,7 +222,61 @@ function renderOnHoldAppointments() {
         if (appt.engineer_records) {
             engineerName = `${appt.engineer_records.firstName || ''} ${appt.engineer_records.lastName || ''}`.trim();
         }
+
+        // START: Logic copied from projectmanager.html prototype
+        const taskStatus = (appt.status === 'Assigned' ? 'pending' : appt.status === 'In Progress' ? 'in_progress' : appt.status === 'On Hold' ? 'on_hold' : appt.status === 'Inspected' ? 'inspected' : 'pending');
+        let taskStatusClass = '';
+        let taskStatusText = '';
+        let taskIcon = '';
+        let bgColor = '';
+        let textColor = '';
         
+        if (taskStatus === 'pending') { // 'Assigned' maps to 'pending'
+            taskStatusClass = 'status-pending';
+            taskStatusText = 'Pending';
+            taskIcon = '⏳';
+            bgColor = '#fef3c7';
+            textColor = '#92400e';
+        } else if (taskStatus === 'in_progress') { // 'In Progress' maps to 'Ongoing'
+            taskStatusClass = 'status-in-progress';
+            taskStatusText = 'Ongoing';
+            taskIcon = '🔄';
+            bgColor = '#dbeafe';
+            textColor = '#1e40af';
+        } else if (taskStatus === 'approved') { // This is a sub-status, but we'll map it
+            taskStatusClass = 'status-approved';
+            taskStatusText = 'Approved';
+            taskIcon = '✅';
+            bgColor = '#dcfce7';
+            textColor = '#166534';
+        } else if (taskStatus === 'inspected') { // 'Inspected' maps to 'Mark as Inspected'
+            taskStatusClass = 'status-inspected';
+            taskStatusText = 'Mark as Inspected';
+            taskIcon = '✅';
+            bgColor = '#d1fae5';
+            textColor = '#065f46';
+        } else if (taskStatus === 'completed') {
+            taskStatusClass = 'status-completed';
+            taskStatusText = 'Completed';
+            taskIcon = '✅';
+            bgColor = '#d1fae5';
+            textColor = '#065f46';
+        } else if (taskStatus === 'on_hold') { // 'On Hold' maps to 'On Hold'
+            taskStatusClass = 'status-on-hold';
+            taskStatusText = 'On Hold';
+            taskIcon = '⏸️';
+            bgColor = '#fef3c7';
+            textColor = '#92400e';
+        }
+        
+        const statusHTML = `<span class="${taskStatusClass}" style="padding: 4px 8px; border-radius: 6px; font-size: 12px; display: inline-block; background: ${bgColor}; color: ${textColor}; font-weight: 600;">${taskIcon} ${taskStatusText}</span>`;
+        // END: Logic from prototype
+
+        // Priority styling from prototype
+        const priority = appt.priority_level || 'Low';
+        const priorityClass = priority.toLowerCase();
+        const priorityHTML = `<span class="priority-${priorityClass}">${priority}</span>`;
+
         row.innerHTML = `
             <td>${appt.id}</td>
             <td>${appt.ticket_code || 'N/A'}</td>
@@ -219,8 +284,8 @@ function renderOnHoldAppointments() {
             <td>${appt.site || 'N/A'}</td>
             <td>${appt.type_of_appointment || 'N/A'}</td>
             <td>${appt.task_description || 'N/A'}</td>
-            <td><span class="status-pill ${getStatusClass(appt.status)}">${appt.status}</span></td>
-            <td>${appt.priority_level || 'N/A'}</td>
+            <td>${statusHTML}</td>
+            <td>${priorityHTML}</td>
             <td>${engineerName}</td>
             <td><div class="row-actions"><button class="action-btn" onclick="openTicketModal(${appt.id})">View</button></div></td>
         `;
@@ -257,6 +322,20 @@ function renderApprovedAppointments() {
         if (appt.engineer_records) {
             engineerName = `${appt.engineer_records.firstName || ''} ${appt.engineer_records.lastName || ''}`.trim();
         }
+
+        // START: Logic copied from projectmanager.html prototype
+        const statusHTML = `<span class="status-badge status-completed" style="background: #d1fae5; color: #065f46; gap: 6px; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 700; white-space: nowrap; display: inline-flex; align-items: center;">✅ Completed</span>`;
+        
+        const priority = appt.priority_level || 'Low';
+        const priorityClass = priority.toLowerCase();
+        const priorityColors = {
+            'low': '#10b981',
+            'medium': '#f59e0b',
+            'high': '#ef4444'
+        };
+        const priorityColor = priorityColors[priorityClass] || '#10b981';
+        const priorityHTML = `<span class="priority-badge" style="color: ${priorityColor}; font-weight: 700;">${priority}</span>`;
+        // END: Logic from prototype
         
         row.innerHTML = `
             <td>${appt.id}</td>
@@ -265,8 +344,8 @@ function renderApprovedAppointments() {
             <td>${appt.site || 'N/A'}</td>
             <td>${appt.type_of_appointment || 'N/A'}</td>
             <td>${appt.task_description || 'N/A'}</td>
-            <td><span class="status-pill ${getStatusClass(appt.status)}">${appt.status}</span></td>
-            <td>${appt.priority_level || 'N/A'}</td>
+            <td>${statusHTML}</td>
+            <td>${priorityHTML}</td>
             <td>${engineerName}</td>
         `;
         tbody.appendChild(row);
@@ -348,7 +427,18 @@ function renderAccounts() {
     filteredAccounts.forEach((acc, index) => {
         const row = document.createElement('tr');
         const status = acc.status || 'pending';
-        const statusClass = status === 'approved' ? 'status-approved' : (status === 'rejected' ? 'status-rejected' : 'status-pending');
+        
+        // START: Logic copied from projectmanager.html prototype
+        let statusBadge = '';
+        if (status === 'pending') {
+            statusBadge = '<span class="status-badge" style="background: #fef3c7; color: #92400e; padding: 4px 8px; border-radius: 8px; font-size: 11px; font-weight: 600; white-space: nowrap;">⏳ Pending</span>';
+        } else if (status === 'approved') {
+            statusBadge = '<span class="status-badge" style="background: #dcfce7; color: #166534; padding: 4px 8px; border-radius: 8px; font-size: 11px; font-weight: 600; white-space: nowrap;">✅ Approved</span>';
+        } else if (status === 'rejected') {
+            statusBadge = '<span class="status-badge" style="background: #fee2e2; color: #991b1b; padding: 4px 8px; border-radius: 8px; font-size: 11px; font-weight: 600; white-space: nowrap;">❌ Rejected</span>';
+        }
+        const displayPassword = acc.password ? '••••••••' : '—';
+        // END: Logic from prototype
 
         row.innerHTML = `
             <td style="text-align: center;">${index + 1}</td>
@@ -356,8 +446,8 @@ function renderAccounts() {
             <td>${acc.company_name || 'N/A'}</td>
             <td>${acc.email || 'N/A'}</td>
             <td>${acc.phone_number || 'N/A'}</td>
-            <td>******</td>
-            <td><span class="status-badge ${statusClass}">${status}</span></td>
+            <td style="font-family: monospace; font-size: 12px; color: #374151;">${displayPassword}</td>
+            <td style="text-align: center;">${statusBadge}</td>
             <td><button class="action-btn" onclick="openApproveModal('${acc.user_id}')">View</button></td>
         `;
         tbody.appendChild(row);
@@ -560,7 +650,21 @@ function openApproveModal(userId) {
     
     const statusEl = document.getElementById('accountDetailStatus');
     statusEl.textContent = acc.status;
-    statusEl.className = `status-pill ${getStatusClass(acc.status)}`;
+    
+    // START: Logic copied from projectmanager.html prototype
+    let statusBadge = '';
+    const status = (acc.status || 'pending').toLowerCase();
+    if (status === 'pending') {
+        statusBadge = '<span class="status-badge" style="background: #fef3c7; color: #92400e; padding: 4px 8px; border-radius: 8px; font-size: 11px; font-weight: 600; white-space: nowrap;">⏳ Pending</span>';
+    } else if (status === 'approved') {
+        statusBadge = '<span class="status-badge" style="background: #dcfce7; color: #166534; padding: 4px 8px; border-radius: 8px; font-size: 11px; font-weight: 600; white-space: nowrap;">✅ Approved</span>';
+    } else if (status === 'rejected') {
+        statusBadge = '<span class="status-badge" style="background: #fee2e2; color: #991b1b; padding: 4px 8px; border-radius: 8px; font-size: 11px; font-weight: 600; white-space: nowrap;">❌ Rejected</span>';
+    }
+    statusEl.innerHTML = statusBadge;
+    statusEl.className = ''; // Clear old classes
+    // END: Logic from prototype
+
 
     document.getElementById('accountDetailModal').style.display = 'flex';
 }
