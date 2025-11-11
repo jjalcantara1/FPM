@@ -335,6 +335,7 @@ function renderAccounts() {
     const searchQuery = searchBar ? searchBar.value.toLowerCase() : '';
     
     const filteredAccounts = state.allAccounts.filter(acc => {
+        if (acc.status === 'archived') return false;
         const statusMatch = statusFilter === 'all' || (acc.status || 'pending') === statusFilter;
         const searchMatch = !searchQuery || 
             (acc.firstName && acc.firstName.toLowerCase().includes(searchQuery)) ||
@@ -877,7 +878,6 @@ function closeFacilityOwnerModal() {
     document.body.style.overflow = 'auto';
 }
 
-// REPLACED the stub function
 window.editFacilityOwner = function(userId) {
     const fo = (state.allAccounts || []).find(f => f.user_id === userId);
     if (!fo) {
@@ -889,20 +889,27 @@ window.editFacilityOwner = function(userId) {
     document.getElementById('foHiddenId').value = fo.user_id || '';
     document.getElementById('foGivenName').value = fo.firstName || '';
     document.getElementById('foMiddleName').value = fo.middleName || '';
-    document.getElementById('foLastName').value = fo.surname || ''; // Match state.allAccounts field
-    document.getElementById('foOrganization').value = fo.company_name || ''; // Match state.allAccounts field
-    document.getElementById('foContact').value = fo.phone_number || ''; // Match state.allAccounts field
+    document.getElementById('foLastName').value = fo.surname || '';
+    document.getElementById('foOrganization').value = fo.company_name || '';
+    document.getElementById('foContact').value = fo.phone_number || '';
     document.getElementById('foEmail').value = fo.email || '';
-    document.getElementById('foLocation').value = fo.address || ''; // Match state.allAccounts field
-    document.getElementById('foPassword').value = ''; // Clear password field
+    document.getElementById('foLocation').value = fo.address || '';
+    document.getElementById('foPassword').value = '';
     document.getElementById('foPassword').placeholder = 'Leave blank to keep unchanged';
-    document.getElementById('foPassword').required = false; // Not required for edit
+    document.getElementById('foPassword').required = false;
 
-    const delBtn = document.getElementById('foDeleteBtn');
-    if (delBtn) {
-        delBtn.style.display = 'inline-flex';
-        delBtn.onclick = function() { deleteFacilityOwner(fo.user_id); };
+    // --- This is the modified part ---
+    const archiveBtn = document.getElementById('foDeleteBtn'); // The button ID is still 'foDeleteBtn'
+    if (archiveBtn) {
+        archiveBtn.textContent = 'Archive Account'; // Change button text
+        archiveBtn.style.display = 'inline-flex';
+        archiveBtn.style.background = '#f59e0b'; // Change color to orange (warning)
+        archiveBtn.style.borderColor = '#f59e0b';
+        
+        // Change the click handler to call our new 'archive' function
+        archiveBtn.onclick = function() { archiveFacilityOwner(fo.user_id); };
     }
+    // --- End of modification ---
     
     document.getElementById('facilityOwnerModal').style.display = 'flex';
     document.body.style.overflow = 'hidden';
@@ -951,28 +958,48 @@ async function saveFacilityOwner(ev) {
     }
 }
 
-// UPDATED function to call API
-async function deleteFacilityOwner(userId) {
-    if (!confirm('Are you sure you want to delete this Facility Owner? This action will also delete their login and cannot be undone.')) return;
+async function archiveFacilityOwner(userId) {
+    if (!confirm('Are you sure you want to archive this Facility Owner? This will disable their account and hide them from lists, but all their data will be kept.')) return;
     
     try {
-        const response = await fetch(`http://localhost:3000/api/pm/facility-owner/${userId}`, {
-            method: 'DELETE'
+        // Call the NEW backend endpoint
+        const response = await fetch(`http://localhost:3000/api/pm/archive-facility-owner/${userId}`, {
+            method: 'POST'
         });
 
         const result = await response.json();
         if (!response.ok) throw new Error(result.error);
         
-        alert('Facility Owner deleted successfully.');
-        closeFacilityOwnerModal();
-        loadDashboardData(); // Reload all data
+        alert('Facility Owner archived successfully.');
+        closeFacilityOwnerModal(); // Close the modal
+        loadDashboardData(); // Reload all data to refresh the lists
         
     } catch (error) {
-        alert('Error deleting Facility Owner: ' + error.message);
+        alert('Error archiving Facility Owner: ' + error.message);
     }
 }
 
-// --- End of new/updated functions ---
+// async function deleteFacilityOwner(userId) {
+//     if (!confirm('Are you sure you want to delete this Facility Owner? This action will also delete their login and cannot be undone.')) return;
+    
+//     try {
+//         const response = await fetch(`http://localhost:3000/api/pm/facility-owner/${userId}`, {
+//             method: 'DELETE'
+//         });
+
+//         const result = await response.json();
+//         if (!response.ok) throw new Error(result.error);
+        
+//         alert('Facility Owner deleted successfully.');
+//         closeFacilityOwnerModal();
+//         loadDashboardData(); // Reload all data
+        
+//     } catch (error) {
+//         alert('Error deleting Facility Owner: ' + error.message);
+//     }
+// }
+
+// // --- End of new/updated functions ---
 
 
 // --- DOMCONTENTLOADED ---

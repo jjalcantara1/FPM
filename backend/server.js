@@ -494,6 +494,27 @@ app.get('/api/my-appointments', async (req, res) => {
     }
 });
 
+app.post('/api/pm/archive-facility-owner/:id', async (req, res) => {
+    const { id } = req.params;
+    if (!id) return res.status(400).json({ error: 'Facility Owner ID is required.' });
+
+    try {
+        // Update the status to 'archived' instead of deleting
+        const { error: profileError } = await supabase
+            .from('facility_owner_records')
+            .update({ status: 'archived' })
+            .eq('user_id', id);
+
+        if (profileError) {
+            throw new Error(`Database error: ${profileError.message}`);
+        }
+                
+        res.status(200).json({ message: 'Facility Owner archived successfully. They can no longer log in.' });
+    } catch (error) {
+        console.error('Facility Owner Archive Error:', error.message);
+        res.status(400).json({ error: error.message });
+    }
+});
 
 app.get('/api/test', (req, res) => {
   res.json({ message: 'Hello from your Node.js backend!' });
