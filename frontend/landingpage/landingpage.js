@@ -2,9 +2,7 @@ function toggleMenu() {
     var menu = document.getElementById('menu');
     menu.classList.toggle('open');
 }
-// Removed demo login; Appointment stays disabled until real auth is implemented
-// Simple image carousel with placeholder slides
-// Use data-images attribute on the carousel to control images (comma-separated)
+
 var carouselEl = document.querySelector('.hero-carousel');
 var imagesAttr = (carouselEl && carouselEl.getAttribute('data-images')) || '';
 var slides = imagesAttr ? imagesAttr.split(',').map(function(s){ return s.trim(); }) : ['1.jpg', '2.jpg', '3.jpg'];
@@ -25,9 +23,7 @@ function renderSlide(initial) {
     var outgoing = usingA ? a : b;
     incoming.src = slides[currentSlide];
     incoming.alt = 'Slide ' + (currentSlide + 1);
-    // start crossfade
     outgoing.classList.remove('show');
-    // force reflow to ensure transition
     void incoming.offsetWidth;
     incoming.classList.add('show');
     usingA = !usingA;
@@ -40,7 +36,6 @@ function prevSlide() {
     currentSlide = (currentSlide - 1 + slides.length) % slides.length;
     renderSlide(false);
 }
-// Autoplay: advance every 4s until user clicks an arrow
 var autoplayId = null;
 function startAutoplay() {
     if (autoplayId !== null) return;
@@ -60,7 +55,6 @@ function handlePrevClick() {
     stopAutoplay();
     prevSlide();
 }
-// Appointment link is disabled via CSS pointer-events; no JS needed
 renderSlide(true);
 startAutoplay();
 function submitForm(e) {
@@ -76,5 +70,3 @@ function submitForm(e) {
     e.target.reset();
     return false;
 }
-// Static footer year (2021) — no dynamic change
-// Smooth scroll disabled to keep single-screen experience

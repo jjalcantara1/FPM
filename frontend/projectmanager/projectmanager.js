@@ -6,7 +6,6 @@ const state = {
     engineers: []
 };
 
-// --- 1. AUTHENTICATION & CORE ---
 
 async function logout() {
     await supabase.auth.signOut();
@@ -48,7 +47,6 @@ function updatePMHeader() {
     if (welcomeText) welcomeText.textContent = `Welcome, ${name}!`;
 }
 
-// --- 2. DATA LOADING ---
 
 async function loadDashboardData() {
     try {
@@ -72,7 +70,6 @@ async function loadDashboardData() {
     }
 }
 
-// --- 3. DATA RENDERING (WITH FILTERS) ---
 
 function renderAllTables() {
     renderDashboardStats();
@@ -81,9 +78,8 @@ function renderAllTables() {
     renderApprovedAppointments();
     renderAccounts(); 
     renderEngineers();
-    // THIS FUNCTION IS NOW CALLED
     renderFacilityOwners(); 
-    renderNotifications(); // <-- ADDED
+    renderNotifications(); 
 }
 
 function getStatusClass(status) {
@@ -97,7 +93,6 @@ function getStatusClass(status) {
     return 'status-pending'; 
 }
 
-// NEW HELPER FUNCTION
 function getTimeAgo(dateString) {
     if (!dateString) return 'just now';
     try {
@@ -447,14 +442,12 @@ function renderFacilityOwners() {
     });
 }
 
-// *** MODIFIED FUNCTION ***
 function renderNotifications() {
     const container = document.getElementById('notificationsContainer');
     if (!container) return;
 
     let notificationsHTML = '';
 
-    // 1. Get Pending Account Requests
     const pendingAccounts = state.allAccounts.filter(acc => acc.status === 'pending');
     pendingAccounts.forEach(acc => {
         const name = `${acc.firstName || ''} ${acc.surname || ''}`.trim();
@@ -478,13 +471,11 @@ function renderNotifications() {
         `;
     });
 
-    // 2. Get Pending Appointment Requests
     const pendingAppointments = state.allAppointments.filter(appt => appt.status === 'Pending');
     pendingAppointments.forEach(appt => {
         const timeAgo = getTimeAgo(appt.created_at);
         const priorityClass = (appt.priority_level || 'low').toLowerCase() === 'high' ? 'priority-critical' : (appt.priority_level || 'low').toLowerCase() === 'medium' ? 'priority-medium' : 'priority-low';
         
-        // --- THIS IS THE MODIFIED BLOCK ---
         notificationsHTML += `
             <div class="notification-card">
                 <div class="notification-header">
@@ -501,13 +492,11 @@ function renderNotifications() {
                 </div>
             </div>
         `;
-        // --- END OF MODIFIED BLOCK ---
     });
 
-    // 3. (Optional) Get "On Hold" appointments that might need attention
     const onHoldAppointments = state.allAppointments.filter(appt => appt.status === 'On Hold');
     onHoldAppointments.forEach(appt => {
-        const timeAgo = getTimeAgo(appt.updated_at || appt.created_at); // Use updated_at if available
+        const timeAgo = getTimeAgo(appt.updated_at || appt.created_at); 
         notificationsHTML += `
             <div class="notification-card" style="border-left: 4px solid #f59e0b;">
                 <div class="notification-header">
@@ -548,7 +537,6 @@ function populateEngineerDropdown() {
     });
 }
 
-// --- 4. MODAL & ACTIONS ---
 
 function openApproveModal(userId) {
     const acc = state.allAccounts.find(a => a.user_id === userId);
@@ -600,7 +588,6 @@ async function approveAccount(userId) {
     }
 }
 
-// THIS IS THE CORRECTED, SIMPLIFIED FUNCTION
 function openTicketModal(appointmentId) {
     const appt = state.allAppointments.find(a => a.id === appointmentId);
     if (!appt) return;
@@ -624,13 +611,10 @@ function openTicketModal(appointmentId) {
     const isPending = status === 'pending';
     document.getElementById('engineerAssignmentSection').style.display = 'block';
     
-    // Show/hide "Process" button
     document.getElementById('processBtn').style.display = isPending ? 'inline-flex' : 'none';
     
-    // Hide PM remarks field by default. It will be shown by the dropdown listener
     document.getElementById('pmRemarksField').style.display = 'none';
     
-    // Hide all other action buttons by default
     document.getElementById('markDoneBtn2').style.display = 'none';
     document.getElementById('onHoldBtn').style.display = 'none';
     document.getElementById('deleteBtn').style.display = 'none';
@@ -679,7 +663,6 @@ function openTicketModal(appointmentId) {
         }
     }
     
-    // We check if these elements exist before trying to show them.
     const remarksSection = document.getElementById('remarksSection');
     const currentStatusSection = document.getElementById('currentStatusSection');
     const foRemarksForm = document.getElementById('foRemarksForm');
@@ -709,9 +692,7 @@ function closeTicketOverviewModal() {
 }
 
 
-// --- MODIFIED FUNCTION TO GENERATE PDF ---
 function generateCompletedReport() {
-    // 1. Check if libraries are loaded
     if (typeof window.jspdf === 'undefined' || typeof window.jspdf.jsPDF === 'undefined') {
         alert('jsPDF library is not loaded. Please try again in a moment.');
         return;
@@ -720,13 +701,11 @@ function generateCompletedReport() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
 
-    // 2. Check for autotable plugin on the jsPDF prototype
     if (typeof doc.autoTable === 'undefined') {
         alert('jsPDF-AutoTable plugin is not loaded. Please try again in a moment.');
         return;
     }
 
-    // 3. Get the filtered data (same logic as renderApprovedAppointments)
     const searchBar = document.getElementById('searchApprovedAppointments');
     const searchQuery = searchBar ? searchBar.value.toLowerCase() : '';
     const approved = state.allAppointments.filter(appt => {
@@ -743,10 +722,8 @@ function generateCompletedReport() {
         return;
     }
 
-    // 4. Define Columns
     const head = [['ID', 'Ticket', 'Date', 'Site', 'Type', 'Status', 'Priority', 'Engineer']];
     
-    // 5. Define Rows
     const body = approved.map(appt => {
         const date = new Date(appt.date).toLocaleDateString();
         let engineerName = '...';
@@ -765,7 +742,6 @@ function generateCompletedReport() {
         ];
     });
 
-    // 6. Add Title and Generate Table
     doc.setFontSize(18);
     doc.text('Completed Appointments Report', 14, 22);
     doc.setFontSize(11);
@@ -777,15 +753,13 @@ function generateCompletedReport() {
         head: head,
         body: body,
         theme: 'striped',
-        headStyles: { fillColor: [42, 51, 71] } // --text-700 color approx.
+        headStyles: { fillColor: [42, 51, 71] } 
     });
 
-    // 7. Save the PDF
     doc.save('Completed_Appointments_Report.pdf');
 }
 
 
-// --- 5. INITIALIZATION & HELPERS ---
 
 function initNavigation() {
     const navLinks = document.querySelectorAll('.nav-link');
@@ -835,7 +809,6 @@ function navigateToAccounts(filterStatus) {
      }
 }
 
-// This helper function is used by your notification buttons
 function switchView(viewName) {
     const link = document.querySelector(`[data-view="${viewName}"]`);
     if (link) {
@@ -844,10 +817,7 @@ function switchView(viewName) {
         console.error(`No view found for: ${viewName}`);
     }
 }
-window.switchView = switchView; // Make it global for inline onclick
-
-
-// --- ++ NEW: Facility Owner Modal Functions ++ ---
+window.switchView = switchView; 
 
 function openFacilityOwnerModal() {
     document.getElementById('foModalTitle').textContent = 'Add Facility Owner';
@@ -898,24 +868,20 @@ window.editFacilityOwner = function(userId) {
     document.getElementById('foPassword').placeholder = 'Leave blank to keep unchanged';
     document.getElementById('foPassword').required = false;
 
-    // --- This is the modified part ---
-    const archiveBtn = document.getElementById('foDeleteBtn'); // The button ID is still 'foDeleteBtn'
+    const archiveBtn = document.getElementById('foDeleteBtn'); 
     if (archiveBtn) {
-        archiveBtn.textContent = 'Archive Account'; // Change button text
+        archiveBtn.textContent = 'Archive Account'; 
         archiveBtn.style.display = 'inline-flex';
-        archiveBtn.style.background = '#f59e0b'; // Change color to orange (warning)
+        archiveBtn.style.background = '#f59e0b';
         archiveBtn.style.borderColor = '#f59e0b';
         
-        // Change the click handler to call our new 'archive' function
         archiveBtn.onclick = function() { archiveFacilityOwner(fo.user_id); };
     }
-    // --- End of modification ---
     
     document.getElementById('facilityOwnerModal').style.display = 'flex';
     document.body.style.overflow = 'hidden';
 }
 
-// UPDATED function to call API
 async function saveFacilityOwner(ev) {
     ev.preventDefault();
     
@@ -951,7 +917,7 @@ async function saveFacilityOwner(ev) {
 
         alert(`Facility Owner ${id ? 'updated' : 'created'} successfully!`);
         closeFacilityOwnerModal();
-        loadDashboardData(); // Reload all data from backend
+        loadDashboardData();
         
     } catch (error) {
         alert('Error saving Facility Owner: ' + error.message);
@@ -962,7 +928,6 @@ async function archiveFacilityOwner(userId) {
     if (!confirm('Are you sure you want to archive this Facility Owner? This will disable their account and hide them from lists, but all their data will be kept.')) return;
     
     try {
-        // Call the NEW backend endpoint
         const response = await fetch(`http://localhost:3000/api/pm/archive-facility-owner/${userId}`, {
             method: 'POST'
         });
@@ -971,45 +936,16 @@ async function archiveFacilityOwner(userId) {
         if (!response.ok) throw new Error(result.error);
         
         alert('Facility Owner archived successfully.');
-        closeFacilityOwnerModal(); // Close the modal
-        loadDashboardData(); // Reload all data to refresh the lists
+        closeFacilityOwnerModal();
+        loadDashboardData(); 
         
     } catch (error) {
         alert('Error archiving Facility Owner: ' + error.message);
     }
 }
 
-// async function deleteFacilityOwner(userId) {
-//     if (!confirm('Are you sure you want to delete this Facility Owner? This action will also delete their login and cannot be undone.')) return;
-    
-//     try {
-//         const response = await fetch(`http://localhost:3000/api/pm/facility-owner/${userId}`, {
-//             method: 'DELETE'
-//         });
-
-//         const result = await response.json();
-//         if (!response.ok) throw new Error(result.error);
-        
-//         alert('Facility Owner deleted successfully.');
-//         closeFacilityOwnerModal();
-//         loadDashboardData(); // Reload all data
-        
-//     } catch (error) {
-//         alert('Error deleting Facility Owner: ' + error.message);
-//     }
-// }
-
-// // --- End of new/updated functions ---
-
-
-// --- DOMCONTENTLOADED ---
-// This is the main entry point that runs when the page is ready.
-// We define functions first, then attach listeners.
 document.addEventListener('DOMContentLoaded', function() {
-    
-    // --- DEFINE ALL FUNCTIONS FIRST ---
-
-    // --- NEW: Engineer Functions (Replaced stubs) ---
+   
     window.openEngineerModal = function() {
         document.getElementById('engineerModalTitle').textContent = 'Add Engineer';
         document.getElementById('engHiddenId').value = '';
@@ -1021,7 +957,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('engLocation').value = '';
         document.getElementById('engPassword').value = '';
         document.getElementById('engPassword').placeholder = 'Required for new engineer';
-        document.getElementById('engPassword').required = true; // Make required for 'add'
+        document.getElementById('engPassword').required = true; 
 
         const delBtnAdd = document.getElementById('engDeleteBtn');
         if (delBtnAdd) { 
@@ -1052,7 +988,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('engLocation').value = eng.location || '';
         document.getElementById('engPassword').value = '';
         document.getElementById('engPassword').placeholder = 'Leave blank to keep unchanged';
-        document.getElementById('engPassword').required = false; // Not required for 'edit'
+        document.getElementById('engPassword').required = false;
 
         const delBtn = document.getElementById('engDeleteBtn');
         if (delBtn) {
@@ -1070,14 +1006,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const password = document.getElementById('engPassword').value;
         
         const engineer = {
-            id: id || null, // This is the user_id
+            id: id || null, 
             givenName: document.getElementById('engGivenName').value.trim(),
             middleName: document.getElementById('engMiddleName').value.trim(),
             lastName: document.getElementById('engLastName').value.trim(),
             phone: document.getElementById('engPhone').value.trim(),
             email: document.getElementById('engEmail').value.trim(),
             location: document.getElementById('engLocation').value.trim(),
-            password: password ? password : null // Only send password if it's not empty
+            password: password ? password : null 
         };
 
         if (!id && !password) {
@@ -1097,7 +1033,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             alert(`Engineer ${id ? 'updated' : 'created'} successfully!`);
             closeEngineerModal();
-            loadDashboardData(); // Reload all data from backend
+            loadDashboardData(); 
             
         } catch (error) {
             alert('Error saving engineer: ' + error.message);
@@ -1117,26 +1053,20 @@ document.addEventListener('DOMContentLoaded', function() {
             
             alert('Engineer deleted successfully.');
             closeEngineerModal();
-            loadDashboardData(); // Reload all data
+            loadDashboardData(); 
             
         } catch (error) {
             alert('Error deleting engineer: ' + error.message);
         }
     }
     
-    // --- Other stubs ---
-    // window.editFacilityOwner = function(id) { alert('Edit FO not built yet.'); } // THIS IS NOW REPLACED
-    // window.deleteFacilityOwner = function(id) { alert('Delete FO not built yet.'); } // THIS IS NOW REPLACLED
-    // window.saveFacilityOwner = function(ev) { ev.preventDefault(); alert('Save FO not built yet.'); } // THIS IS NOW REPLACED
-    // window.closeFacilityOwnerModal = function() { document.getElementById('facilityOwnerModal').style.display = 'none'; } // THIS IS NOW REPLACED
     window.approveAccountStatus = function(id) { alert('Please use the "View" button to approve.'); }
     window.rejectAccountStatus = function(id) { alert('Reject not connected yet.'); }
     window.viewAccountDetails = function(id) { openApproveModal(id); }
-    window.approveAccountFromModal = function() { /* Handled by button */ }
+    window.approveAccountFromModal = function() { }
     window.rejectAccountFromModal = function() { alert('Reject not connected yet.'); }
     window.deleteAccountFromModal = function() { alert('Delete not connected yet.'); }
     
-    // --- THIS IS THE NEW FUNCTION ---
     window.processTicket = async function() {
         const btn = document.getElementById('processBtn');
         btn.disabled = true;
@@ -1170,7 +1100,6 @@ document.addEventListener('DOMContentLoaded', function() {
             btn.disabled = false;
         }
     }
-    // --- END OF NEW FUNCTION ---
 
     window.approveAppointment = function() { alert('Approve not connected yet.'); }
     window.rejectAppointment = function(id) { alert('Reject not connected yet. This will be a new API endpoint.'); }
@@ -1265,12 +1194,9 @@ document.addEventListener('DOMContentLoaded', function() {
         closeTicketOverviewModal();
     };
 
-    // --- NOW, RUN INITIALIZATION & ATTACH LISTENERS ---
-
     checkPMSession(); 
     initNavigation(); 
     
-    // All filter/search listeners
     const accountStatusFilter = document.getElementById('accountStatusFilter');
     if (accountStatusFilter) {
         accountStatusFilter.addEventListener('change', renderAccounts);
@@ -1311,44 +1237,35 @@ document.addEventListener('DOMContentLoaded', function() {
         searchApprovedAppointments.addEventListener('input', renderApprovedAppointments);
     }
 
-    // --- ADDED: Listener for the new report button ---
     const generateReportBtn = document.getElementById('generateReportBtn');
     if (generateReportBtn) {
         generateReportBtn.addEventListener('click', generateCompletedReport);
     }
     
-    // --- THIS LISTENER IS NOW REMOVED ---
-    // const assignmentForm = document.getElementById('assignmentForm');
-    // if (assignmentForm) { ... }
-
-    // --- NEW: Attach Engineer form listener ---
     const engineerForm = document.getElementById('engineerForm');
     if (engineerForm) {
-        engineerForm.addEventListener('submit', saveEngineer); // This should now work!
+        engineerForm.addEventListener('submit', saveEngineer); 
     }
 
-    // --- ++ NEW: Attach Facility Owner form listener ++ ---
     const facilityOwnerForm = document.getElementById('facilityOwnerForm');
     if (facilityOwnerForm) {
         facilityOwnerForm.addEventListener('submit', saveFacilityOwner);
     }
 
-    // --- NEW: Add listener for engineer dropdown in modal ---
     const engineerSelectModal = document.getElementById('engineerSelect');
     if (engineerSelectModal) {
         engineerSelectModal.addEventListener('change', function() {
             const pmRemarksField = document.getElementById('pmRemarksField');
             if (pmRemarksField) {
                 if (this.value) {
-                    pmRemarksField.style.display = 'block'; // Show if engineer is selected
+                    pmRemarksField.style.display = 'block'; 
                 } else {
-                    pmRemarksField.style.display = 'none'; // Hide if no engineer is selected
+                    pmRemarksField.style.display = 'none'; 
                 }
             }
         });
     }
 
-    // --- Calendar (Simplified) ---
     let currentDate = new Date();
     const calendarTitle = document.getElementById('calendarTitle');
     const calendarGrid = document.getElementById('calendarGrid');

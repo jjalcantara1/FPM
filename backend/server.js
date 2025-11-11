@@ -499,7 +499,6 @@ app.post('/api/pm/archive-facility-owner/:id', async (req, res) => {
     if (!id) return res.status(400).json({ error: 'Facility Owner ID is required.' });
 
     try {
-        // Update the status to 'archived' instead of deleting
         const { error: profileError } = await supabase
             .from('facility_owner_records')
             .update({ status: 'archived' })

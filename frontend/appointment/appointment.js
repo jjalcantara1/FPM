@@ -430,5 +430,4 @@ if (form) {
     });
 }
 
-// Run the user check first
 document.addEventListener('DOMContentLoaded', checkUserSession);
