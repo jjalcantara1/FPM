@@ -89,9 +89,11 @@ app.get('/api/pm/dashboard-data', async (req, res) => {
 
         if (acctError) throw new Error(acctError.message);
 
+        // *** CHANGED: Only get non-archived engineers ***
         const { data: engineers, error: engError } = await supabase
             .from('engineer_records')
-            .select('*');
+            .select('*')
+            .neq('status', 'archived');
 
         if (engError) throw new Error(engError.message);
 
@@ -138,6 +140,7 @@ app.post('/api/pm/engineer', async (req, res) => {
 
             res.status(200).json({ message: 'Engineer updated successfully!', data: profile });
         } else {
+            // This is a CREATE
             if (!email || !password) {
                 return res.status(400).json({ error: 'Email and password are required for new engineer.' });
             }
@@ -163,7 +166,8 @@ app.post('/api/pm/engineer', async (req, res) => {
                         lastName: lastName,
                         email: email,
                         phone_number: phone,
-                        location: location
+                        location: location,
+                        status: 'active'
                     }
                 ])
                 .select();
@@ -181,7 +185,7 @@ app.post('/api/pm/engineer', async (req, res) => {
     }
 });
 
-app.delete('/api/pm/engineer/:id', async (req, res) => {
+app.post('/api/pm/archive-engineer/:id', async (req, res) => {
     const { id } = req.params;
     if (!id) return res.status(400).json({ error: 'Engineer ID is required.' });
 
@@ -189,7 +193,8 @@ app.delete('/api/pm/engineer/:id', async (req, res) => {
         const { error: apptError } = await supabase
             .from('appointment_records')
             .update({ engineer_user_id: null, status: 'Pending' }) 
-            .eq('engineer_user_id', id);
+            .eq('engineer_user_id', id)
+            .in('status', ['Assigned', 'In Progress', 'On Hold', 'Inspected']);
         
         if (apptError) {
              console.error('Error un-assigning appointments:', apptError.message);
@@ -198,20 +203,17 @@ app.delete('/api/pm/engineer/:id', async (req, res) => {
 
         const { error: profileError } = await supabase
             .from('engineer_records')
-            .delete()
+            .update({ status: 'archived' }) 
             .eq('user_id', id);
 
         if (profileError) {
-             console.error('Error deleting engineer profile:', profileError.message);
-             throw new Error(`Database error deleting profile: ${profileError.message}`);
+             console.error('Error archiving engineer profile:', profileError.message);
+             throw new Error(`Database error archiving profile: ${profileError.message}`);
         }
-        
-        const { error: authError } = await supabase.auth.admin.deleteUser(id);
-        if (authError) throw new Error(authError.message);
-
-        res.status(200).json({ message: 'Engineer deleted successfully. Associated appointments are now unassigned.' });
+    
+        res.status(200).json({ message: 'Engineer archived successfully. Associated appointments are now unassigned.' });
     } catch (error) {
-        console.error('Engineer Delete Error:', error.message);
+        console.error('Engineer Archive Error:', error.message);
         res.status(400).json({ error: error.message });
     }
 });
@@ -374,7 +376,7 @@ app.post('/api/pm/assign-appointment', async (req, res) => {
             .from('appointment_records')
             .update({
                 engineer_user_id: engineer_user_id,
-                status: 'Assigned',
+                status: 'In Progress', 
                 pm_remarks: pm_remarks
             })
             .eq('id', appointment_id);
@@ -466,7 +468,7 @@ app.get('/api/my-appointments', async (req, res) => {
     try {
         const authHeader = req.headers.authorization;
         if (!authHeader) {
-            return res.status(401).json({ error: 'No authorization token provided.' });
+            return res.status(41).json({ error: 'No authorization token provided.' });
         }
         const token = authHeader.split(' ')[1]; 
         const { data: { user }, error: userError } = await supabase.auth.getUser(token);

@@ -187,17 +187,14 @@ function renderOnHoldAppointments() {
     const searchQuery = searchBar ? searchBar.value.toLowerCase() : '';
     
     const onHold = state.allAppointments.filter(appt => {
-        // Use the same logic as the JS file
         const isInProgress = ['Assigned', 'On Hold', 'In Progress', 'Inspected'].includes(appt.status);
         
-        // Map appt.status to taskStatus for filtering
         let taskStatusFilter = 'all';
         if (appt.status === 'Assigned') taskStatusFilter = 'pending';
         if (appt.status === 'In Progress') taskStatusFilter = 'in_progress';
         if (appt.status === 'On Hold') taskStatusFilter = 'on_hold';
         if (appt.status === 'Inspected') taskStatusFilter = 'inspected';
-        // Note: 'approved' (materials) isn't a main status, it's a sub-status.
-        // We will filter based on the main status.
+
         
         let statusMatch = statusFilter === 'all' || taskStatusFilter === statusFilter;
 
@@ -323,7 +320,6 @@ function renderApprovedAppointments() {
             engineerName = `${appt.engineer_records.firstName || ''} ${appt.engineer_records.lastName || ''}`.trim();
         }
 
-        // START: Logic copied from projectmanager.html prototype
         const statusHTML = `<span class="status-badge status-completed" style="background: #d1fae5; color: #065f46; gap: 6px; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 700; white-space: nowrap; display: inline-flex; align-items: center;">✅ Completed</span>`;
         
         const priority = appt.priority_level || 'Low';
@@ -428,7 +424,6 @@ function renderAccounts() {
         const row = document.createElement('tr');
         const status = acc.status || 'pending';
         
-        // START: Logic copied from projectmanager.html prototype
         let statusBadge = '';
         if (status === 'pending') {
             statusBadge = '<span class="status-badge" style="background: #fef3c7; color: #92400e; padding: 4px 8px; border-radius: 8px; font-size: 11px; font-weight: 600; white-space: nowrap;">⏳ Pending</span>';
@@ -438,7 +433,6 @@ function renderAccounts() {
             statusBadge = '<span class="status-badge" style="background: #fee2e2; color: #991b1b; padding: 4px 8px; border-radius: 8px; font-size: 11px; font-weight: 600; white-space: nowrap;">❌ Rejected</span>';
         }
         const displayPassword = acc.password ? '••••••••' : '—';
-        // END: Logic from prototype
 
         row.innerHTML = `
             <td style="text-align: center;">${index + 1}</td>
@@ -651,19 +645,17 @@ function openApproveModal(userId) {
     const statusEl = document.getElementById('accountDetailStatus');
     statusEl.textContent = acc.status;
     
-    // START: Logic copied from projectmanager.html prototype
     let statusBadge = '';
     const status = (acc.status || 'pending').toLowerCase();
     if (status === 'pending') {
-        statusBadge = '<span class="status-badge" style="background: #fef3c7; color: #92400e; padding: 4px 8px; border-radius: 8px; font-size: 11px; font-weight: 600; white-space: nowrap;">⏳ Pending</span>';
+        statusBadge = '<span class="status-badge" style="background: #fef3c7; color: #92400e; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">⏳ Pending</span>';
     } else if (status === 'approved') {
-        statusBadge = '<span class="status-badge" style="background: #dcfce7; color: #166534; padding: 4px 8px; border-radius: 8px; font-size: 11px; font-weight: 600; white-space: nowrap;">✅ Approved</span>';
+        statusBadge = '<span class="status-badge" style="background: #dcfce7; color: #166534; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">✅ Approved</span>';
     } else if (status === 'rejected') {
-        statusBadge = '<span class="status-badge" style="background: #fee2e2; color: #991b1b; padding: 4px 8px; border-radius: 8px; font-size: 11px; font-weight: 600; white-space: nowrap;">❌ Rejected</span>';
+        statusBadge = '<span class="status-badge" style="background: #fee2e2; color: #991b1b; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">❌ Rejected</span>';
     }
     statusEl.innerHTML = statusBadge;
-    statusEl.className = ''; // Clear old classes
-    // END: Logic from prototype
+    statusEl.className = ''; 
 
 
     document.getElementById('accountDetailModal').style.display = 'flex';
@@ -1096,8 +1088,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const delBtn = document.getElementById('engDeleteBtn');
         if (delBtn) {
+            // *** CHANGED: Update button to "Archive" ***
+            delBtn.textContent = 'Archive';
             delBtn.style.display = 'inline-flex';
-            delBtn.onclick = function(){ deleteEngineer(eng.user_id); };
+            delBtn.style.background = '#f59e0b'; // Orange
+            delBtn.style.borderColor = '#f59e0b';
+            delBtn.onclick = function(){ window.archiveEngineer(eng.user_id); }; // Calls archiveEngineer
         }
         
         document.getElementById('engineerModal').style.display = 'flex';
@@ -1144,23 +1140,23 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    window.deleteEngineer = async function(userId) {
-        if (!confirm('Are you sure you want to delete this engineer? This action will also delete their login and cannot be undone.')) return;
+    window.archiveEngineer = async function(userId) {
+        if (!confirm('Are you sure you want to archive this engineer? This will disable their account and un-assign them from open tickets.')) return;
         
         try {
-            const response = await fetch(`http://localhost:3000/api/pm/engineer/${userId}`, {
-                method: 'DELETE'
+            const response = await fetch(`http://localhost:3000/api/pm/archive-engineer/${userId}`, {
+                method: 'POST' 
             });
 
             const result = await response.json();
             if (!response.ok) throw new Error(result.error);
             
-            alert('Engineer deleted successfully.');
+            alert('Engineer archived successfully.');
             closeEngineerModal();
             loadDashboardData(); 
             
         } catch (error) {
-            alert('Error deleting engineer: ' + error.message);
+            alert('Error archiving engineer: ' + error.message);
         }
     }
     
