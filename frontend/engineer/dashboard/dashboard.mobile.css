@@ -1,0 +1,308 @@
+/* Mobile-only styles (loaded only when viewport <= 767px) */
+
+/* Remove only the thin orange status bar on mobile */
+.status-bar { display: none !important; }
+
+/* Keep default spacing since hero header remains */
+.mobile-layout .main-content { padding-top: unset; }
+
+/* Reset/structure for mobile overlay details */
+.mobile-assignment-details {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #f5f5f5;
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+}
+.mobile-assignment-details.show {
+  transform: translateX(0);
+}
+
+.mobile-details-header {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  background: #ffffff;
+  border-bottom: 1px solid #e0e0e0;
+}
+.mobile-back-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  font-size: 16px;
+  color: #33383f;
+  cursor: pointer;
+  padding: 8px;
+}
+.mobile-back-icon { font-size: 18px; }
+
+.mobile-details-content {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+}
+.mobile-details-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+.mobile-details-title-section { margin-bottom: 16px; }
+.mobile-details-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #33383f;
+  margin: 0;
+}
+.mobile-details-meta {
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+.mobile-details-site { font-size: 16px; color: #666; margin: 0 0 8px 0; }
+.mobile-details-due  { font-size: 16px; color: var(--brand-orange, #f47621); margin: 0; font-weight: 600; }
+
+.mobile-details-info { display: flex; flex-direction: column; gap: 16px; }
+.mobile-detail-item { font-size: 16px; color: #33383f; line-height: 1.5; }
+.mobile-detail-item strong { font-weight: 600; color: #333; }
+
+.mobile-details-footer {
+  padding: 16px;
+  background: #ffffff;
+  border-top: 1px solid #e0e0e0;
+}
+.mobile-action-btn {
+  width: 100%;
+  background: #28a745;
+  color: #ffffff;
+  border: none;
+  padding: 16px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  letter-spacing: 1px;
+}
+.mobile-action-btn:hover { background: #218838; }
+.mobile-action-btn.request-vehicle { background: var(--brand-orange, #f47621); }
+.mobile-action-btn.request-vehicle:hover { background: #e06419; }
+.mobile-action-btn.forwarded {
+  background: var(--brand-orange);
+  cursor: default;
+}
+
+/* Request Material Modal - Mobile */
+.material-request {
+  max-width: 90vw !important;
+  max-height: 80vh !important;
+  overflow: hidden;
+}
+
+.material-request .modal-body {
+  max-height: 60vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 16px;
+}
+
+.material-list {
+  max-height: 40vh !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  padding-right: 4px;
+}
+
+.mr-row {
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.qty-container {
+  flex-direction: row !important;
+  gap: 8px;
+}
+
+.modal-input {
+  font-size: 16px !important; /* Prevents zoom on iOS */
+  padding: 14px 12px;
+}
+
+.modal-textarea {
+  font-size: 16px !important; /* Prevents zoom on iOS */
+  min-height: 60px;
+}
+
+.remove-material-btn {
+  width: 32px;
+  height: 32px;
+  font-size: 16px;
+}
+
+/* Mobile modal styles */
+.modal {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+.modal.show { opacity: 1; visibility: visible; }
+
+.modal-content.vehicle-ticket {
+  width: min(520px, 90vw);
+  max-width: 520px;
+  max-height: calc(100vh - 40px);
+  background: #f0e6fb;
+  border-radius: 24px;
+  padding: 28px 24px 20px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.modal-content.vehicle-ticket .vt-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+@media (max-width: 767px) {
+  .modal {
+    align-items: flex-end;
+  }
+
+  .modal-content.vehicle-ticket {
+    width: 100vw;
+    max-width: 100vw;
+    max-height: 90vh;
+    border-radius: 24px 24px 0 0;
+    padding: 20px 16px 12px;
+  }
+
+  .modal-content.vehicle-ticket .vt-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
+.modal-content.vehicle-ticket .vt-span-2 {
+  grid-column: 1 / -1;
+}
+
+.modal-content.vehicle-ticket .modal-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #2b2140;
+  margin-bottom: 18px;
+}
+
+.modal-content.vehicle-ticket .modal-label {
+  color: #7c6a92;
+}
+
+.modal-content.vehicle-ticket .modal-body {
+  flex: 1;
+  max-height: 60vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 12px;
+}
+
+.modal-content.vehicle-ticket .modal-actions {
+  justify-content: flex-end;
+  padding-top: 4px;
+}
+
+.modal-content {
+  width: 90vw;
+  max-width: 420px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+}
+.modal-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #33383f;
+  margin-bottom: 20px;
+}
+.modal-body { margin-bottom: 24px; }
+.modal-label { display: block; font-size: 14px; font-weight: 600; color: #33383f; margin-bottom: 8px; }
+.modal-textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  outline: none;
+}
+.modal-textarea:focus { border-color: var(--brand-orange, #f47621); }
+.modal-actions { display: flex; gap: 12px; justify-content: flex-end; }
+.modal-btn { padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; border: none; cursor: pointer; }
+.modal-btn-cancel { background: #f5f5f5; color: #33383f; }
+.modal-btn-cancel:hover { background: #e0e0e0; }
+.modal-btn-confirm { background: var(--brand-orange, #f47621); color: #fff; }
+.modal-btn-confirm:hover { background: #e06419; }
+
+/* Mobile toast */
+.toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: #333;
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  z-index: 1001;
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ===================== */
+/* Notification (mobile) */
+/* ===================== */
+.notif-page { padding: 16px; }
+.notif-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.notif-title { font-size: 20px; font-weight: 700; color: #33383f; }
+.notif-filter { display: inline-flex; align-items: center; gap: 8px; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 8px 10px; }
+.notif-filter-label { font-size: 12px; color: #666; }
+.notif-select { border: none; background: transparent; font-size: 14px; color: #33383f; outline: none; }
+
+.notif-section { margin-top: 16px; }
+.notif-section-title { font-size: 14px; font-weight: 700; color: #666; margin: 8px 4px; }
+
+.notif-card { width: 100%; display: flex; gap: 12px; align-items: flex-start; background: #fff; border: 1px solid #eee; border-radius: 16px; padding: 14px; margin: 8px 0; box-shadow: 0 2px 6px rgba(0,0,0,0.06); cursor: pointer; }
+.notif-card:active { transform: scale(0.995); }
+.notif-icon { font-size: 22px; line-height: 1; }
+.notif-body { flex: 1; }
+.notif-card-title { font-weight: 700; color: #33383f; margin-bottom: 2px; }
+.notif-sub { font-size: 13px; color: #70757d; margin-bottom: 4px; }
+.notif-time { font-size: 12px; color: #9aa0a6; }
+
+/* Modal input styling for Vehicle Ticket */
+.modal-input { width: 100%; padding: 10px 12px; border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 12px; font-size: 14px; color: #33383f; background: #fff; }
+.modal-input[readonly] { background: #fafafa; }

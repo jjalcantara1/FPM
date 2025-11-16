@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FINSI Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./dashboard.css" />
+  </head>
+  <body>
+    <!-- Mobile Layout: Assignments Screen -->
+    <div class="mobile-layout">
+      <header class="status-bar" aria-hidden="true">
+        <div class="status-time">1:34</div>
+        <div class="status-icons"></div>
+      </header>
+
+      <header class="hero-header" aria-label="Greeting">
+        <div class="hero-shape"></div>
+        <div class="hero-content">
+          <p class="hero-greeting">Good Afternoon</p>
+          <p class="hero-subtitle">Welcome back John!</p>
+        </div>
+      </header>
+
+      <main class="main-content" aria-label="Assignments">
+        <section class="assignments-card">
+          <div class="assignments-header">Assignments</div>
+
+          <div class="assignment-tabs" role="tablist">
+            <button class="tab tab-active" type="button" data-tab="pending">
+              Pending
+            </button>
+            <button class="tab" type="button" data-tab="ongoing">Ongoing</button>
+            <button class="tab" type="button" data-tab="completed">
+              Completed
+            </button>
+          </div>
+
+          <div class="assignment-list">
+            <div class="task-container task-container-active" data-container="pending">
+              <article class="assignment-card">
+                <div class="assignment-card-header">
+                  <div class="assignment-title">Site Inspection</div>
+                  <div class="assignment-priority priority-high">High</div>
+                </div>
+                <div class="assignment-location">
+                  Site: Quezon City - North Fairview
+                </div>
+                <div class="assignment-due-label">Due: Oct 21, 2025</div>
+                <div class="assignment-progress assignment-progress-high"></div>
+              </article>
+
+              <article class="assignment-card">
+                <div class="assignment-card-header">
+                  <div class="assignment-title">Installation</div>
+                  <div class="assignment-priority priority-medium">Medium</div>
+                </div>
+                <div class="assignment-location">Site: Makati - Ayala</div>
+                <div class="assignment-due-label">Due: Oct 11, 2025</div>
+                <div class="assignment-progress assignment-progress-medium"></div>
+              </article>
+            </div>
+
+            <div class="task-container" data-container="ongoing">
+              <article class="assignment-card">
+                <div class="assignment-card-header">
+                  <div class="assignment-title">Network Upgrade</div>
+                  <div class="assignment-priority priority-medium">Medium</div>
+                </div>
+                <div class="assignment-location">Site: BGC - Taguig</div>
+                <div class="assignment-due-label">Due: Nov 05, 2025</div>
+                <div class="assignment-progress assignment-progress-medium"></div>
+              </article>
+            </div>
+
+            <div class="task-container" data-container="completed">
+              <article class="assignment-card">
+                <div class="assignment-card-header">
+                  <div class="assignment-title">System Check</div>
+                  <div class="assignment-priority priority-high">High</div>
+                </div>
+                <div class="assignment-location">Site: Pasig - Ortigas</div>
+                <div class="assignment-due-label">Completed: Sep 30, 2025</div>
+                <div class="assignment-progress assignment-progress-high"></div>
+              </article>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <nav class="bottom-nav" aria-label="Bottom navigation">
+        <button class="nav-item nav-item-active" type="button">
+          <span class="nav-icon nav-icon-assignment" aria-hidden="true"></span>
+          <span class="nav-label">Assignment</span>
+        </button>
+        <button class="nav-item" type="button">
+          <span class="nav-icon" aria-hidden="true"></span>
+          <span class="nav-label">History</span>
+        </button>
+        <button class="nav-item" type="button">
+          <span class="nav-icon" aria-hidden="true"></span>
+          <span class="nav-label">Notification</span>
+        </button>
+        <button class="nav-item" type="button">
+          <span class="nav-icon" aria-hidden="true"></span>
+          <span class="nav-label">Profile</span>
+        </button>
+      </nav>
+
+      <div class="gesture-bar" aria-hidden="true"></div>
+    </div>
+
+    <!-- Desktop Layout: Dashboard with Sidebar -->
+    <div class="desktop-layout">
+      <aside class="desktop-sidebar">
+        <div class="sidebar-header">
+          <img src="../login/finsi_logo.png" alt="FINSI" class="sidebar-logo" />
+          <span class="sidebar-brand">FINSI</span>
+        </div>
+
+        <div class="sidebar-profile">
+          <div class="profile-avatar">
+            <span class="profile-initials">MJ</span>
+          </div>
+          <div class="profile-info">
+            <div class="profile-name">Michael Jerson</div>
+          </div>
+        </div>
+
+        <nav class="sidebar-nav">
+          <a href="#" class="nav-link nav-link-active" data-page="assignment">
+            <span class="nav-icon">📋</span>
+            <span class="nav-text">Assignment</span>
+          </a>
+          <a href="#" class="nav-link" data-page="history">
+            <span class="nav-icon">📚</span>
+            <span class="nav-text">History</span>
+          </a>
+          <a href="#" class="nav-link" data-page="notification">
+            <span class="nav-icon">🔔</span>
+            <span class="nav-text">Notification</span>
+          </a>
+          <a href="#" class="nav-link" data-page="profile">
+            <span class="nav-icon">👤</span>
+            <span class="nav-text">Profile</span>
+          </a>
+        </nav>
+
+        <div class="sidebar-footer">
+          <button class="logout-btn" type="button">Logout</button>
+        </div>
+      </aside>
+
+      <main class="desktop-main">
+        <header class="desktop-header">
+          <div class="header-left">
+            <h1 class="page-title">Welcome, User!</h1>
+          </div>
+          <div class="header-right">
+            <span class="current-date">Friday, November 14, 2025</span>
+          </div>
+        </header>
+
+        <div class="desktop-content">
+          <!-- Assignment Section -->
+          <section class="content-section content-section-active" data-content="assignment">
+            <h2 class="section-title">Assignment Overview</h2>
+            
+            <div class="stats-grid">
+              <div class="stat-card">
+                <div class="stat-number">2</div>
+                <div class="stat-label">Pending Assignments</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-number">1</div>
+                <div class="stat-label">Ongoing Assignments</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-number">5</div>
+                <div class="stat-label">Completed Assignments</div>
+              </div>
+            </div>
+          </section>
+
+          <!-- History Section -->
+          <section class="content-section" data-content="history">
+            <h2 class="section-title">Assignment History</h2>
+            
+            <div class="history-list">
+              <div class="history-item">
+                <div class="history-title">Site Inspection - Quezon City</div>
+                <div class="history-meta">Completed on Oct 15, 2025</div>
+              </div>
+              <div class="history-item">
+                <div class="history-title">Network Installation - Makati</div>
+                <div class="history-meta">Completed on Sep 28, 2025</div>
+              </div>
+              <div class="history-item">
+                <div class="history-title">System Maintenance - BGC</div>
+                <div class="history-meta">Completed on Sep 10, 2025</div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Notification Section -->
+          <section class="content-section" data-content="notification">
+            <h2 class="section-title">Notifications</h2>
+            
+            <div class="notification-list">
+              <div class="notification-item">
+                <div class="notification-title">New Assignment Available</div>
+                <div class="notification-message">Site Inspection at Quezon City - North Fairview</div>
+                <div class="notification-time">2 hours ago</div>
+              </div>
+              <div class="notification-item">
+                <div class="notification-title">Assignment Due Soon</div>
+                <div class="notification-message">Installation at Makati - Ayala due tomorrow</div>
+                <div class="notification-time">1 day ago</div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Profile Section -->
+          <section class="content-section" data-content="profile">
+            <h2 class="section-title">Profile</h2>
+            
+            <div class="profile-content">
+              <div class="profile-card">
+                <div class="profile-header">
+                  <div class="profile-avatar-large">
+                    <span class="profile-initials-large">MJ</span>
+                  </div>
+                  <div class="profile-details">
+                    <h3 class="profile-name-large">Michael Jerson</h3>
+                    <p class="profile-role">Field Engineer</p>
+                    <p class="profile-email">michael.jerson@finsi.com</p>
+                  </div>
+                </div>
+                
+                <div class="profile-stats">
+                  <div class="profile-stat">
+                    <div class="profile-stat-number">8</div>
+                    <div class="profile-stat-label">Total Assignments</div>
+                  </div>
+                  <div class="profile-stat">
+                    <div class="profile-stat-number">5</div>
+                    <div class="profile-stat-label">Completed</div>
+                  </div>
+                  <div class="profile-stat">
+                    <div class="profile-stat-number">95%</div>
+                    <div class="profile-stat-label">Success Rate</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <script src="./dashboard.js"></script>
+  </body>
+</html>
+

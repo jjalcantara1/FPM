@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FINSI Login</title>
+    <link rel="stylesheet" href="./login.css" />
+  </head>
+  <body>
+    <div class="page-wrapper">
+      <div class="login-card">
+        <header class="logo-section" aria-label="FINSI brand">
+          <img
+            src="./finsi_logo.png"
+            alt="FINSI logo"
+            class="logo-image"
+          />
+          <img
+            src="./finsi_name.png"
+            alt="FINSI name"
+            class="logo-name-image"
+          />
+        </header>
+
+        <main class="form-section" aria-label="Login form">
+          <div class="input-group">
+            <span class="input-icon" aria-hidden="true">&#128100;</span>
+            <input
+              type="text"
+              class="input-field"
+              placeholder="Username"
+              autocomplete="username"
+            />
+          </div>
+
+          <div class="input-group">
+            <span class="input-icon" aria-hidden="true">&#128274;</span>
+            <input
+              type="password"
+              class="input-field"
+              placeholder="Password"
+              autocomplete="current-password"
+            />
+          </div>
+
+          <button type="button" class="login-button">Login</button>
+        </main>
+      </div>
+    </div>
+
+    <div class="bottom-indicator" aria-hidden="true"></div>
+    <script src="./login.js"></script>
+  </body>
+  
+</html>

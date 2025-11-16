@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Task Assign - Fleet Management</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --brand-orange: #f47621;
+      --brand-dark: #33383f;
+      --sidebar-bg: #fff;
+      --sidebar-text: #33383f;
+      --muted: #70757d;
+      --card-bg: #f5f6f8;
+      --card-border: #e3e6ea;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--brand-dark);
+      background: #f3f5f7;
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 240px;
+      background: var(--sidebar-bg);
+      border-right: 1px solid #e9edf1;
+      color: var(--sidebar-text);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 20px 16px;
+    }
+
+    .brand {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .brand img {
+      height: 40px;
+    }
+
+    .menu {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .menu a {
+      padding: 10px 12px;
+      border-radius: 8px;
+      text-decoration: none;
+      color: var(--brand-dark);
+      font-weight: 600;
+      transition: background 0.2s, color 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .menu a.active,
+    .menu a:hover {
+      background: var(--brand-orange);
+      color: #fff;
+    }
+
+    .logout a {
+      display: block;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: #fbe9dd;
+      text-align: center;
+      color: var(--brand-dark);
+      font-weight: 600;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+
+    .logout a:hover {
+      background: #f8d8c1;
+    }
+
+    /* Main */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Topbar */
+    .topbar {
+      height: 64px;
+      background: #fff;
+      border-bottom: 1px solid #e9edf1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+    }
+
+    .welcome {
+      font-weight: 700;
+      font-size: 16px;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .date-display {
+      font-size: 14px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    /* Content */
+    .content {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
+    }
+
+    .page-title {
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 24px;
+    }
+
+    /* Task Summary Cards */
+    .task-summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .summary-card {
+      background: white;
+      border: 1px solid #e3e6ea;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: transform 0.2s, box-shadow 0.2s;
+      cursor: pointer;
+    }
+
+    .summary-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    .summary-card:nth-child(1) {
+      border-left: 4px solid var(--brand-orange);
+    }
+
+    .summary-card:nth-child(2) {
+      border-left: 4px solid #ffc107;
+    }
+
+    .summary-card:nth-child(3) {
+      border-left: 4px solid #28a745;
+    }
+
+    .summary-card:nth-child(4) {
+      border-left: 4px solid #007bff;
+    }
+
+    .summary-label {
+      font-size: 14px;
+      color: var(--brand-orange);
+      font-weight: 600;
+    }
+
+    .summary-count {
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--brand-dark);
+    }
+
+    /* Task Controls */
+    .task-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding: 20px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .filter-section {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .filter-select, .filter-date {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      background: white;
+      min-width: 120px;
+    }
+
+    .filter-select:focus, .filter-date:focus {
+      outline: none;
+      border-color: var(--brand-orange);
+      box-shadow: 0 0 0 2px rgba(244, 118, 33, 0.2);
+    }
+
+    /* Task Table */
+    .task-table-container {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+    }
+
+    .task-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .task-table thead {
+      background: #6c757d;
+      color: white;
+    }
+
+    .task-table th {
+      padding: 16px 12px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .task-table td {
+      padding: 16px 12px;
+      border-bottom: 1px solid #e9ecef;
+      font-size: 14px;
+      vertical-align: top;
+    }
+
+    .task-table tbody tr:hover {
+      background: #f8f9fa;
+    }
+
+    .task-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* Status and Priority Styling */
+    .status-pending {
+      color: #ffc107;
+      font-weight: 600;
+    }
+
+    .status-progress {
+      color: #007bff;
+      font-weight: 600;
+    }
+
+    .status-completed {
+      color: #28a745;
+      font-weight: 600;
+    }
+
+    .priority-high {
+      color: #dc3545;
+      font-weight: 600;
+    }
+
+    .priority-medium {
+      color: #ffc107;
+      font-weight: 600;
+    }
+
+    .priority-low {
+      color: #28a745;
+      font-weight: 600;
+    }
+
+    .btn-view {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-view:hover {
+      background: #0056b3;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 24px;
+      border-radius: 12px;
+      width: 640px;
+      max-width: 95%;
+      max-height: 85vh;
+      overflow-y: auto;
+      position: relative;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      background: transparent;
+      border: none;
+      font-size: 22px;
+      cursor: pointer;
+    }
+
+    .modal-title {
+      margin: 6px 32px 16px 0;
+      color: var(--brand-orange);
+    }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px;
+      background: #f8f9fa;
+      border-radius: 6px;
+      margin-bottom: 12px;
+    }
+
+    /* Custom Confirmation Modal */
+    .confirm-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.6);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+    }
+
+    .confirm-content {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      width: 500px;
+      max-width: 90%;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+
+    .confirm-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .confirm-icon {
+      width: 48px;
+      height: 48px;
+      background: #fff3cd;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      color: #ffc107;
+    }
+
+    .confirm-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--brand-dark);
+      margin: 0;
+    }
+
+    .confirm-message {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .confirm-input-group {
+      margin-bottom: 24px;
+    }
+
+    .confirm-label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--brand-dark);
+      font-size: 14px;
+    }
+
+    .confirm-textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e3e6ea;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      resize: vertical;
+      min-height: 100px;
+      transition: border-color 0.2s;
+    }
+
+    .confirm-textarea:focus {
+      outline: none;
+      border-color: var(--brand-orange);
+      box-shadow: 0 0 0 3px rgba(244, 118, 33, 0.1);
+    }
+
+    .confirm-buttons {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+
+    .confirm-btn {
+      padding: 10px 24px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .confirm-btn-cancel {
+      background: #e9ecef;
+      color: var(--brand-dark);
+    }
+
+    .confirm-btn-cancel:hover {
+      background: #dee2e6;
+    }
+
+    .confirm-btn-confirm {
+      background: #ffc107;
+      color: white;
+    }
+
+    .confirm-btn-confirm:hover {
+      background: #e0a800;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 100%;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .menu {
+        flex-direction: row;
+        gap: 12px;
+      }
+
+      .logout {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div>
+      <div class="brand">
+        <img src="flogo.png" alt="Company logo" />
+      </div>
+      <nav class="menu">
+        <a href="dashboardf.html"><span>Dashboard</span></a>
+        <a href="users.html"><span>Users</span></a>
+        <a href="task.html" class="active"><span>Task Assign</span></a>
+        <a href="notifications.html"><span>Notifications</span></a>
+        <a href="track.html"><span>Tracking</span></a>
+        <a href="history.html"><span>History Log</span></a>
+      </nav>
+    </div>
+    <div class="logout">
+      <a href="loginfleet.html"><span>Logout</span></a>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="welcome">Welcome, Michael!</div>
+      <div class="topbar-right">
+        <div class="date-display" id="currentDate"></div>
+      </div>
+    </div>
+
+    <div class="content">
+      <h1 class="page-title">Task Assignment Dashboard</h1>
+      
+      <!-- Task Summary Cards -->
+      <div class="task-summary">
+        <div class="summary-card" data-status="today">
+          <div class="summary-label">Task's Today</div>
+          <div class="summary-count" id="count-today">2</div>
+        </div>
+        <div class="summary-card" data-status="pending">
+          <div class="summary-label">Pending</div>
+          <div class="summary-count" id="count-pending">2</div>
+        </div>
+        <div class="summary-card" data-status="completed">
+          <div class="summary-label">Completed</div>
+          <div class="summary-count" id="count-completed">0</div>
+        </div>
+        <div class="summary-card" data-status="ongoing">
+          <div class="summary-label">Ongoing</div>
+          <div class="summary-count" id="count-ongoing">0</div>
+        </div>
+      </div>
+
+      <!-- Task Controls -->
+      <div class="task-controls">
+        <div class="filter-section">
+          <select class="filter-select" id="statusFilter" onchange="filterTasks()">
+            <option value="">All Status</option>
+            <option value="Pending" selected>Pending</option>
+            <option value="Ongoing">Ongoing</option>
+            <option value="Completed">Completed</option>
+            <option value="On Hold">On Hold</option>
+          </select>
+          <select class="filter-select" id="priorityFilter" onchange="filterTasks()">
+            <option value="">All Priority</option>
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+          </select>
+          <input type="date" class="filter-date" id="dateFilter" onchange="filterTasks()">
+        </div>
+      </div>
+
+      <!-- Task Table -->
+      <div class="task-table-container">
+        <table class="task-table">
+          <thead>
+            <tr>
+              <th>Ticket</th>
+              <th>Date/Time</th>
+              <th>Location</th>
+              <th>Requested By</th>
+              <th>Status</th>
+              <th>Priority Level</th>
+              <th>View Details</th>
+            </tr>
+          </thead>
+          <tbody id="tasksBody">
+            <!-- Ticket #001 - Makati - Ayala North - Anna Santos -->
+            <tr>
+              <td>#001</td>
+              <td>Oct 11, 2025 - 14:30</td>
+              <td>Makati - Ayala North</td>
+              <td>Engr. Anna Santos</td>
+              <td><span class="status-pending">Pending</span></td>
+              <td><span class="priority-medium">Medium</span></td>
+              <td><button class="btn-view" onclick="openTaskDetails(event)">View</button></td>
+            </tr>
+            
+            <!-- Ticket #002 - Quezon City - North Fairview - John Adrian -->
+            <tr>
+              <td>#002</td>
+              <td>Oct 21, 2025 - 14:30</td>
+              <td>Quezon City - North Fairview</td>
+              <td>Engr. John Adrian</td>
+              <td><span class="status-pending">Pending</span></td>
+              <td><span class="priority-high">High</span></td>
+              <td><button class="btn-view" onclick="openTaskDetails(event)">View</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Display current date
+    function updateDate() {
+      const now = new Date();
+      const options = { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      };
+      const dateString = now.toLocaleDateString('en-US', options);
+      document.getElementById('currentDate').textContent = dateString;
+    }
+
+    updateDate();
+    setInterval(updateDate, 60000);
+
+    // Filter tasks
+    function filterTasks() {
+      const statusFilter = document.getElementById('statusFilter').value.toLowerCase();
+      const priorityFilter = document.getElementById('priorityFilter').value.toLowerCase();
+      const dateFilter = document.getElementById('dateFilter').value;
+
+      const rows = document.querySelectorAll('.task-table tbody tr');
+      
+      rows.forEach(row => {
+        const status = row.cells[4].textContent.toLowerCase();
+        const priority = row.cells[5].textContent.toLowerCase();
+        
+        let showRow = true;
+        
+        if (statusFilter && !status.includes(statusFilter)) {
+          showRow = false;
+        }
+        
+        if (priorityFilter && !priority.includes(priorityFilter)) {
+          showRow = false;
+        }
+        
+        row.style.display = showRow ? '' : 'none';
+      });
+    }
+
+    // Open task details modal
+    function openTaskDetails(event) {
+      // Get the specific row that was clicked
+      const button = event.target || event;
+      const rowEl = button.closest('tr');
+      
+      if (!rowEl) return;
+      
+      const taskData = {
+        ticket: rowEl.cells[0].textContent,
+        dateTime: rowEl.cells[1].textContent,
+        location: rowEl.cells[2].textContent,
+        requestedBy: rowEl.cells[3].textContent,
+        status: rowEl.cells[4].textContent.trim(),
+        priority: rowEl.cells[5].textContent.trim()
+      };
+      
+      showTaskDetails(taskData, rowEl);
+    }
+    
+    // Store current row reference for action functions
+    let currentRowEl = null;
+    
+    function showTaskDetails(taskData, rowEl) {
+      // Store row reference globally
+      currentRowEl = rowEl;
+      
+      // Create modal
+      const modal = document.createElement('div');
+      modal.className = 'modal-overlay';
+      
+      // Determine status color
+      let statusColor = '#007bff';
+      if (taskData.status.toLowerCase().includes('pending')) statusColor = '#ffc107';
+      else if (taskData.status.toLowerCase().includes('ongoing')) statusColor = '#007bff';
+      else if (taskData.status.toLowerCase().includes('completed')) statusColor = '#28a745';
+      
+      // Determine priority color
+      let priorityColor = '#ffc107';
+      if (taskData.priority.toLowerCase().includes('high')) priorityColor = '#dc3545';
+      else if (taskData.priority.toLowerCase().includes('low')) priorityColor = '#28a745';
+      
+      // Check status and build appropriate assignment section
+      const statusLower = taskData.status.toLowerCase();
+      const isOngoing = statusLower.includes('ongoing');
+      const isCompleted = statusLower.includes('completed');
+      
+      let assignmentSection = '';
+      
+      if (isCompleted) {
+        // For Completed: Show assigned info only, no buttons
+        assignmentSection = `
+          <div class="detail-row">
+            <strong>Assigned Driver:</strong>
+            <span>Rene Repelya</span>
+          </div>
+          
+          <div class="detail-row">
+            <strong>Assigned Vehicle:</strong>
+            <span>van - ABC123</span>
+          </div>
+          
+          <div class="detail-row">
+            <strong>Pick Up Time:</strong>
+            <span>2:30 PM</span>
+          </div>
+        `;
+      } else if (isOngoing) {
+        // For Ongoing: Show assigned info and Done button
+        assignmentSection = `
+          <div class="detail-row">
+            <strong>Assigned Driver:</strong>
+            <span>Rene Repelya</span>
+          </div>
+          
+          <div class="detail-row">
+            <strong>Assigned Vehicle:</strong>
+            <span>van - ABC123</span>
+          </div>
+          
+          <div class="detail-row">
+            <strong>Pick Up Time:</strong>
+            <span>2:30 PM</span>
+          </div>
+          
+          <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+            <button onclick="completeTask()" style="padding: 10px 24px; border: none; background: #007bff; color: white; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px;">Done</button>
+          </div>
+        `;
+      } else {
+        // For Pending: Show dropdowns and action buttons
+        assignmentSection = `
+          <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e3e6ea;">
+            <div style="margin-bottom: 16px;">
+              <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #33383f;">Assign Driver</label>
+              <select id="assignDriver" style="width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+                <option value="">Select driver</option>
+                <option>John Smith</option>
+                <option>Maria Garcia</option>
+                <option>Mike Johnson</option>
+                <option>Sarah Wilson</option>
+                <option>Rene Repelya</option>
+              </select>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+              <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #33383f;">Assign Vehicle</label>
+              <select id="assignVehicle" style="width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+                <option value="">Select vehicle</option>
+                <option>Van - ABC123                                    🟠 IDLE</option>
+                <option>Vios - 123ABC                                   🟢 ACTIVE</option>
+                <option>L300 - ASD123                                   🟢 ACTIVE</option>
+              </select>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+              <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #33383f;">Pick Up Time</label>
+              <input type="time" id="pickupTime" style="width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+            </div>
+            
+            <div style="display: flex; justify-content: flex-end; gap: 12px;">
+              <button onclick="putOnHold()" style="padding: 10px 24px; border: none; background: #ffc107; color: white; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px;">On Hold</button>
+              <button onclick="approveTask()" style="padding: 10px 24px; border: none; background: #28a745; color: white; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px;">Approve</button>
+            </div>
+          </div>
+        `;
+      }
+      
+      modal.innerHTML = `
+        <div class="modal-content">
+          <button class="modal-close" onclick="closeModal()">×</button>
+          <h3 class="modal-title">Task Details</h3>
+          
+          <div class="detail-row">
+            <strong>Ticket Number:</strong>
+            <span>${taskData.ticket}</span>
+          </div>
+          
+          <div class="detail-row">
+            <strong>Date/Time:</strong>
+            <span>${taskData.dateTime}</span>
+          </div>
+          
+          <div class="detail-row">
+            <strong>Location:</strong>
+            <span>${taskData.location}</span>
+          </div>
+          
+          <div class="detail-row">
+            <strong>Requested By:</strong>
+            <span>${taskData.requestedBy}</span>
+          </div>
+          
+          <div class="detail-row">
+            <strong>Status:</strong>
+            <span style="color: ${statusColor}; font-weight: 600;">${taskData.status}</span>
+          </div>
+          
+          <div class="detail-row">
+            <strong>Priority:</strong>
+            <span style="color: ${priorityColor}; font-weight: 600;">${taskData.priority}</span>
+          </div>
+          
+          <div class="detail-row">
+            <strong>Remarks:</strong>
+            <span style="font-style: italic;">I want to have a car for site inspection</span>
+          </div>
+          
+          ${assignmentSection}
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+    }
+    
+    function closeModal() {
+      const modal = document.querySelector('.modal-overlay');
+      if (modal) {
+        modal.remove();
+      }
+      // Clear row reference
+      currentRowEl = null;
+    }
+    
+    function formatTimeTo12Hour(time24) {
+      if (!time24) return '';
+      const [hours, minutes] = time24.split(':');
+      let hour = parseInt(hours);
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      hour = hour % 12 || 12; // Convert to 12-hour format, 0 becomes 12
+      return `${hour}:${minutes} ${ampm}`;
+    }
+    
+    function updateCounts() {
+      const rows = document.querySelectorAll('.task-table tbody tr');
+      let pending = 0, ongoing = 0, completed = 0;
+      
+      rows.forEach(row => {
+        const status = (row.cells[4]?.textContent || '').trim().toLowerCase();
+        if (status.includes('pending')) pending++;
+        else if (status.includes('ongoing')) ongoing++;
+        else if (status.includes('completed')) completed++;
+      });
+      
+      const countPending = document.getElementById('count-pending');
+      const countOngoing = document.getElementById('count-ongoing');
+      const countCompleted = document.getElementById('count-completed');
+      
+      if (countPending) countPending.textContent = pending;
+      if (countOngoing) countOngoing.textContent = ongoing;
+      if (countCompleted) countCompleted.textContent = completed;
+    }
+    
+    function putOnHold() {
+      // Get ticket number from current row
+      const ticketNumber = currentRowEl?.cells[0]?.textContent || '';
+      
+      // Create custom confirmation modal
+      const confirmModal = document.createElement('div');
+      confirmModal.className = 'confirm-modal';
+      confirmModal.innerHTML = `
+        <div class="confirm-content">
+          <div class="confirm-header">
+            <div class="confirm-icon">⚠️</div>
+            <h3 class="confirm-title">Put Task On Hold</h3>
+          </div>
+          <p class="confirm-message">
+            Are you sure you want to put <strong>${ticketNumber}</strong> on hold? Please provide a reason for this action.
+          </p>
+          <div class="confirm-input-group">
+            <label class="confirm-label">Remarks / Reason <span style="color: #dc3545;">*</span></label>
+            <textarea 
+              id="holdRemarks" 
+              class="confirm-textarea" 
+              placeholder="Enter the reason for putting this task on hold..."
+              required
+            ></textarea>
+          </div>
+          <div class="confirm-buttons">
+            <button class="confirm-btn confirm-btn-cancel" onclick="closeConfirmModal()">Cancel</button>
+            <button class="confirm-btn confirm-btn-confirm" onclick="confirmPutOnHold('${ticketNumber}')">Confirm Hold</button>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(confirmModal);
+      
+      // Focus on textarea
+      setTimeout(() => {
+        document.getElementById('holdRemarks')?.focus();
+      }, 100);
+    }
+    
+    function closeConfirmModal() {
+      const modal = document.querySelector('.confirm-modal');
+      if (modal) {
+        modal.remove();
+      }
+    }
+    
+    function confirmPutOnHold(ticketNumber) {
+      const remarks = document.getElementById('holdRemarks')?.value.trim();
+      
+      if (!remarks) {
+        alert('Please enter a reason for putting this task on hold.');
+        return;
+      }
+      
+      // Update the specific row's status to On Hold
+      if (currentRowEl && currentRowEl.cells && currentRowEl.cells[4]) {
+        currentRowEl.cells[4].innerHTML = '<span class="status-pending" style="background: #fff8e1; color: #ff6f00; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700;">On Hold</span>';
+      }
+      
+      updateCounts();
+      closeConfirmModal();
+      
+      // Show success message
+      const successModal = document.createElement('div');
+      successModal.className = 'confirm-modal';
+      successModal.innerHTML = `
+        <div class="confirm-content">
+          <div class="confirm-header">
+            <div class="confirm-icon" style="background: #d4edda; color: #28a745;">✓</div>
+            <h3 class="confirm-title">Task On Hold</h3>
+          </div>
+          <p class="confirm-message">
+            Task <strong>${ticketNumber}</strong> has been successfully put on hold.<br><br>
+            <strong>Remarks:</strong> ${remarks}
+          </p>
+          <div class="confirm-buttons">
+            <button class="confirm-btn confirm-btn-confirm" style="background: #28a745;" onclick="closeConfirmModal(); closeModal();">OK</button>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(successModal);
+    }
+    
+    function approveTask() {
+      const driver = document.getElementById('assignDriver').value;
+      const vehicle = document.getElementById('assignVehicle').value;
+      const pickupTime = document.getElementById('pickupTime').value;
+      const pickupTime12h = formatTimeTo12Hour(pickupTime);
+      
+      // Get ticket number from current row
+      const ticketNumber = currentRowEl?.cells[0]?.textContent || '';
+      
+      if (!driver || !vehicle || !pickupTime) {
+        // Show error modal
+        const errorModal = document.createElement('div');
+        errorModal.className = 'confirm-modal';
+        errorModal.innerHTML = `
+          <div class="confirm-content">
+            <div class="confirm-header">
+              <div class="confirm-icon" style="background: #f8d7da; color: #dc3545;">⚠️</div>
+              <h3 class="confirm-title">Missing Assignment</h3>
+            </div>
+            <p class="confirm-message">
+              Please assign driver, vehicle, and pick-up time before approving the task.
+            </p>
+            <div class="confirm-buttons">
+              <button class="confirm-btn confirm-btn-confirm" style="background: #dc3545;" onclick="closeConfirmModal()">OK</button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(errorModal);
+        return;
+      }
+      
+      // Create approval confirmation modal
+      const confirmModal = document.createElement('div');
+      confirmModal.className = 'confirm-modal';
+      confirmModal.innerHTML = `
+        <div class="confirm-content">
+          <div class="confirm-header">
+            <div class="confirm-icon" style="background: #d1ecf1; color: #0c5460;">✓</div>
+            <h3 class="confirm-title">Approve Task</h3>
+          </div>
+          <p class="confirm-message">
+            Are you sure you want to approve and start this task with the following assignment?
+          </p>
+          <div style="background: #f8f9fa; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+              <strong style="color: #33383f;">Ticket Number:</strong>
+              <span style="color: #70757d;">${ticketNumber}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+              <strong style="color: #33383f;">Assigned Driver:</strong>
+              <span style="color: #70757d;">${driver}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+              <strong style="color: #33383f;">Assigned Vehicle:</strong>
+              <span style="color: #70757d;">${vehicle}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <strong style="color: #33383f;">Pick Up Time:</strong>
+              <span style="color: #70757d;">${pickupTime12h}</span>
+            </div>
+          </div>
+          <div class="confirm-buttons">
+            <button class="confirm-btn confirm-btn-cancel" onclick="closeConfirmModal()">Cancel</button>
+            <button class="confirm-btn confirm-btn-confirm" style="background: #28a745;" onclick="confirmApproveTask('${ticketNumber}', '${driver}', '${vehicle}', '${pickupTime12h}')">Approve</button>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(confirmModal);
+    }
+    
+    function confirmApproveTask(ticketNumber, driver, vehicle, pickupTime) {
+      // Update the specific row's status to Ongoing
+      if (currentRowEl && currentRowEl.cells && currentRowEl.cells[4]) {
+        currentRowEl.cells[4].innerHTML = '<span class="status-progress">Ongoing</span>';
+      }
+      
+      updateCounts();
+      closeConfirmModal();
+      
+      // Show success message
+      const successModal = document.createElement('div');
+      successModal.className = 'confirm-modal';
+      successModal.innerHTML = `
+        <div class="confirm-content">
+          <div class="confirm-header">
+            <div class="confirm-icon" style="background: #d4edda; color: #28a745;">✓</div>
+            <h3 class="confirm-title">Task Approved</h3>
+          </div>
+          <p class="confirm-message">
+            Task has been successfully approved and started!<br><br>
+            <strong>Ticket Number:</strong> ${ticketNumber}<br>
+            <strong>Driver:</strong> ${driver}<br>
+            <strong>Vehicle:</strong> ${vehicle}<br>
+            <strong>Pick Up Time:</strong> ${pickupTime}
+          </p>
+          <div class="confirm-buttons">
+            <button class="confirm-btn confirm-btn-confirm" style="background: #28a745;" onclick="closeConfirmModal(); closeModal();">OK</button>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(successModal);
+    }
+    
+    function completeTask() {
+      // Get ticket number from current row
+      const ticketNumber = currentRowEl?.cells[0]?.textContent || '';
+      
+      // Create completion confirmation modal
+      const confirmModal = document.createElement('div');
+      confirmModal.className = 'confirm-modal';
+      confirmModal.innerHTML = `
+        <div class="confirm-content">
+          <div class="confirm-header">
+            <div class="confirm-icon" style="background: #d4edda; color: #28a745;">✓</div>
+            <h3 class="confirm-title">Complete Task</h3>
+          </div>
+          <p class="confirm-message">
+            Are you sure you want to mark <strong>${ticketNumber}</strong> as completed? This action will move the task to the completed status.
+          </p>
+          <div class="confirm-buttons">
+            <button class="confirm-btn confirm-btn-cancel" onclick="closeConfirmModal()">Cancel</button>
+            <button class="confirm-btn confirm-btn-confirm" style="background: #28a745;" onclick="confirmCompleteTask('${ticketNumber}')">Mark as Completed</button>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(confirmModal);
+    }
+    
+    function confirmCompleteTask(ticketNumber) {
+      // Update the specific row's status to Completed
+      if (currentRowEl && currentRowEl.cells && currentRowEl.cells[4]) {
+        currentRowEl.cells[4].innerHTML = '<span class="status-completed">Completed</span>';
+      }
+      
+      updateCounts();
+      closeConfirmModal();
+      
+      // Show success message
+      const successModal = document.createElement('div');
+      successModal.className = 'confirm-modal';
+      successModal.innerHTML = `
+        <div class="confirm-content">
+          <div class="confirm-header">
+            <div class="confirm-icon" style="background: #d4edda; color: #28a745;">🎉</div>
+            <h3 class="confirm-title">Task Completed</h3>
+          </div>
+          <p class="confirm-message">
+            Great job! Task <strong>${ticketNumber}</strong> has been successfully marked as completed.
+          </p>
+          <div class="confirm-buttons">
+            <button class="confirm-btn confirm-btn-confirm" style="background: #28a745;" onclick="closeConfirmModal(); closeModal();">OK</button>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(successModal);
+    }
+
+    // Card click handlers
+    document.querySelectorAll('.summary-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const status = card.getAttribute('data-status');
+        const statusSelect = document.getElementById('statusFilter');
+        
+        if (status === 'today') {
+          const today = new Date().toISOString().split('T')[0];
+          document.getElementById('dateFilter').value = today;
+          statusSelect.value = '';
+        } else {
+          document.getElementById('dateFilter').value = '';
+          statusSelect.value = status.charAt(0).toUpperCase() + status.slice(1);
+        }
+        
+        filterTasks();
+      });
+    });
+
+    // Check for URL parameters and apply filter
+    const urlParams = new URLSearchParams(window.location.search);
+    const statusParam = urlParams.get('status');
+    if (statusParam) {
+      const statusFilter = document.getElementById('statusFilter');
+      if (statusFilter) {
+        statusFilter.value = statusParam;
+      }
+    }
+
+    // Initial filter and count update
+    filterTasks();
+    updateCounts();
+  </script>
+</body>
+</html>

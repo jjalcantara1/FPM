@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Completed Requests - Asset Management</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --brand-orange: #f47621;
+      --brand-dark: #33383f;
+      --muted: #70757d;
+      --card-border: #e3e6ea;
+      --bg-light: #f5f7fa;
+      --success: #16a34a;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Inter", sans-serif;
+      color: var(--brand-dark);
+      background: var(--bg-light);
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 240px;
+      background: #fff;
+      border-right: 1px solid #e9edf1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 20px 16px;
+    }
+    .brand { text-align: center; margin-bottom: 24px; }
+    .brand img { height: 40px; }
+    .menu { display: flex; flex-direction: column; gap: 4px; }
+    .menu a, .menu button {
+      padding: 10px 12px;
+      border-radius: 8px;
+      text-decoration: none;
+      color: var(--brand-dark);
+      font-weight: 600;
+      text-align: left;
+      background: none;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .menu a.active,
+    .menu a:hover,
+    .menu button:hover {
+      background: var(--brand-orange);
+      color: #fff;
+    }
+
+    /* Dropdown submenu */
+    .submenu {
+      display: none;
+      flex-direction: column;
+      margin-left: 16px;
+      gap: 4px;
+    }
+    .submenu a {
+      font-weight: 500;
+      font-size: 14px;
+      color: var(--brand-dark);
+    }
+    .submenu a.active,
+    .submenu a:hover {
+      background: var(--brand-orange);
+      color: #fff;
+    }
+    .submenu.show { display: flex; }
+
+    .logout a {
+      display: block;
+      padding: 12px;
+      border-radius: 10px;
+      background: #fbe9dd;
+      text-align: center;
+      font-weight: 600;
+      text-decoration: none;
+      color: var(--brand-dark);
+    }
+
+    /* Main */
+    .main { flex: 1; display: flex; flex-direction: column; }
+    .topbar {
+      height: 64px;
+      background: #fff;
+      border-bottom: 1px solid #e9edf1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+    }
+    .welcome { font-weight: 700; font-size: 16px; }
+    .content { flex: 1; padding: 24px; overflow-y: auto; }
+    .h1 { font-size: 28px; font-weight: 800; margin-bottom: 20px; color: var(--brand-orange); }
+
+    /* Card */
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--card-border);
+      background: #f9fefb;
+      font-weight: 700;
+    }
+    .pill {
+      background: var(--success);
+      color: #fff;
+      font-weight: 700;
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 13px;
+    }
+
+    /* Table */
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      text-align: left;
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 700;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--card-border);
+    }
+    tbody td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--card-border);
+      font-size: 14px;
+    }
+    tbody tr:hover { background: #f7fff9; }
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 12px;
+    }
+    .badge.completed {
+      background: #dcfce7;
+      color: #166534;
+    }
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div>
+      <div class="brand"><img src="flogo.png" alt="Company logo" /></div>
+      <div class="profile" style="text-align:center;margin:12px 0 18px 0;">
+        <img src="aiface.jpg" alt="Profile" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid #e9edf1;" />
+        <div style="font-weight:700;margin-top:8px;color:#33383f;">Michael Jerson</div>
+      </div>
+      <nav class="menu">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="materials.html">Materials</a>
+
+        <button id="requestsBtn">Requests ▾</button>
+        <div class="submenu show" id="requestsMenu">
+          <a href="requestpending.html">Pending</a>
+          <a href="ongoing.html">On Going</a>
+          <a href="onhold.html">On Hold</a>
+          <a href="completed.html" class="active">Completed</a>
+        </div>
+      </nav>
+    </div>
+    <div class="logout"><a href="finsilogin.html">Logout</a></div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="welcome">Welcome, User!</div>
+      <div class="date-display" id="currentDate"></div>
+    </div>
+
+    <div class="content">
+      <div class="h1">Completed Requests</div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="pill">Material Request Done</span>
+          <span style="color:#475569; font-weight:600;">Ticketing Overview</span>
+        </div>
+        <div style="overflow:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Ticket</th>
+                <th>Date</th>
+                <th>Site</th>
+                <th>Task Description</th>
+                <th>Status</th>
+                <th>Priority Level</th>
+                <th>Requested Materials</th>
+                <th>Requested By</th>
+                <th>Approved By</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>1</td>
+                <td>1001</td>
+                <td>2025-10-11</td>
+                <td>Makati - Ayala North</td>
+                <td>Install network infrastructure for new office</td>
+                <td><span class="badge completed">Completed</span></td>
+                <td>Medium</td>
+                <td><strong>Network Switch - 3 pcs</strong></td>
+                <td>Anna Santos</td>
+                <td>Asset Team</td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td>#016</td>
+                <td>2025-09-22</td>
+                <td>Server Room</td>
+                <td>Switch Rack Cable Cleanup</td>
+                <td><span class="badge completed">Completed</span></td>
+                <td>Medium</td>
+                <td><strong>Patch Cords, Fiber Jumpers, Cable Ties, Labels</strong></td>
+                <td>Allan Cruz</td>
+                <td>Asset Team</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Date display
+    function updateDate() {
+      const now = new Date();
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      const el = document.getElementById('currentDate');
+      if (el) el.textContent = now.toLocaleDateString('en-US', options);
+    }
+    updateDate();
+    setInterval(updateDate, 60000);
+
+    // Dropdown toggle
+    const requestsBtn = document.getElementById('requestsBtn');
+    const requestsMenu = document.getElementById('requestsMenu');
+    requestsBtn.addEventListener('click', () => {
+      requestsMenu.classList.toggle('show');
+    });
+  </script>
+</body>
+</html>

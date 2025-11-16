@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Fleet Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --brand-orange: #f47621;
+      --brand-dark: #33383f;
+      --muted: #70757d;
+      --card-border: #e3e6ea;
+      --bg-light: #f5f7fa;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Inter", sans-serif;
+      color: var(--brand-dark);
+      background: var(--bg-light);
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 240px;
+      background: #fff;
+      border-right: 1px solid #e9edf1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 20px 16px;
+    }
+    .brand { text-align: center; margin-bottom: 24px; }
+    .brand img { height: 40px; }
+    .menu { display: flex; flex-direction: column; gap: 4px; }
+    .menu a {
+      padding: 10px 12px;
+      border-radius: 8px;
+      text-decoration: none;
+      color: var(--brand-dark);
+      font-weight: 600;
+      transition: background 0.2s, color 0.2s;
+    }
+    .menu a.active, .menu a:hover { background: var(--brand-orange); color: #fff; }
+    .logout a {
+      display: block;
+      padding: 12px;
+      border-radius: 10px;
+      background: #fbe9dd;
+      text-align: center;
+      font-weight: 600;
+      text-decoration: none;
+      color: var(--brand-dark);
+    }
+
+    /* Main */
+    .main { flex: 1; display: flex; flex-direction: column; padding: 24px 32px; }
+    .topbar {
+      height: 64px;
+      background: #fff;
+      border-bottom: 1px solid #e9edf1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+    }
+    .welcome { font-weight: 700; font-size: 16px; }
+
+    .content { flex: 1; padding: 24px; overflow-y: auto; }
+    .h1 { font-size: 28px; font-weight: 800; margin-bottom: 20px; }
+
+    /* Cards */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-top: 40px;
+      margin-bottom: 28px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      transition: transform 0.2s;
+      cursor: pointer;
+    }
+    .card:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(0,0,0,0.12); }
+    .metric { font-size: 28px; font-weight: 800; margin-bottom: 6px; }
+    .label { font-size: 14px; color: var(--muted); }
+
+    /* Buttons */
+    .btn {
+      display: inline-block;
+      background: var(--brand-orange);
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: 0.2s;
+      border: none;
+      cursor: pointer;
+    }
+    .btn:hover { background: #d65e12; }
+
+    /* Section */
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .section-title { font-size: 22px; font-weight: 800; color: var(--brand-orange); }
+
+    /* Vehicles */
+    .vehicle-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 300px));
+      gap: 20px;
+      background: transparent;
+      border: none;
+      box-shadow: none;
+    }
+    .vehicle-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      transition: transform 0.2s;
+      width: 300px;
+      height: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    .vehicle-card:hover { transform: translateY(-3px); }
+    .vehicle-photo {
+      width: 100%; 
+      height: 180px;
+      border-radius: 12px;
+      object-fit: contain;
+      background: #e9edf1;
+      flex-shrink: 0;
+    }
+    .kv { 
+      margin-top: 12px; 
+      font-size: 14px; 
+      line-height: 1.6; 
+      flex: 1;
+      overflow: hidden;
+    }
+    .kv b { font-weight: 700; }
+
+    /* Modal */
+    .modal {
+      display: none; /* keep hidden on start */
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal-content {
+      background: #fff;
+      padding: 24px;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 500px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: scale(0.9);} to { opacity: 1; transform: scale(1);} }
+    .modal h2 { margin-bottom: 16px; font-size: 20px; font-weight: 700; color: var(--brand-dark); }
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; color: var(--brand-dark); }
+    .form-group input {
+      width: 100%; padding: 10px;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      font-size: 14px;
+    }
+    .form-actions { margin-top: 20px; display: flex; justify-content: flex-end; gap: 12px; }
+    .btn-secondary {
+      background: #e0e0e0;
+      color: var(--brand-dark);
+      padding: 10px 16px;
+      border-radius: 10px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: 0.2s;
+      border: none;
+      cursor: pointer;
+    }
+    .btn-secondary:hover { background: #ccc; }
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div>
+      <div class="brand"><img src="flogo.png" alt="Company logo" /></div>
+      <nav class="menu">
+        <a class="active" href="dashboardf.html">Dashboard</a>
+        <a href="users.html">Users</a>
+        <a href="task.html">Task Assign</a>
+        <a href="notifications.html">Notifications</a>
+        <a href="track.html">Tracking</a>
+        <a href="history.html">History Log</a>
+      </nav>
+    </div>
+    <div class="logout"><a href="loginfleet.html">Logout</a></div>
+  </aside>
+
+  <main class="main">
+
+      <!-- Cards -->
+      <div class="cards">
+        <div class="card"><div class="metric">15</div><div class="label">Total Drivers</div></div>
+        <div class="card" onclick="window.location.href='task.html?status=Ongoing'"><div class="metric">2</div><div class="label">Ongoing Tasks</div></div>
+        <div class="card" onclick="window.location.href='task.html?status=Pending'"><div class="metric">2</div><div class="label">Pending Tasks</div></div>
+        <div class="card" onclick="window.location.href='task.html?status=Completed'"><div class="metric">2</div><div class="label">Completed Tasks</div></div>
+      </div>
+
+      <!-- Vehicles -->
+      <div class="section-header">
+        <div class="section-title">Vehicle Information</div>
+        <button class="btn" onclick="openModal()">+ Add Vehicle</button>
+      </div>
+      <div class="vehicle-grid" id="vehicleGrid">
+        <div class="vehicle-card">
+          <img class="vehicle-photo" src="vehicle1.jpg" alt="Vehicle 1" />
+          <div class="kv">
+            <div><b>Type:</b> L300</div>
+            <div><b>Model:</b> Toyota</div>
+            <div><b>Plate:</b> NVP-100</div>
+            <div>
+              <div style="font-weight: 700; margin-top: 6px; margin-bottom: 4px;">OR/CR:</div>
+              <img src="ORCR.jpg" style="width: 100%; height: 180px; object-fit: contain; border-radius: 12px; background: #e9edf1;" alt="OR/CR Document" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal -->
+  <div class="modal" id="vehicleModal">
+    <div class="modal-content">
+      <h2>Add Vehicle</h2>
+      <div class="form-group"><label>Vehicle Type</label><input type="text" id="vType"></div>
+      <div class="form-group"><label>Model</label><input type="text" id="vModel"></div>
+      <div class="form-group"><label>Photo</label><input type="file" id="vPhoto" accept="image/*"></div>
+      <div class="form-group"><label>Plate Number</label><input type="text" id="vPlate"></div>
+      <div class="form-group"><label>OR/CR Document</label><input type="file" id="vORCR" accept="image/*"></div>
+      <div class="form-actions">
+        <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+        <button class="btn" onclick="saveVehicle()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Display current date/time
+    function updateDate() {
+      const now = new Date();
+      const options = { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      };
+      const dateString = now.toLocaleDateString('en-US', options);
+      const el = document.getElementById('currentDate');
+      if (el) el.textContent = dateString;
+    }
+    updateDate();
+    setInterval(updateDate, 60000);
+
+    function openModal() {
+      document.getElementById("vehicleModal").style.display = "flex";
+    }
+    function closeModal() {
+      document.getElementById("vehicleModal").style.display = "none";
+    }
+    function saveVehicle() {
+      const type = document.getElementById("vType").value;
+      const model = document.getElementById("vModel").value;
+      const photoInput = document.getElementById("vPhoto");
+      const plate = document.getElementById("vPlate").value;
+      const orcrInput = document.getElementById("vORCR");
+
+      const createCard = (imgSrc, orcrSrc) => {
+        const grid = document.getElementById("vehicleGrid");
+        const card = document.createElement("div");
+        card.className = "vehicle-card";
+        card.innerHTML = `
+          <img class="vehicle-photo" src="${imgSrc || ''}" alt="${type}" />
+          <div class="kv">
+            <div><b>Type:</b> ${type}</div>
+            <div><b>Model:</b> ${model}</div>
+            <div><b>Plate:</b> ${plate}</div>
+            ${orcrSrc
+              ? `<div><div style="font-weight: 700; margin-top: 6px; margin-bottom: 4px;">OR/CR:</div><img src="${orcrSrc}" style="width: 100%; height: 180px; object-fit: contain; border-radius: 12px; background: #e9edf1;" alt="OR/CR Document" /></div>`
+              : '<div><div style="font-weight: 700; margin-top: 6px; margin-bottom: 4px;">OR/CR:</div><span style="color: var(--muted); font-style: italic;">No document uploaded</span></div>'}
+          </div>`;
+        grid.appendChild(card);
+        closeModal();
+        alert("Vehicle added successfully ✅");
+      };
+
+      if (photoInput && photoInput.files && photoInput.files[0]) {
+        const photoFile = photoInput.files[0];
+        const photoReader = new FileReader();
+        photoReader.onload = function(e) {
+          const vehiclePhotoSrc = e.target.result;
+          if (orcrInput && orcrInput.files && orcrInput.files[0]) {
+            const orcrFile = orcrInput.files[0];
+            const orcrReader = new FileReader();
+            orcrReader.onload = function(e) { createCard(vehiclePhotoSrc, e.target.result); };
+            orcrReader.readAsDataURL(orcrFile);
+          } else { createCard(vehiclePhotoSrc, null); }
+        };
+        photoReader.readAsDataURL(photoFile);
+      } else {
+        if (orcrInput && orcrInput.files && orcrInput.files[0]) {
+          const orcrFile = orcrInput.files[0];
+          const orcrReader = new FileReader();
+          orcrReader.onload = function(e) { createCard("", e.target.result); };
+          orcrReader.readAsDataURL(orcrFile);
+        } else { createCard("", null); }
+      }
+    }
+  </script>
+</body>
+</html>

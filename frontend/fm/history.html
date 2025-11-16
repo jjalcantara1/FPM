@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>History - Fleet Management</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --brand-orange: #f47621;
+      --brand-dark: #33383f;
+      --sidebar-bg: #fff;
+      --sidebar-text: #33383f;
+      --muted: #70757d;
+      --card-bg: #f5f6f8;
+      --card-border: #e3e6ea;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--brand-dark);
+      background: #f3f5f7;
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 240px;
+      background: var(--sidebar-bg);
+      border-right: 1px solid #e9edf1;
+      color: var(--sidebar-text);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 20px 16px;
+    }
+
+    .brand {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .brand img {
+      height: 40px;
+    }
+
+    .menu {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .menu a {
+      padding: 10px 12px;
+      border-radius: 8px;
+      text-decoration: none;
+      color: var(--brand-dark);
+      font-weight: 600;
+      transition: background 0.2s, color 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .menu a.active,
+    .menu a:hover {
+      background: var(--brand-orange);
+      color: #fff;
+    }
+
+    .logout a {
+      display: block;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: #fbe9dd;
+      text-align: center;
+      color: var(--brand-dark);
+      font-weight: 600;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+
+    .logout a:hover {
+      background: #f8d8c1;
+    }
+
+    /* Main */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Topbar */
+    .topbar {
+      height: 64px;
+      background: #fff;
+      border-bottom: 1px solid #e9edf1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+    }
+
+    .welcome {
+      font-weight: 700;
+      font-size: 16px;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .date-display {
+      font-size: 14px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    /* Content */
+    .content {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
+    }
+
+    .page-title {
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 24px;
+    }
+
+    /* Controls */
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding: 20px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .filter-group {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .filter-input, .filter-select, .filter-date {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      background: white;
+      min-width: 140px;
+    }
+
+    .filter-input:focus, .filter-select:focus, .filter-date:focus {
+      outline: none;
+      border-color: var(--brand-orange);
+      box-shadow: 0 0 0 2px rgba(244, 118, 33, 0.2);
+    }
+
+    .action-group {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 14px;
+    }
+
+    .btn-primary {
+      background: var(--brand-orange);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #e66a1a;
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: #5a6268;
+      transform: translateY(-1px);
+    }
+
+    /* Table */
+    .table-card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead {
+      background: #6c757d;
+      color: white;
+    }
+
+    th {
+      padding: 16px 12px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    td {
+      padding: 16px 12px;
+      border-bottom: 1px solid #e9ecef;
+      font-size: 14px;
+      vertical-align: top;
+    }
+
+    tbody tr:hover {
+      background: #f8f9fa;
+    }
+
+    .status-success { color: #28a745; font-weight: 600; }
+    .status-warning { color: #ffc107; font-weight: 600; }
+    .status-info { color: #17a2b8; font-weight: 600; }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 100%;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .menu {
+        flex-direction: row;
+        gap: 12px;
+      }
+
+      .logout {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div>
+      <div class="brand">
+        <img src="flogo.png" alt="Company logo" />
+      </div>
+      <nav class="menu">
+        <a href="dashboardf.html"><span>Dashboard</span></a>
+        <a href="users.html">Users</a>
+        <a href="task.html">Task Assign</a>
+        <a href="notifications.html">Notifications</a>
+        <a href="track.html">Tracking</a>
+        <a href="history.html">History Log</a>
+      </nav>
+    </div>
+    <div class="logout">
+      <a href="loginfleet.html"><span>Logout</span></a>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="welcome">Welcome, Michael!</div>
+      <div class="topbar-right">
+        <div class="date-display" id="currentDate"></div>
+      </div>
+    </div>
+
+    <div class="content">
+      <h1 class="page-title">Activity History</h1>
+
+      <div class="controls">
+        <div class="filter-group">
+          <input type="text" id="searchInput" class="filter-input" placeholder="Search keyword..." oninput="filterHistory()" />
+          <select id="statusFilter" class="filter-select" onchange="filterHistory()">
+            <option value="">All Status</option>
+            <option value="Completed">Completed</option>
+            <option value="Assigned">Assigned</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Pending">Pending</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <input type="date" id="fromDate" class="filter-date" onchange="filterHistory()" />
+          <span style="color: var(--muted); font-size: 14px;">to</span>
+          <input type="date" id="toDate" class="filter-date" onchange="filterHistory()" />
+        </div>
+      </div>
+
+      <div class="table-card">
+        <table id="historyTable">
+          <thead>
+            <tr>
+              <th>Date/Time</th>
+              <th>Activity</th>
+              <th>User</th>
+              <th>Details</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>June 20, 2025 - 9:54 AM</td>
+              <td>Task Created</td>
+              <td>Michael</td>
+              <td>Created ticket #001 for NU-TWR-08</td>
+              <td><span class="status-warning">Pending</span></td>
+              <td>
+                <button class="btn btn-secondary" data-action="print-row">Print</button>
+                <button class="btn btn-primary" data-action="download-row">Download PDF</button>
+              </td>
+            </tr>
+            <tr>
+              <td>June 20, 2025 - 9:58 AM</td>
+              <td>Task Assigned</td>
+              <td>Michael</td>
+              <td>Assigned #001 to John Smith (NVP-100)</td>
+              <td><span class="status-info">Assigned</span></td>
+              <td>
+                <button class="btn btn-secondary" data-action="print-row">Print</button>
+                <button class="btn btn-primary" data-action="download-row">Download PDF</button>
+              </td>
+            </tr>
+            <tr>
+              <td>June 20, 2025 - 10:40 AM</td>
+              <td>Task On going</td>
+              <td>John Smith</td>
+              <td>Marked #001 as On going</td>
+              <td><span class="status-info">On going</span></td>
+              <td>
+                <button class="btn btn-secondary" data-action="print-row">Print</button>
+                <button class="btn btn-primary" data-action="download-row">Download PDF</button>
+              </td>
+            </tr>
+            <tr>
+              <td>June 20, 2025 - 3:15 PM</td>
+              <td>Task Completed</td>
+              <td>John Smith</td>
+              <td>Completed ticket #001 with proof of delivery</td>
+              <td><span class="status-success">Completed</span></td>
+              <td>
+                <button class="btn btn-secondary" data-action="print-row">Print</button>
+                <button class="btn btn-primary" data-action="download-row">Download PDF</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    function updateDate() {
+      const now = new Date();
+      const options = {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      };
+      const dateString = now.toLocaleDateString('en-US', options);
+      const el = document.getElementById('currentDate');
+      if (el) el.textContent = dateString;
+    }
+    updateDate();
+    setInterval(updateDate, 60000);
+
+    function parseDateString(d) {
+      // Accepts strings like "June 20, 2025 - 9:54 AM"
+      const [datePart, timePart] = d.split(' - ');
+      try {
+        return new Date(`${datePart} ${timePart}`);
+      } catch (e) {
+        return new Date(d);
+      }
+    }
+
+    function filterHistory() {
+      const keyword = (document.getElementById('searchInput').value || '').toLowerCase();
+      const status = (document.getElementById('statusFilter').value || '').toLowerCase();
+      const fromDateVal = document.getElementById('fromDate').value;
+      const toDateVal = document.getElementById('toDate').value;
+      const fromDate = fromDateVal ? new Date(fromDateVal) : null;
+      const toDate = toDateVal ? new Date(toDateVal) : null;
+
+      const rows = document.querySelectorAll('#historyTable tbody tr');
+      rows.forEach(row => {
+        const dateStr = row.cells[0].textContent.trim();
+        const activity = row.cells[1].textContent.toLowerCase();
+        const user = row.cells[2].textContent.toLowerCase();
+        const details = row.cells[3].textContent.toLowerCase();
+        const statusText = row.cells[4].textContent.toLowerCase();
+
+        const rowDate = parseDateString(dateStr);
+
+        let show = true;
+        if (keyword && !(activity.includes(keyword) || user.includes(keyword) || details.includes(keyword))) {
+          show = false;
+        }
+        if (status && !statusText.includes(status)) {
+          show = false;
+        }
+        if (fromDate && rowDate < fromDate) {
+          show = false;
+        }
+        if (toDate) {
+          const endOfDay = new Date(toDate);
+          endOfDay.setHours(23,59,59,999);
+          if (rowDate > endOfDay) {
+            show = false;
+          }
+        }
+        row.style.display = show ? '' : 'none';
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      // Optionally set default date range to today
+      // const today = new Date().toISOString().split('T')[0];
+      // document.getElementById('fromDate').value = today;
+      // document.getElementById('toDate').value = today;
+      // filterHistory();
+
+      // Row action buttons (event delegation)
+      const table = document.getElementById('historyTable');
+      if (table) {
+        table.addEventListener('click', function(e) {
+          const target = e.target;
+          if (!(target instanceof HTMLElement)) return;
+          const action = target.getAttribute('data-action');
+          if (!action) return;
+          const row = target.closest('tr');
+          if (!row) return;
+          if (action === 'print-row') {
+            printHistoryRow(row);
+          } else if (action === 'download-row') {
+            downloadHistoryRowPDF(row);
+          }
+        });
+      }
+    });
+
+    function collectVisibleRows() {
+      const rows = Array.from(document.querySelectorAll('#historyTable tbody tr'));
+      const visible = rows.filter(r => r.style.display !== 'none');
+      return visible.map(r => ({
+        date: r.cells[0].textContent.trim(),
+        activity: r.cells[1].textContent.trim(),
+        user: r.cells[2].textContent.trim(),
+        details: r.cells[3].textContent.trim(),
+        status: r.cells[4].textContent.trim()
+      }));
+    }
+
+    function buildPrintableHTML(title, rows) {
+      const todayStr = new Date().toLocaleString();
+      const tableRows = rows.map(r => `
+        <tr>
+          <td>${r.date}</td>
+          <td>${r.activity}</td>
+          <td>${r.user}</td>
+          <td>${r.details}</td>
+          <td>${r.status}</td>
+        </tr>`).join('');
+      return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>${title}</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 24px; color: #333; }
+    .header { text-align: center; margin-bottom: 16px; }
+    .logo { height: 40px; margin-bottom: 6px; }
+    h1 { margin: 6px 0 4px 0; font-size: 22px; }
+    .meta { color: #666; font-size: 12px; margin-bottom: 16px; text-align: center; }
+    table { width: 100%; border-collapse: collapse; }
+    thead { background: #6c757d; color: #fff; }
+    th, td { padding: 10px 8px; border: 1px solid #e0e0e0; font-size: 12px; text-align: left; }
+    tbody tr:nth-child(even) { background: #fafafa; }
+    @media print { @page { size: auto; margin: 12mm; } }
+  </style>
+  </head>
+  <body>
+    <div class="header">
+      <img src="flogo.png" alt="Company Logo" class="logo" />
+      <h1>Activity History</h1>
+    </div>
+    <div class="meta">Generated on ${todayStr}</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Date/Time</th>
+          <th>Activity</th>
+          <th>User</th>
+          <th>Details</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${tableRows}
+      </tbody>
+    </table>
+  </body>
+  </html>`;
+    }
+
+    function openPrintWindowWith(html, suggestedTitle) {
+      const w = window.open('', '_blank');
+      if (!w) {
+        alert('Pop-up blocked. Please allow pop-ups for this site.');
+        return;
+      }
+      w.document.open();
+      w.document.write(html);
+      w.document.close();
+      try { w.document.title = suggestedTitle; } catch (e) {}
+      w.focus();
+      w.print();
+    }
+
+    function printHistory() {
+      const rows = collectVisibleRows();
+      if (!rows.length) {
+        alert('No rows to print. Adjust your filters.');
+        return;
+      }
+      const html = buildPrintableHTML('Print - Activity History', rows);
+      openPrintWindowWith(html, 'History-Print');
+    }
+
+    function downloadHistoryPDF() {
+      const rows = collectVisibleRows();
+      if (!rows.length) {
+        alert('No rows to export. Adjust your filters.');
+        return;
+      }
+      const html = buildPrintableHTML('Download PDF - Activity History', rows);
+      // This opens the browser print dialog where the user can choose "Save as PDF"
+      openPrintWindowWith(html, 'History.pdf');
+    }
+
+    function getRowData(row) {
+      return {
+        date: row.cells[0].textContent.trim(),
+        activity: row.cells[1].textContent.trim(),
+        user: row.cells[2].textContent.trim(),
+        details: row.cells[3].textContent.trim(),
+        status: row.cells[4].textContent.trim()
+      };
+    }
+
+    function printHistoryRow(row) {
+      const data = getRowData(row);
+      const html = buildPrintableHTML('Print - Activity History Entry', [data]);
+      openPrintWindowWith(html, `History-Print-${data.activity}`);
+    }
+
+    function downloadHistoryRowPDF(row) {
+      const data = getRowData(row);
+      const html = buildPrintableHTML('Download PDF - Activity History Entry', [data]);
+      openPrintWindowWith(html, `History-${data.activity}.pdf`);
+    }
+  </script>
+</body>
+</html>
+

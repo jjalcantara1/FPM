@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Attendance - Fleet Management</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --brand-orange: #f47621;
+      --brand-dark: #33383f;
+      --sidebar-bg: #fff;
+      --sidebar-text: #33383f;
+      --muted: #70757d;
+      --card-border: #e3e6ea;
+      --bg-light: #f5f7fa;
+      --table-head: #6c757d;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--brand-dark);
+      background: var(--bg-light);
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 240px;
+      background: var(--sidebar-bg);
+      border-right: 1px solid #e9edf1;
+      color: var(--sidebar-text);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 20px 16px;
+    }
+    .brand { text-align: center; margin-bottom: 24px; }
+    .brand img { height: 40px; }
+    .menu { display: flex; flex-direction: column; gap: 4px; }
+    .menu a {
+      padding: 10px 12px;
+      border-radius: 8px;
+      text-decoration: none;
+      color: var(--brand-dark);
+      font-weight: 600;
+      transition: background 0.2s, color 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .menu a.active, .menu a:hover { background: var(--brand-orange); color: #fff; }
+    .logout a {
+      display: block; padding: 12px; border-radius: 10px; background: #fbe9dd; text-align: center; font-weight: 600; text-decoration: none; color: var(--brand-dark);
+    }
+
+    /* Main */
+    .main { flex: 1; display: flex; flex-direction: column; padding: 24px 32px; }
+    .page-title { font-size: 28px; font-weight: 800; margin: 16px 0 20px; }
+
+    /* Table */
+    .table-card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      overflow: hidden;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead { background: var(--table-head); color: #fff; }
+    th, td { padding: 14px 12px; text-align: left; font-size: 14px; }
+    tbody tr { background: #fff; }
+    tbody tr + tr td { border-top: 1px solid #e9ecef; }
+    tbody tr:hover { background: #f8f9fa; }
+
+    /* Status chips */
+    .chip { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; text-transform: uppercase; }
+    .chip-onsite { background: #e8f5e8; color: #2e7d32; }
+    .chip-available { background: #e3f2fd; color: #1976d2; }
+
+    /* Layout spacing */
+    .content { padding: 0; }
+    .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+
+    @media (max-width: 768px) {
+      .sidebar { width: 100%; flex-direction: row; justify-content: space-between; align-items: center; }
+      .menu { flex-direction: row; gap: 12px; }
+      .logout { display: none; }
+      .page-title { font-size: 22px; }
+      th:nth-child(4), td:nth-child(4) { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div>
+      <div class="brand"><img src="flogo.png" alt="Company logo" /></div>
+      <nav class="menu">
+        <a href="dashboardf.html"><span>Dashboard</span></a>
+        <a href="users.html"><span>Users</span></a>
+        <a href="task.html"><span>Task Assign</span></a>
+        <a href="requests-vehicle.html"><span>Requests Vehicle</span></a>
+        <!-- Attendance link removed -->
+        <a href="track.html"><span>Tracking</span></a>
+        <a href="history.html"><span>History Log</span></a>
+      </nav>
+    </div>
+    <div class="logout"><a href="loginfleet.html">Logout</a></div>
+  </aside>
+
+  <main class="main">
+    <div class="header-row">
+      <h1 class="page-title">Attendance</h1>
+    </div>
+
+    <div class="table-card">
+      <table id="allDrivers">
+        <thead>
+          <tr>
+            <th>Driver Name</th>
+            <th>Status</th>
+            <th>Login Time</th>
+            <th>Availability</th>
+            <th>Available?</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>John Dela Cruz</td>
+            <td><span class="chip chip-onsite">On Site</span></td>
+            <td>07:55 AM</td>
+            <td><span class="chip chip-available">Available</span></td>
+            <td><input type="checkbox" class="avail-check" checked /></td>
+          </tr>
+          <tr>
+            <td>Maria Santos</td>
+            <td><span class="chip chip-onsite">On Site</span></td>
+            <td>08:10 AM</td>
+            <td><span class="chip chip-available">Available</span></td>
+            <td><input type="checkbox" class="avail-check" checked /></td>
+          </tr>
+          <tr>
+            <td>Pedro Reyes</td>
+            <td><span class="chip chip-onsite">On Site</span></td>
+            <td>08:22 AM</td>
+            <td><span class="chip chip-available">Available</span></td>
+            <td><input type="checkbox" class="avail-check" checked /></td>
+          </tr>
+          <tr>
+            <td>Ana Gomez</td>
+            <td><span class="chip chip-onsite">On Site</span></td>
+            <td>07:48 AM</td>
+            <td><span class="chip chip-available">Available</span></td>
+            <td><input type="checkbox" class="avail-check" checked /></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Available Drivers (Checked) -->
+    <div class="table-card" style="margin-top: 16px;">
+      <table id="availableDrivers">
+        <thead>
+          <tr>
+            <th>Driver Name</th>
+            <th>Status</th>
+            <th>Login Time</th>
+            <th>Availability</th>
+          </tr>
+        </thead>
+        <tbody id="availableTBody"></tbody>
+      </table>
+    </div>
+
+    <!-- Unavailable Drivers (Unchecked) -->
+    <div class="table-card" style="margin-top: 16px;">
+      <table id="unavailableDrivers">
+        <thead>
+          <tr>
+            <th>Driver Name</th>
+            <th>Status</th>
+            <th>Login Time</th>
+            <th>Availability</th>
+          </tr>
+        </thead>
+        <tbody id="unavailableTBody"></tbody>
+      </table>
+    </div>
+  </main>
+
+  <script>
+    (function() {
+      function asText(el) { return el ? el.textContent.trim() : ''; }
+      function buildRowData(tr) {
+        const tds = tr.querySelectorAll('td');
+        return {
+          name: asText(tds[0]),
+          statusHTML: tds[1].innerHTML,
+          time: asText(tds[2]),
+          availabilityHTML: tds[3].innerHTML,
+          checked: tds[4]?.querySelector('input[type="checkbox"]').checked
+        };
+      }
+
+      function renderList(rows, tbody) {
+        tbody.innerHTML = '';
+        rows.forEach(r => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${r.name}</td>
+            <td>${r.statusHTML}</td>
+            <td>${r.time}</td>
+            <td>${r.availabilityHTML}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      function updateAvailTables() {
+        const allRows = Array.from(document.querySelectorAll('#allDrivers tbody tr'));
+        const data = allRows.map(buildRowData);
+        const avail = data.filter(d => d.checked);
+        const unavail = data.filter(d => !d.checked);
+        renderList(avail, document.getElementById('availableTBody'));
+        renderList(unavail, document.getElementById('unavailableTBody'));
+      }
+
+      // Attach listeners
+      function attach() {
+        document.querySelectorAll('#allDrivers .avail-check').forEach(cb => {
+          cb.addEventListener('change', updateAvailTables);
+        });
+      }
+
+      // Init after DOM is ready
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => { attach(); updateAvailTables(); });
+      } else {
+        attach(); updateAvailTables();
+      }
+    })();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Requests Vehicle - Fleet Management</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root { --brand-orange:#f47621; --brand-dark:#33383f; --muted:#70757d; --card:#fff; --border:#e9edf1; }
+    *{box-sizing:border-box; margin:0; padding:0}
+    body{font-family:"Inter",sans-serif; color:var(--brand-dark); background:#f3f5f7; min-height:100vh; display:flex}
+    .sidebar{width:240px; background:#fff; border-right:1px solid var(--border); display:flex; flex-direction:column; justify-content:space-between; padding:20px 16px}
+    .brand{text-align:center; margin-bottom:24px}
+    .brand img{height:40px}
+    .menu{display:flex; flex-direction:column; gap:4px}
+    .menu a{padding:10px 12px; border-radius:8px; text-decoration:none; color:var(--brand-dark); font-weight:600; transition:background .2s,color .2s}
+    .menu a.active,.menu a:hover{background:var(--brand-orange); color:#fff}
+    .logout a{display:block; padding:10px 12px; border-radius:8px; background:#fbe9dd; text-align:center; color:var(--brand-dark); font-weight:600; text-decoration:none}
+    .main{flex:1; display:flex; flex-direction:column}
+    .topbar{height:64px; background:#fff; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; padding:0 24px}
+    .welcome{font-weight:700; font-size:16px}
+    .content{flex:1; padding:24px; overflow-y:auto}
+    .page-title{font-size:28px; font-weight:800; margin-bottom:20px}
+    .filters{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px}
+    select,input[type=date]{padding:10px 12px; border:1px solid #ddd; border-radius:8px; background:#fff}
+    .card{background:#fff; border:1px solid var(--border); border-radius:12px; padding:16px; box-shadow:0 2px 8px rgba(0,0,0,.05)}
+    table{width:100%; border-collapse:collapse}
+    thead{background:#6c757d; color:#fff}
+    th,td{padding:12px; border-bottom:1px solid #e9ecef; text-align:left; font-size:14px; vertical-align:top}
+    tbody tr:hover{background:#f8f9fa}
+    .btn{padding:8px 12px; border:none; border-radius:8px; font-weight:700; cursor:pointer}
+    .btn-view{background:#1e88e5; color:#fff}
+    .btn-secondary{background:#6c757d; color:#fff}
+    .btn-onhold{background:#ffb300; color:#fff}
+    .btn-approve{background:#2e7d32; color:#fff}
+    .status-pill{display:inline-block; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:700}
+    .status-pending{background:#fff3cd; color:#856404}
+    .status-approved{background:#e8f5e9; color:#2e7d32}
+    .status-onhold{background:#fff8e1; color:#ff6f00}
+    .modal-backdrop{position:fixed; inset:0; background:rgba(0,0,0,.4); display:none; align-items:center; justify-content:center; padding:16px; z-index:1000}
+    .modal{width:100%; max-width:560px; background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 8px 28px rgba(0,0,0,.2)}
+    .modal-header{padding:16px 20px; border-bottom:1px solid #eee}
+    .modal-title{font-size:20px; font-weight:800; color:var(--brand-orange)}
+    .modal-body{padding:16px 20px; display:grid; grid-template-columns:1fr; gap:10px}
+    .field{display:flex; justify-content:space-between; gap:12px; background:#f8fafb; padding:10px 12px; border-radius:8px}
+    .label{font-weight:700; color:#666}
+    .value{font-weight:600}
+    .modal-actions{display:flex; justify-content:flex-end; gap:8px; padding:14px 20px; border-top:1px solid #eee}
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div>
+      <div class="brand"><img src="flogo.png" alt="Company logo" /></div>
+      <nav class="menu">
+        <a href="dashboardf.html">Dashboard</a>
+        <a href="users.html">Users</a>
+        <a href="task.html">Task Assign</a>
+        <a class="active" href="requests-vehicle.html">Requests Vehicle</a>
+        <a href="track.html">Tracking</a>
+        <a href="history.html">History Log</a>
+      </nav>
+    </div>
+    <div class="logout"><a href="loginfleet.html">Logout</a></div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="welcome">Welcome, Michael!</div>
+      <div id="currentDate" class="date-display"></div>
+    </div>
+
+    <div class="content">
+      <div class="page-title">Requests Vehicle</div>
+
+      <div class="card filters">
+        <select id="statusFilter">
+          <option value="">All Status</option>
+          <option>Pending</option>
+          <option>Approved</option>
+          <option>On Hold</option>
+        </select>
+        <select id="priorityFilter">
+          <option value="">All Priority</option>
+          <option>High</option>
+          <option>Medium</option>
+          <option>Low</option>
+        </select>
+        <input id="dateFilter" type="date" />
+      </div>
+
+      <div class="card">
+        <table id="reqTable">
+          <thead>
+            <tr>
+              <th>Ticket</th>
+              <th>Date/Time</th>
+              <th>Location</th>
+              <th>Requested By</th>
+              <th>Status</th>
+              <th>Priority Level</th>
+              <th>View Details</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>#001</td>
+              <td>Oct 20, 2025 - 9:12</td>
+              <td>NU-TWR-08</td>
+              <td>Bryan Santos</td>
+              <td><span class="status-pill status-pending">Pending</span></td>
+              <td>High</td>
+              <td><button class="btn btn-view" data-action="view">View</button></td>
+            </tr>
+            <tr>
+              <td>#002</td>
+              <td>Oct 11, 2025 - 14:30</td>
+              <td>Makati - Ayala North</td>
+              <td>Anna Santos</td>
+              <td><span class="status-pill status-pending">Pending</span></td>
+              <td>Medium</td>
+              <td><button class="btn btn-view" data-action="view">View</button></td>
+            </tr>
+            <tr>
+              <td>#003</td>
+              <td>Oct 21, 2025 - 08:30</td>
+              <td>CAV-TWR-03</td>
+              <td>Michael Cruz</td>
+              <td><span class="status-pill status-approved">Approved</span></td>
+              <td>Low</td>
+              <td><button class="btn btn-view" data-action="view">View</button></td>
+            </tr>
+            <tr>
+              <td>#004</td>
+              <td>Oct 22, 2025 - 16:10</td>
+              <td>QC - North Ave</td>
+              <td>Jane Smith</td>
+              <td><span class="status-pill status-onhold">On Hold</span></td>
+              <td>High</td>
+              <td><button class="btn btn-view" data-action="view">View</button></td>
+            </tr>
+            <tr>
+              <td>#005</td>
+              <td>Oct 19, 2025 - 10:05</td>
+              <td>Taguig - BGC</td>
+              <td>Anna Santos</td>
+              <td><span class="status-pill status-approved">Approved</span></td>
+              <td>Medium</td>
+              <td><button class="btn btn-view" data-action="view">View</button></td>
+            </tr>
+            <tr>
+              <td>#006</td>
+              <td>Oct 18, 2025 - 18:45</td>
+              <td>Pasig - Ortigas</td>
+              <td>Juan Dela Cruz</td>
+              <td><span class="status-pill status-pending">Pending</span></td>
+              <td>Low</td>
+              <td><button class="btn btn-view" data-action="view">View</button></td>
+            </tr>
+            <tr>
+              <td>#007</td>
+              <td>Oct 23, 2025 - 07:20</td>
+              <td>Laguna - Calamba</td>
+              <td>Maria Garcia</td>
+              <td><span class="status-pill status-pending">Pending</span></td>
+              <td>High</td>
+              <td><button class="btn btn-view" data-action="view">View</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal -->
+  <div id="viewModal" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-header" style="display:flex; align-items:center; justify-content:space-between;">
+        <div class="modal-title">Request Details</div>
+        <button id="closeModalBtn" style="background:transparent; border:none; font-size:20px; cursor:pointer;">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="field"><div class="label">Ticket Number:</div><div class="value" id="mTicket"></div></div>
+        <div class="field"><div class="label">Date/Time:</div><div class="value" id="mDate"></div></div>
+        <div class="field"><div class="label">Location:</div><div class="value" id="mLocation"></div></div>
+        <div class="field"><div class="label">Requested By:</div><div class="value" id="mRequestedBy"></div></div>
+        <div class="field"><div class="label">Status:</div><div class="value" id="mStatus"></div></div>
+        <div class="field"><div class="label">Priority:</div><div class="value" id="mPriority"></div></div>
+        <div class="field">
+          <div class="label">Assign Driver:</div>
+          <div style="flex:1">
+            <select id="assignDriver" style="width:100%">
+              <option value="">Select driver...</option>
+              <option>John Doe</option>
+              <option>Jane Smith</option>
+              <option>Michael Cruz</option>
+              <option>Anna Reyes</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <div class="label">Assign Vehicle:</div>
+          <div style="flex:1">
+            <select id="assignVehicle" style="width:100%">
+              <option value="">Select vehicle...</option>
+              <option>Toyota Hilux - ABC123</option>
+              <option>Mitsubishi L300 - XYZ789</option>
+              <option>Ford Ranger - NOP456</option>
+              <option>Isuzu D-Max - QWE321</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button id="onHoldBtn" class="btn btn-onhold">On Hold</button>
+        <button id="approveBtn" class="btn btn-approve">Approve</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- On Hold Modal -->
+  <div id="onHoldModal" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-header"><div class="modal-title">Put Request On Hold</div></div>
+      <div class="modal-body">
+        <div class="field" style="flex-direction: column;">
+          <div class="label">Reason for On Hold</div>
+          <textarea id="onHoldReason" placeholder="Enter reason..." style="padding:10px; border:1px solid #ddd; border-radius:8px; min-height:90px;"></textarea>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button id="onHoldCancelBtn" class="btn btn-secondary">Cancel</button>
+        <button id="onHoldSubmitBtn" class="btn btn-onhold">Submit</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Approve Modal -->
+  <div id="approveModal" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-header"><div class="modal-title">Approve Request</div></div>
+      <div class="modal-body">
+        <div class="value">Confirm approving <span id="approveTicket"></span>?</div>
+      </div>
+      <div class="modal-actions">
+        <button id="approveCancelBtn" class="btn btn-secondary">Cancel</button>
+        <button id="approveConfirmBtn" class="btn btn-approve">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirmation Modal -->
+  <div id="confirmModal" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-header"><div class="modal-title" id="confirmTitle">Action Completed</div></div>
+      <div class="modal-body"><div class="value" id="confirmMessage"></div></div>
+      <div class="modal-actions"><button id="confirmCloseBtn" class="btn btn-secondary">Close</button></div>
+    </div>
+  </div>
+
+  <script>
+    function updateDate(){
+      const now=new Date();
+      document.getElementById('currentDate').textContent=now.toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+    }
+    updateDate();
+
+    const tbody=document.querySelector('#reqTable tbody');
+    const modal=document.getElementById('viewModal');
+    const mTicket=document.getElementById('mTicket');
+    const mDate=document.getElementById('mDate');
+    const mLocation=document.getElementById('mLocation');
+    const mRequestedBy=document.getElementById('mRequestedBy');
+    const mStatus=document.getElementById('mStatus');
+    const mPriority=document.getElementById('mPriority');
+    let currentRow=null;
+
+    tbody.addEventListener('click',e=>{
+      const btn=e.target.closest('[data-action="view"]');
+      if(!btn)return;
+      const row=btn.closest('tr');
+      currentRow=row;
+      mTicket.textContent=row.cells[0].textContent.trim();
+      mDate.textContent=row.cells[1].textContent.trim();
+      mLocation.textContent=row.cells[2].textContent.trim();
+      mRequestedBy.textContent=row.cells[3].textContent.trim();
+      mStatus.textContent=row.cells[4].textContent.trim();
+      mPriority.textContent=row.cells[5].textContent.trim();
+      const driverSel=document.getElementById('assignDriver');
+      const vehicleSel=document.getElementById('assignVehicle');
+      if(driverSel) driverSel.value='';
+      if(vehicleSel) vehicleSel.value='';
+      modal.style.display='flex';
+    });
+
+    document.getElementById('closeModalBtn').onclick=()=>modal.style.display='none';
+    modal.addEventListener('click',e=>{if(e.target===modal)modal.style.display='none';});
+
+    const onHoldModal=document.getElementById('onHoldModal');
+    const approveModal=document.getElementById('approveModal');
+    const confirmModal=document.getElementById('confirmModal');
+    const confirmTitle=document.getElementById('confirmTitle');
+    const confirmMessage=document.getElementById('confirmMessage');
+
+    function open(m){m.style.display='flex';}
+    function close(m){m.style.display='none';}
+
+    document.getElementById('onHoldBtn').onclick=()=>{open(onHoldModal);};
+    document.getElementById('onHoldCancelBtn').onclick=()=>close(onHoldModal);
+    document.getElementById('approveBtn').onclick=()=>open(approveModal);
+    document.getElementById('approveCancelBtn').onclick=()=>close(approveModal);
+    document.getElementById('confirmCloseBtn').onclick=()=>close(confirmModal);
+
+    document.getElementById('onHoldSubmitBtn').onclick=()=>{
+      const reason=document.getElementById('onHoldReason').value.trim();
+      if(!reason){alert('Please provide a reason.');return;}
+      currentRow.cells[4].innerHTML='<span class="status-pill status-onhold">On Hold</span>';
+      mStatus.textContent='On Hold';
+      close(onHoldModal); close(modal);
+      confirmTitle.textContent='Request On Hold';
+      confirmMessage.textContent=`${mTicket.textContent} has been put on hold. Reason: "${reason}".`;
+      open(confirmModal);
+    };
+
+    document.getElementById('approveConfirmBtn').onclick=()=>{
+      const driverSel=document.getElementById('assignDriver');
+      const vehicleSel=document.getElementById('assignVehicle');
+      const driver = driverSel && driverSel.value ? driverSel.value : 'Unassigned';
+      const vehicle = vehicleSel && vehicleSel.value ? vehicleSel.value : 'Unassigned';
+      currentRow.cells[4].innerHTML='<span class="status-pill status-approved">Approved</span>';
+      mStatus.textContent='Approved';
+      close(approveModal); close(modal);
+      confirmTitle.textContent='Request Approved';
+      confirmMessage.textContent=`${mTicket.textContent} has been approved. Driver: ${driver}. Vehicle: ${vehicle}.`;
+      open(confirmModal);
+    };
+  </script>
+</body>
+</html>

@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>On Hold Requests - Asset Management</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --brand-orange: #f47621;
+      --brand-dark: #33383f;
+      --muted: #70757d;
+      --card-border: #e3e6ea;
+      --bg-light: #f5f7fa;
+      --danger-red: #dc2626;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Inter", sans-serif;
+      color: var(--brand-dark);
+      background: var(--bg-light);
+      min-height: 100vh;
+      display: flex;
+    }
+
+    .sidebar {
+      width: 240px;
+      background: #fff;
+      border-right: 1px solid #e9edf1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 20px 16px;
+    }
+    .brand { text-align: center; margin-bottom: 24px; }
+    .brand img { height: 40px; }
+    .menu { display: flex; flex-direction: column; gap: 4px; }
+    .menu a, .menu button {
+      padding: 10px 12px;
+      border-radius: 8px;
+      text-decoration: none;
+      color: var(--brand-dark);
+      font-weight: 600;
+      text-align: left;
+      background: none;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .menu a.active, .menu a:hover,
+    .menu button:hover {
+      background: var(--brand-orange);
+      color: #fff;
+    }
+    .submenu { display: none; flex-direction: column; margin-left: 16px; gap: 4px; }
+    .submenu a { font-weight: 500; font-size: 14px; color: var(--brand-dark); }
+    .submenu a.active, .submenu a:hover { background: var(--brand-orange); color: #fff; }
+    .submenu.show { display: flex; }
+    .logout a {
+      display: block;
+      padding: 12px;
+      border-radius: 10px;
+      background: #fbe9dd;
+      text-align: center;
+      font-weight: 600;
+      text-decoration: none;
+      color: var(--brand-dark);
+    }
+
+    .main { flex: 1; display: flex; flex-direction: column; }
+    .topbar {
+      height: 64px;
+      background: #fff;
+      border-bottom: 1px solid #e9edf1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+    }
+    .welcome { font-weight: 700; font-size: 16px; }
+    .content { flex: 1; padding: 24px; overflow-y: auto; }
+    .h1 { font-size: 28px; font-weight: 800; margin-bottom: 20px; color: var(--brand-orange); }
+
+    .container {
+      background: #fff;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      text-align: left;
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 700;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--card-border);
+    }
+    tbody td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--card-border);
+      font-size: 14px;
+    }
+    tbody tr:hover { background: #fff9f4; }
+    .btn {
+      background: transparent;
+      color: var(--brand-dark);
+      padding: 6px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--brand-dark);
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, opacity 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--brand-dark);
+      color: white;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      background: transparent;
+      color: var(--brand-dark);
+      border: 1px solid var(--brand-dark);
+    }
+
+    .modal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+    .modal-content {
+      background: #fff;
+      border-radius: 16px;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+      overflow: hidden;
+    }
+    .modal-header {
+      padding: 14px 20px;
+      background: var(--brand-orange);
+      color: #fff;
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-body { padding: 20px; }
+    .modal-body p { margin-bottom: 8px; }
+    .modal-footer {
+      padding: 14px 20px;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 10px;
+      border-top: 1px solid var(--card-border);
+    }
+    .close { cursor: pointer; font-size: 20px; }
+    textarea {
+      width: 100%;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 8px;
+      resize: none;
+      font-size: 14px;
+      margin-top: 10px;
+    }
+
+    #toast {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: var(--brand-dark);
+      color: white;
+      padding: 14px 24px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      font-weight: 600;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease-in-out;
+      z-index: 1000;
+    }
+    #toast.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Search box styles */
+    .search-box {
+      margin-bottom: 16px;
+      position: relative;
+    }
+    .search-box input {
+      width: 100%;
+      max-width: 350px;
+      padding: 10px 14px;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: "Inter", sans-serif;
+    }
+    .search-box input:focus {
+      outline: none;
+      border-color: var(--brand-orange);
+    }
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div>
+      <div class="brand"><img src="flogo.png" alt="Company logo" /></div>
+      <div class="profile" style="text-align:center;margin:12px 0 18px 0;">
+        <img src="aiface.jpg" alt="Profile" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid #e9edf1;" />
+        <div style="font-weight:700;margin-top:8px;color:#33383f;">Michael Jerson</div>
+      </div>
+      <nav class="menu">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="materials.html">Materials</a>
+        <button id="requestsBtn">Requests ▾</button>
+        <div class="submenu show" id="requestsMenu">
+          <a href="requestpending.html">Pending</a>
+          <a href="ongoing.html">On Going</a>
+          <a href="onhold.html" class="active">On Hold</a>
+          <a href="completed.html">Completed</a>
+        </div>
+      </nav>
+    </div>
+    <div class="logout"><a href="finsilogin.html">Logout</a></div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="welcome">Welcome, User!</div>
+      <div class="date-display" id="currentDate"></div>
+    </div>
+
+    <div class="content">
+      <div class="h1">On Hold Requests</div>
+      <div class="container">
+        <div class="search-box">
+          <input type="text" id="searchTicket" placeholder="Search by ticket number..." />
+        </div>
+        <table id="requestsTable">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Ticket</th>
+              <th>Date</th>
+              <th>Site</th>
+              <th>Remarks</th>
+              <th>Status</th>
+              <th>Priority Level</th>
+              <th>Requested Materials</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>O-1</td>
+              <td>#O-1001</td>
+              <td>2025-10-11</td>
+              <td>Makati - Ayala North</td>
+              <td>Install network infrastructure for new office</td>
+              <td>On Hold</td>
+              <td>Medium</td>
+              <td><strong>Network Switch - 3 pcs</strong></td>
+              <td><button class="btn view-btn">View</button></td>
+            </tr>
+            <tr>
+              <td>O-2</td>
+              <td>#O-016</td>
+              <td>2025-09-22</td>
+              <td>Server Room</td>
+              <td>Switch Rack Cable Cleanup</td>
+              <td>On Hold</td>
+              <td>Medium</td>
+              <td><strong>Patch Cords, Fiber Jumpers, Cable Ties, Labels</strong></td>
+              <td><button class="btn view-btn">View</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- Details Modal -->
+  <div class="modal" id="detailsModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <span>Request Details</span>
+        <span class="close" id="closeDetails">&times;</span>
+      </div>
+      <div class="modal-body" id="detailsBody">
+        <!-- Details will be populated here -->
+      </div>
+      <div class="modal-footer" style="justify-content: flex-end; gap: 10px;">
+        <button class="btn" id="resumeBtn">Resume</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Resume Confirmation Modal -->
+  <div class="modal" id="resumeConfirmModal">
+    <div class="modal-content" style="max-width: 400px;">
+      <div class="modal-header">
+        <span>Confirm Resume</span>
+        <span class="close" id="closeResumeConfirm">&times;</span>
+      </div>
+      <div class="modal-body" style="font-size: 16px;">
+        <p>Resume this request and move to On Going?</p>
+        <label for="resumeRemarksInput" style="display:block; margin-top:10px; font-weight:600;">Remarks (optional)</label>
+        <textarea id="resumeRemarksInput" rows="3" placeholder="Enter any remarks..."></textarea>
+      </div>
+      <div class="modal-footer" style="justify-content: flex-end;">
+        <button class="btn" id="cancelResumeBtn">Cancel</button>
+        <button class="btn" id="confirmResumeBtn" style="background: var(--brand-orange); color: white; border: none;">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast"></div>
+
+  <script>
+    // Sidebar submenu toggle
+    const requestsBtn = document.getElementById('requestsBtn');
+    const requestsMenu = document.getElementById('requestsMenu');
+
+    requestsBtn.addEventListener('click', () => {
+      requestsMenu.classList.toggle('show');
+    });
+
+    // Date display
+    const currentDate = document.getElementById('currentDate');
+    const date = new Date();
+    currentDate.textContent = date.toLocaleDateString();
+
+    // Search functionality
+    const searchTicket = document.getElementById('searchTicket');
+    const requestsTable = document.getElementById('requestsTable');
+    const tableRows = requestsTable.querySelectorAll('tbody tr');
+
+    searchTicket.addEventListener('input', (e) => {
+      const searchValue = e.target.value.toLowerCase().trim();
+      
+      tableRows.forEach(row => {
+        const ticketCell = row.cells[1]; // Ticket is in the second column (index 1)
+        const ticketText = ticketCell.textContent.toLowerCase();
+        
+        if (ticketText.includes(searchValue)) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    });
+
+    // Toast function
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
+    }
+
+    // Modal variables
+    const detailsModal = document.getElementById('detailsModal');
+    const closeDetails = document.getElementById('closeDetails');
+    const resumeBtn = document.getElementById('resumeBtn');
+    const resumeConfirmModal = document.getElementById('resumeConfirmModal');
+    const closeResumeConfirm = document.getElementById('closeResumeConfirm');
+    const cancelResumeBtn = document.getElementById('cancelResumeBtn');
+    const confirmResumeBtn = document.getElementById('confirmResumeBtn');
+    const resumeRemarksInput = document.getElementById('resumeRemarksInput');
+
+    // Data from table rows
+    const onHoldData = [
+      {
+        id: "O-1",
+        ticket: "#O-1001",
+        date: "2025-10-11",
+        site: "Makati - Ayala North",
+        task: "Install network infrastructure for new office",
+        status: "On Hold",
+        priority: "Medium",
+        materials: "Network Switch - 3 pcs",
+        requestedBy: "Anna Santos",
+        assignedTo: "Asset Team",
+        holdReason: "Waiting for site access approval"
+      },
+      {
+        id: "O-2",
+        ticket: "#O-016",
+        date: "2025-09-22",
+        site: "Server Room",
+        task: "Switch Rack Cable Cleanup",
+        status: "On Hold",
+        priority: "Medium",
+        materials: "Patch Cords, Fiber Jumpers, Cable Ties, Labels",
+        requestedBy: "Allan Cruz",
+        assignedTo: "Asset Team",
+        holdReason: "Parts pending delivery"
+      }
+    ];
+
+    // Handle View button click to open details modal
+    document.querySelectorAll('.view-btn').forEach((btn, index) => {
+      btn.addEventListener('click', () => {
+        const data = onHoldData[index];
+        const detailsBody = document.getElementById('detailsBody');
+        detailsBody.innerHTML = `
+          <p><strong>ID:</strong> ${data.id}</p>
+          <p><strong>Ticket:</strong> ${data.ticket}</p>
+          <p><strong>Date:</strong> ${data.date}</p>
+          <p><strong>Site:</strong> ${data.site}</p>
+          <p><strong>Remarks:</strong> ${data.task}</p>
+          <p><strong>Status:</strong> ${data.status}</p>
+          <p><strong>Priority Level:</strong> ${data.priority}</p>
+          <p><strong>Requested Materials:</strong> <strong>${data.materials}</strong></p>
+          <p><strong>Requested By:</strong> ${data.requestedBy}</p>
+          <p><strong>Assigned To:</strong> ${data.assignedTo}</p>
+          <p><strong>Hold Reason:</strong> ${data.holdReason}</p>
+        `;
+        resumeBtn.disabled = false;
+        detailsModal.style.display = "flex";
+      });
+    });
+
+    // Close details modal
+    closeDetails.onclick = () => {
+      detailsModal.style.display = "none";
+    };
+
+    // Resume button logic
+    resumeBtn.onclick = () => {
+      if (!resumeBtn.disabled) {
+        resumeRemarksInput.value = '';
+        resumeConfirmModal.style.display = 'flex';
+      }
+    };
+
+    closeResumeConfirm.onclick = () => {
+      resumeConfirmModal.style.display = 'none';
+    };
+
+    cancelResumeBtn.onclick = () => {
+      resumeConfirmModal.style.display = 'none';
+    };
+
+    confirmResumeBtn.onclick = () => {
+      const remarks = resumeRemarksInput.value.trim();
+      showToast(remarks ? 'Remarks sent. Request Resumed and moved to On Going.' : 'Request Resumed and moved to On Going.');
+      resumeBtn.disabled = true;
+      resumeConfirmModal.style.display = 'none';
+      detailsModal.style.display = 'none';
+    };
+
+    // Close modals when clicking outside modal-content
+    window.onclick = (event) => {
+      if (event.target === detailsModal) detailsModal.style.display = "none";
+      if (event.target === resumeConfirmModal) resumeConfirmModal.style.display = "none";
+    };
+  </script>
+</body>
+</html>
