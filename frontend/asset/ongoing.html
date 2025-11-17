@@ -3,33 +3,207 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>On Going Requests</title>
+  <title>On Going Requests - Asset Management</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <style>
-    :root { --brand-orange: #f47621; --brand-dark: #33383f; --muted: #70757d; --card-border: #e3e6ea; --bg-light: #f5f7fa; }
+    :root {
+      --brand-orange: #f47621;
+      --brand-dark: #33383f;
+      --muted: #70757d;
+      --card-border: #e3e6ea;
+      --bg-light: #f5f7fa;
+      --danger-red: #dc2626;
+      --success-green: #16a34a;
+    }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: "Inter", sans-serif; color: var(--brand-dark); background: var(--bg-light); min-height: 100vh; display: flex; }
-    .sidebar { width: 240px; background: #fff; border-right: 1px solid #e9edf1; display: flex; flex-direction: column; justify-content: space-between; padding: 20px 16px; }
-    .brand { text-align: center; margin-bottom: 24px; } .brand img { height: 40px; }
+    body {
+      font-family: "Inter", sans-serif;
+      color: var(--brand-dark);
+      background: var(--bg-light);
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* Sidebar Styles */
+    .sidebar {
+      width: 240px;
+      background: #fff;
+      border-right: 1px solid #e9edf1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 20px 16px;
+    }
+    .brand { text-align: center; margin-bottom: 24px; }
+    .brand img { height: 40px; }
     .menu { display: flex; flex-direction: column; gap: 4px; }
-    .menu a, .menu button { padding: 10px 12px; border-radius: 8px; text-decoration: none; color: var(--brand-dark); font-weight: 600; text-align: left; background: none; border: none; cursor: pointer; transition: background 0.2s, color 0.2s; }
-    .menu a.active, .menu a:hover, .menu button:hover { background: var(--brand-orange); color: #fff; }
+    .menu a, .menu button {
+      padding: 10px 12px;
+      border-radius: 8px;
+      text-decoration: none;
+      color: var(--brand-dark);
+      font-weight: 600;
+      text-align: left;
+      background: none;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .menu a.active, .menu a:hover, .menu button:hover {
+      background: var(--brand-orange);
+      color: #fff;
+    }
     .submenu { display: none; flex-direction: column; margin-left: 16px; gap: 4px; }
-    .submenu a { font-weight: 500; font-size: 14px; color: var(--brand-dark); }
-    .submenu a.active, .submenu a:hover { background: var(--brand-orange); color: #fff; }
     .submenu.show { display: flex; }
-    .logout a { display: block; padding: 12px; border-radius: 10px; background: #fbe9dd; text-align: center; font-weight: 600; text-decoration: none; color: var(--brand-dark); cursor: pointer; }
+    .submenu a { font-weight: 500; font-size: 14px; color: var(--brand-dark); }
+    .logout a {
+      display: block;
+      padding: 12px;
+      border-radius: 10px;
+      background: #fbe9dd;
+      text-align: center;
+      font-weight: 600;
+      text-decoration: none;
+      color: var(--brand-dark);
+    }
+
+    /* Main Content */
     .main { flex: 1; display: flex; flex-direction: column; }
-    .topbar { height: 64px; background: #fff; border-bottom: 1px solid #e9edf1; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; }
+    .topbar {
+      height: 64px;
+      background: #fff;
+      border-bottom: 1px solid #e9edf1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+    }
     .welcome { font-weight: 700; font-size: 16px; }
     .content { flex: 1; padding: 24px; overflow-y: auto; }
     .h1 { font-size: 28px; font-weight: 800; margin-bottom: 20px; color: var(--brand-orange); }
-    .container { background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+
+    .container {
+      background: #fff;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    /* Table Styles */
     table { width: 100%; border-collapse: collapse; }
-    thead th { text-align: left; font-size: 13px; color: var(--muted); font-weight: 700; padding: 10px 14px; border-bottom: 1px solid var(--card-border); }
-    tbody td { padding: 12px 14px; border-bottom: 1px solid var(--card-border); font-size: 14px; }
-    .btn { background: transparent; color: var(--brand-dark); padding: 6px 14px; border-radius: 8px; border: 1px solid var(--brand-dark); font-weight: 600; cursor: pointer; transition: background 0.2s; }
-    .btn:hover { background: var(--brand-dark); color: white; }
+    thead th {
+      text-align: left;
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 700;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--card-border);
+    }
+    tbody td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--card-border);
+      font-size: 14px;
+      vertical-align: middle;
+    }
+    tbody tr:hover { background: #fff9f4; }
+
+    .btn {
+      background: transparent;
+      color: var(--brand-dark);
+      padding: 6px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--brand-dark);
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .btn:hover {
+      background: var(--brand-dark);
+      color: white;
+    }
+    .btn-view {
+      background: #1e88e5;
+      color: white;
+      border: none;
+    }
+    .btn-view:hover { background: #1565c0; }
+
+    /* Modal Styles */
+    .modal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+    .modal-content {
+      background: #fff;
+      border-radius: 16px;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      max-height: 85vh;
+    }
+    .modal-header {
+      padding: 14px 20px;
+      background: var(--brand-orange);
+      color: #fff;
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-body { padding: 20px; overflow-y: auto; }
+    .modal-body p { margin-bottom: 8px; line-height: 1.5; }
+    .modal-footer {
+      padding: 14px 20px;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 10px;
+      border-top: 1px solid var(--card-border);
+    }
+    .close { cursor: pointer; font-size: 20px; color: white; }
+    
+    textarea {
+      width: 100%;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 10px;
+      resize: none;
+      font-size: 14px;
+      margin-top: 8px;
+      font-family: inherit;
+    }
+
+    #toast {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: var(--brand-dark);
+      color: white;
+      padding: 14px 24px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      font-weight: 600;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease-in-out;
+      z-index: 1000;
+    }
+    #toast.show { opacity: 1; pointer-events: auto; }
+
+    .search-box { margin-bottom: 16px; position: relative; }
+    .search-box input {
+      width: 100%; max-width: 350px; padding: 10px 14px;
+      border: 1px solid var(--card-border); border-radius: 8px; font-size: 14px;
+    }
   </style>
 </head>
 <body>
@@ -60,43 +234,211 @@
       <div class="welcome">Welcome, User!</div>
       <div class="date-display" id="currentDate"></div>
     </div>
+
     <div class="content">
       <div class="h1">On Going Requests</div>
       <div class="container">
+        <div class="search-box">
+          <input type="text" id="searchTicket" placeholder="Search by ticket number..." />
+        </div>
         <table id="requestsTable">
-          <thead><tr><th>ID</th><th>Ticket</th><th>Site</th><th>Status</th><th>Task</th><th>Action</th></tr></thead>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Ticket</th>
+              <th>Date</th>
+              <th>Site</th>
+              <th>Remarks</th>
+              <th>Status</th>
+              <th>Priority Level</th>
+              <th>Requested Materials</th>
+              <th>Action</th>
+            </tr>
+          </thead>
           <tbody></tbody>
         </table>
       </div>
     </div>
   </main>
 
+  <div class="modal" id="detailsModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <span>Request Details</span>
+        <span class="close" id="closeDetails">&times;</span>
+      </div>
+      <div class="modal-body" id="detailsBody">
+        </div>
+      <div class="modal-footer" style="justify-content: flex-end; gap: 10px;">
+        <button class="btn" id="completeBtn" style="background: #16a34a; color: white; border: none;">Mark as Complete</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="completeConfirmModal">
+    <div class="modal-content" style="max-width: 400px;">
+      <div class="modal-header">
+        <span>Confirm Completion</span>
+        <span class="close" id="closeCompleteConfirm">&times;</span>
+      </div>
+      <div class="modal-body">
+        <p>Mark this request as completed?</p>
+        <label for="completeRemarksInput" style="display:block; margin-top:10px; font-weight:600;">Completion Notes (optional)</label>
+        <textarea id="completeRemarksInput" rows="3" placeholder="Enter completion notes..."></textarea>
+      </div>
+      <div class="modal-footer" style="justify-content: flex-end;">
+        <button class="btn" id="cancelCompleteBtn">Cancel</button>
+        <button class="btn" id="confirmCompleteBtn" style="background: var(--brand-orange); color: white; border: none;">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../static/supabaseClient.js"></script>
   <script src="dashboard.js"></script>
   <script>
+    let currentRequestId = null;
+
+    // Poll for Supabase Client
     const checkClient = setInterval(() => {
-      if (window.sbClient) { clearInterval(checkClient); fetchOngoing(); }
+      if (window.sbClient) {
+        clearInterval(checkClient);
+        fetchOngoing();
+      }
     }, 100);
 
     async function fetchOngoing() {
-      const { data } = await window.sbClient.from('material_requests').select('*').in('status', ['On Going', 'In Progress']);
-      const tbody = document.querySelector('#requestsTable tbody');
-      tbody.innerHTML = '';
-      if (data) {
-        data.forEach(r => {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `<td>${r.id}</td><td>${r.ticket_id}</td><td>${r.site}</td><td>${r.status}</td><td>${r.task_description}</td><td><button class="btn" onclick="markCompleted(${r.id})">Mark Complete</button></td>`;
-          tbody.appendChild(tr);
-        });
-      }
+      // 1. Fetch Requests
+      const { data: requests, error } = await window.sbClient
+        .from('material_requests')
+        .select('*')
+        .in('status', ['On Going', 'In Progress']);
+      
+      if (error) return console.error(error);
+
+      // 2. Fetch Items for these requests to display in the table
+      // (Fetching all items for simplicity, in prod use filtering)
+      const { data: allItems } = await window.sbClient
+        .from('material_request_items')
+        .select('*');
+
+      renderTable(requests || [], allItems || []);
     }
 
-    async function markCompleted(id) {
-      if(confirm('Mark this request as completed?')) {
-        const { error } = await window.sbClient.from('material_requests').update({ status: 'Completed' }).eq('id', id);
-        if(!error) fetchOngoing();
+    function renderTable(requests, allItems) {
+      const tbody = document.querySelector('#requestsTable tbody');
+      tbody.innerHTML = '';
+      const term = document.getElementById('searchTicket').value.toLowerCase();
+
+      requests.forEach(r => {
+        if (term && !r.ticket_id.toLowerCase().includes(term)) return;
+
+        // Aggregate materials for this request
+        const requestItems = allItems.filter(i => i.request_id === r.id);
+        const materialsStr = requestItems.length > 0 
+            ? requestItems.map(i => `${i.material_name_cache}`).join(', ') 
+            : 'No specific materials';
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>G-${r.id}</td>
+          <td>${r.ticket_id}</td>
+          <td>${r.request_date}</td>
+          <td>${r.site}</td>
+          <td>${r.task_description || '-'}</td>
+          <td>${r.status}</td>
+          <td>${r.priority || 'Medium'}</td>
+          <td><strong>${materialsStr}</strong></td>
+          <td><button class="btn btn-view" onclick="openDetails(${r.id})">View</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    document.getElementById('searchTicket').addEventListener('input', fetchOngoing);
+
+    // Open Details Modal
+    async function openDetails(id) {
+      currentRequestId = id;
+      
+      const { data: req } = await window.sbClient.from('material_requests').select('*').eq('id', id).single();
+      const { data: items } = await window.sbClient.from('material_request_items').select('*').eq('request_id', id);
+      
+      let itemsHtml = '<ul>';
+      if(items && items.length > 0) {
+          items.forEach(i => {
+              itemsHtml += `<li>${i.material_name_cache} (Qty: ${i.quantity_requested})</li>`;
+          });
+      } else {
+          itemsHtml += '<li>No specific materials listed</li>';
       }
+      itemsHtml += '</ul>';
+
+      // Calculate "Started Date" (Using created_at as proxy if start date field missing)
+      const startedDate = req.created_at ? new Date(req.created_at).toLocaleDateString() : 'N/A';
+
+      document.getElementById('detailsBody').innerHTML = `
+        <p><strong>ID:</strong> G-${req.id}</p>
+        <p><strong>Ticket:</strong> ${req.ticket_id}</p>
+        <p><strong>Date:</strong> ${req.request_date}</p>
+        <p><strong>Site:</strong> ${req.site}</p>
+        <p><strong>Remarks:</strong> ${req.task_description}</p>
+        <p><strong>Status:</strong> ${req.status}</p>
+        <p><strong>Priority Level:</strong> ${req.priority || 'Medium'}</p>
+        <p><strong>Requested By:</strong> ${req.requested_by_name || 'N/A'}</p>
+        <p><strong>Assigned To:</strong> ${req.assigned_to_name || 'Asset Team'}</p>
+        <p><strong>Started Date:</strong> ${startedDate}</p>
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 12px 0;">
+        <p><strong>Requested Materials:</strong></p>
+        ${itemsHtml}
+      `;
+      
+      document.getElementById('detailsModal').style.display = 'flex';
+    }
+
+    // Button: Mark as Complete (Opens Confirm Modal)
+    document.getElementById('completeBtn').onclick = () => {
+        document.getElementById('completeConfirmModal').style.display = 'flex';
+        document.getElementById('completeRemarksInput').value = '';
+    };
+
+    // Button: Confirm
+    document.getElementById('confirmCompleteBtn').onclick = async () => {
+      const remarks = document.getElementById('completeRemarksInput').value;
+      const { error } = await window.sbClient
+        .from('material_requests')
+        .update({ status: 'Completed', remarks: remarks })
+        .eq('id', currentRequestId);
+        
+      if (!error) {
+        showToast("Request marked as Completed");
+        document.getElementById('completeConfirmModal').style.display = 'none';
+        document.getElementById('detailsModal').style.display = 'none';
+        fetchOngoing();
+      } else {
+        alert("Error: " + error.message);
+      }
+    };
+
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    // Close Handlers
+    document.getElementById('closeDetails').onclick = () => document.getElementById('detailsModal').style.display = 'none';
+    document.getElementById('closeCompleteConfirm').onclick = () => document.getElementById('completeConfirmModal').style.display = 'none';
+    document.getElementById('cancelCompleteBtn').onclick = () => document.getElementById('completeConfirmModal').style.display = 'none';
+
+    // Sidebar Toggle
+    const requestsBtn = document.getElementById('requestsBtn');
+    const requestsMenu = document.getElementById('requestsMenu');
+    if(requestsBtn) {
+        requestsBtn.addEventListener('click', () => { requestsMenu.classList.toggle('show'); });
     }
   </script>
 </body>

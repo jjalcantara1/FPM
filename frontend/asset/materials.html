@@ -36,7 +36,8 @@
     tbody td { padding: 12px 14px; border-bottom: 1px solid var(--card-border); font-size: 14px; }
     tbody tr:hover { background: #fff9f4; }
     .qty-controls { display: inline-flex; align-items: center; gap: 12px; }
-    .qty-btn { width: 32px; height: 32px; border-radius: 50%; border: none; cursor: pointer; background: var(--brand-orange); color: #fff; font-weight: 800; font-size: 16px; display: inline-flex; align-items: center; justify-content: center; }
+    .qty-btn { width: 32px; height: 32px; border-radius: 50%; border: none; cursor: pointer; background: var(--brand-orange); color: #fff; font-weight: 800; font-size: 16px; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.12); }
+    .qty-btn:active { transform: translateY(1px); }
     .qty-value { min-width: 18px; display: inline-block; text-align: center; font-weight: 800; }
     .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.35); display: none; align-items: center; justify-content: center; padding: 16px; }
     .modal { width: min(420px, 92vw); background: #fff; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.12); overflow: hidden; }
@@ -91,7 +92,13 @@
         <div style="overflow:auto;">
           <table id="materials-table">
             <thead>
-              <tr><th>Material</th><th>Description</th><th>Unit</th><th>Qty</th><th>Actions</th></tr>
+              <tr>
+                <th>Material</th>
+                <th>Description</th>
+                <th>Unit</th>
+                <th>Qty</th>
+                <th>Actions</th>
+              </tr>
             </thead>
             <tbody></tbody>
           </table>
@@ -120,6 +127,7 @@
   <script src="../static/supabaseClient.js"></script>
   <script src="dashboard.js"></script>
   <script>
+    // Wait for SB client
     const checkClient = setInterval(() => {
       if (window.sbClient) {
         clearInterval(checkClient);
@@ -134,6 +142,7 @@
             .from('materials_inventory')
             .select('*')
             .order('id', { ascending: true });
+            
         if(!error) renderMaterials(data || []);
     }
 
@@ -147,26 +156,59 @@
                 <td>${item.unit}</td>
                 <td>
                   <div class="qty-controls">
-                    <button class="qty-btn" onclick="updateStock(${item.id}, ${item.quantity - 1})">−</button>
-                    <span class="qty-value">${item.quantity}</span>
-                    <button class="qty-btn" onclick="updateStock(${item.id}, ${item.quantity + 1})">+</button>
+                    <button class="qty-btn" data-action="dec" data-id="${item.id}">−</button>
+                    <span class="qty-value" id="qty-${item.id}">${item.quantity}</span>
+                    <button class="qty-btn" data-action="inc" data-id="${item.id}">+</button>
                   </div>
                 </td>
-                <td><button class="btn" style="opacity:0.5;cursor:default;">Saved</button></td>
+                <td><button class="btn update-btn" data-id="${item.id}">Update</button></td>
             `;
             tableBody.appendChild(tr);
         });
+        attachHandlers();
     }
 
-    window.updateStock = async function(id, newQty) {
-        if(newQty < 0) return;
-        const { error } = await window.sbClient
-            .from('materials_inventory')
-            .update({ quantity: newQty })
-            .eq('id', id);
-        if(!error) fetchMaterials();
+    function attachHandlers() {
+        // Qty Buttons
+        document.querySelectorAll('.qty-btn').forEach(btn => {
+            btn.onclick = (e) => {
+                const id = e.target.getAttribute('data-id');
+                const action = e.target.getAttribute('data-action');
+                const span = document.getElementById(`qty-${id}`);
+                let val = parseInt(span.textContent);
+                if(action === 'inc') val++;
+                else if(val > 0) val--;
+                span.textContent = val;
+            };
+        });
+
+        // Update Buttons
+        document.querySelectorAll('.update-btn').forEach(btn => {
+            btn.onclick = async (e) => {
+                const id = e.target.getAttribute('data-id');
+                const span = document.getElementById(`qty-${id}`);
+                const newQty = parseInt(span.textContent);
+                
+                e.target.textContent = "Updating...";
+                e.target.disabled = true;
+
+                const { error } = await window.sbClient
+                    .from('materials_inventory')
+                    .update({ quantity: newQty })
+                    .eq('id', id);
+                
+                if(!error) {
+                    e.target.textContent = "Saved";
+                    setTimeout(() => {
+                        e.target.textContent = "Update";
+                        e.target.disabled = false;
+                    }, 1000);
+                }
+            };
+        });
     }
 
+    // Add Modal Logic
     const addModal = document.getElementById('addModal');
     document.getElementById('openAddModal').onclick = () => addModal.style.display = 'flex';
     document.getElementById('cancel').onclick = () => addModal.style.display = 'none';
@@ -176,20 +218,26 @@
         const desc = document.getElementById('m-desc').value;
         const unit = document.getElementById('m-unit').value;
         const qty = parseInt(document.getElementById('m-qty').value);
+
         if(!name || !qty) return alert("Name and Quantity are required");
+
         const { error } = await window.sbClient
             .from('materials_inventory')
             .insert([{ name, description: desc, unit, quantity: qty }]);
+
         if(!error) {
             addModal.style.display = 'none';
             fetchMaterials();
             document.getElementById('m-name').value = '';
+            document.getElementById('m-desc').value = '';
+            document.getElementById('m-unit').value = '';
             document.getElementById('m-qty').value = '';
         } else {
             alert(error.message);
         }
     };
 
+    // Search
     document.getElementById('search').addEventListener('input', (e) => {
         const term = e.target.value.toLowerCase();
         const rows = tableBody.querySelectorAll('tr');

@@ -1,125 +1,98 @@
-// Make client available globally
+// Global Client
 window.sbClient = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // 1. Initialize Supabase
+    // 1. Initialize
     if (typeof supabase === 'undefined') {
-        console.error("Supabase library not found.");
+        console.error("Supabase not loaded");
         return;
     }
     if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
-        console.error("Supabase keys missing. Check ../static/supabaseClient.js");
+        console.error("Supabase keys missing");
         return;
     }
     window.sbClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
 
-    // 2. Run Session Check
+    // 2. Session & Profile
     await checkSession();
+    
+    // 3. Global Event Listeners
     setupLogout();
-    setupSidebarToggle(); // Initialize sidebar toggle
+    setupSidebarToggle();
 
-    // 3. Helper: Check Session & Load Profile
-    async function checkSession() {
-        try {
-            const { data: { session }, error } = await window.sbClient.auth.getSession();
-            
-            if (error || !session) {
-                window.location.href = 'finsilogin.html';
-                return;
-            }
-
-            await loadUserProfile(session.user.id);
-            
-            const dateEl = document.getElementById('currentDate');
-            if (dateEl) {
-                dateEl.textContent = new Date().toLocaleDateString('en-US', {
-                    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-                });
-            }
-
-            if (document.getElementById('pendingCount')) {
-                await loadDashboardStats();
-            }
-
-        } catch (err) {
-            console.error("Session verification failed:", err);
-            window.location.href = 'finsilogin.html';
-        }
-    }
-
-    // 4. Fetch Asset Manager Name
-    async function loadUserProfile(userId) {
-        const profileNameEl = document.getElementById('profileName');
-        if (!profileNameEl) return;
-
-        try {
-            const { data, error } = await window.sbClient
-                .from('asset_manager_records')
-                .select('firstName')
-                .eq('user_id', userId)
-                .single();
-
-            if (data && data.firstName) {
-                profileNameEl.textContent = data.firstName;
-            } else {
-                profileNameEl.textContent = 'Manager';
-            }
-        } catch (err) {
-            console.error("Error loading profile:", err);
-            profileNameEl.textContent = 'Manager';
-        }
-    }
-
-    // 5. Load Counters for Dashboard
-    async function loadDashboardStats() {
-        try {
-            const { count: pending } = await window.sbClient
-                .from('material_requests')
-                .select('*', { count: 'exact', head: true })
-                .eq('status', 'Pending');
-
-            const { count: completed } = await window.sbClient
-                .from('material_requests')
-                .select('*', { count: 'exact', head: true })
-                .eq('status', 'Completed');
-
-            const pendingEl = document.getElementById('pendingCount');
-            const completedEl = document.getElementById('completedCount');
-
-            if (pendingEl) pendingEl.textContent = pending || 0;
-            if (completedEl) completedEl.textContent = completed || 0;
-
-        } catch (err) {
-            console.error("Error loading stats:", err);
-        }
-    }
-
-    // 6. Setup Logout
-    function setupLogout() {
-        const logoutLink = document.getElementById('logoutLink');
-        if (logoutLink) {
-            logoutLink.addEventListener('click', async (e) => {
-                e.preventDefault();
-                await window.sbClient.auth.signOut();
-                window.location.href = 'finsilogin.html';
-            });
-        }
-    }
-
-    // 7. Sidebar Toggle Logic
-    function setupSidebarToggle() {
-        const requestsBtn = document.getElementById('requestsBtn');
-        const requestsMenu = document.getElementById('requestsMenu');
-        
-        if (requestsBtn && requestsMenu) {
-            // Remove any existing listeners (optional safety) and add new one
-            requestsBtn.replaceWith(requestsBtn.cloneNode(true));
-            const newBtn = document.getElementById('requestsBtn');
-            
-            newBtn.addEventListener('click', (e) => {
-                e.stopPropagation(); // Prevent bubbling
-                requestsMenu.classList.toggle('show');
-            });
-        }
-    }
+    // 4. Page Specific Loaders
+    if (document.getElementById('pendingCount')) loadDashboardStats();
 });
+
+async function checkSession() {
+    const { data: { session }, error } = await window.sbClient.auth.getSession();
+    if (error || !session) {
+        window.location.href = 'finsilogin.html';
+        return;
+    }
+    loadUserProfile(session.user.id);
+    updateDateDisplay();
+}
+
+async function loadUserProfile(userId) {
+    const nameEl = document.getElementById('profileName');
+    if (!nameEl) return;
+    
+    const { data } = await window.sbClient
+        .from('asset_manager_records')
+        .select('firstName')
+        .eq('user_id', userId)
+        .single();
+        
+    if (data && data.firstName) nameEl.textContent = data.firstName;
+}
+
+function updateDateDisplay() {
+    const el = document.getElementById('currentDate');
+    if (el) {
+        el.textContent = new Date().toLocaleDateString('en-US', {
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        });
+    }
+}
+
+async function loadDashboardStats() {
+    const { count: pending } = await window.sbClient
+        .from('material_requests')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'Pending');
+        
+    const { count: completed } = await window.sbClient
+        .from('material_requests')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'Completed');
+
+    const pEl = document.getElementById('pendingCount');
+    const cEl = document.getElementById('completedCount');
+    if (pEl) pEl.textContent = pending || 0;
+    if (cEl) cEl.textContent = completed || 0;
+}
+
+function setupLogout() {
+    const btn = document.getElementById('logoutLink');
+    if (btn) {
+        btn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            await window.sbClient.auth.signOut();
+            window.location.href = 'finsilogin.html';
+        });
+    }
+}
+
+function setupSidebarToggle() {
+    const btn = document.getElementById('requestsBtn');
+    const menu = document.getElementById('requestsMenu');
+    if (btn && menu) {
+        // Remove old inline onclicks first
+        btn.onclick = null; 
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            menu.classList.toggle('show');
+        });
+    }
+}

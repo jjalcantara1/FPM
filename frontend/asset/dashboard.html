@@ -6,26 +6,107 @@
   <title>Asset Management Dashboard</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <style>
-    :root { --brand-orange: #f47621; --brand-dark: #33383f; --muted: #70757d; --card-border: #e3e6ea; --bg-light: #f5f7fa; }
+    :root {
+      --brand-orange: #f47621;
+      --brand-dark: #33383f;
+      --muted: #70757d;
+      --card-border: #e3e6ea;
+      --bg-light: #f5f7fa;
+    }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: "Inter", sans-serif; color: var(--brand-dark); background: var(--bg-light); min-height: 100vh; display: flex; }
-    .sidebar { width: 240px; background: #fff; border-right: 1px solid #e9edf1; display: flex; flex-direction: column; justify-content: space-between; padding: 20px 16px; }
-    .brand { text-align: center; margin-bottom: 24px; } .brand img { height: 40px; }
+    body {
+      font-family: "Inter", sans-serif;
+      color: var(--brand-dark);
+      background: var(--bg-light);
+      min-height: 100vh;
+      display: flex;
+    }
+    /* Sidebar */
+    .sidebar {
+      width: 240px;
+      background: #fff;
+      border-right: 1px solid #e9edf1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 20px 16px;
+    }
+    .brand { text-align: center; margin-bottom: 24px; }
+    .brand img { height: 40px; }
     .menu { display: flex; flex-direction: column; gap: 4px; }
-    .menu a, .menu button { padding: 10px 12px; border-radius: 8px; text-decoration: none; color: var(--brand-dark); font-weight: 600; text-align: left; background: none; border: none; cursor: pointer; transition: background 0.2s, color 0.2s; }
-    .menu a.active, .menu a:hover, .menu button:hover { background: var(--brand-orange); color: #fff; }
-    .submenu { display: none; flex-direction: column; margin-left: 16px; gap: 4px; }
-    .submenu a { font-weight: 500; font-size: 14px; color: var(--brand-dark); }
-    .submenu a.active, .submenu a:hover { background: var(--brand-orange); color: #fff; }
+    .menu a, .menu button {
+      padding: 10px 12px;
+      border-radius: 8px;
+      text-decoration: none;
+      color: var(--brand-dark);
+      font-weight: 600;
+      text-align: left;
+      background: none;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .menu a.active, .menu a:hover,
+    .menu button:hover {
+      background: var(--brand-orange);
+      color: #fff;
+    }
+    .submenu {
+      display: none;
+      flex-direction: column;
+      margin-left: 16px;
+      gap: 4px;
+    }
+    .submenu a {
+      font-weight: 500;
+      font-size: 14px;
+      color: var(--brand-dark);
+    }
+    .submenu a.active, .submenu a:hover {
+      background: var(--brand-orange);
+      color: #fff;
+    }
     .submenu.show { display: flex; }
-    .logout a { display: block; padding: 12px; border-radius: 10px; background: #fbe9dd; text-align: center; font-weight: 600; text-decoration: none; color: var(--brand-dark); cursor: pointer; }
+    .logout a {
+      display: block;
+      padding: 12px;
+      border-radius: 10px;
+      background: #fbe9dd;
+      text-align: center;
+      font-weight: 600;
+      text-decoration: none;
+      color: var(--brand-dark);
+      cursor: pointer;
+    }
+    /* Main */
     .main { flex: 1; display: flex; flex-direction: column; }
-    .topbar { height: 64px; background: #fff; border-bottom: 1px solid #e9edf1; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; }
+    .topbar {
+      height: 64px;
+      background: #fff;
+      border-bottom: 1px solid #e9edf1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+    }
     .welcome { font-weight: 700; font-size: 16px; }
     .content { flex: 1; padding: 24px; overflow-y: auto; }
     .h1 { font-size: 28px; font-weight: 800; margin-bottom: 20px; }
-    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 28px; }
-    .card { background: #fff; border-radius: 16px; padding: 20px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.08); transition: transform 0.2s; }
+    /* Cards */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      transition: transform 0.2s;
+    }
     .card:hover { transform: translateY(-3px); }
     .metric { font-size: 28px; font-weight: 800; margin-bottom: 6px; }
     .label { font-size: 14px; color: var(--muted); }
@@ -63,7 +144,6 @@
 
     <div class="content">
       <div class="h1">Dashboard Overview</div>
-
       <div class="cards">
         <a class="card-link" href="requestpending.html">
           <div class="card">
@@ -71,7 +151,6 @@
             <div class="label">Pending Material Requests</div>
           </div>
         </a>
-
         <a class="card-link" href="completed.html">
           <div class="card">
             <div class="metric" id="completedCount">0</div>
@@ -85,5 +164,32 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../static/supabaseClient.js"></script>
   <script src="dashboard.js"></script>
+  <script>
+    // Toggle
+    const requestsBtn = document.getElementById('requestsBtn');
+    const requestsMenu = document.getElementById('requestsMenu');
+    if(requestsBtn) {
+        requestsBtn.addEventListener('click', () => { requestsMenu.classList.toggle('show'); });
+    }
+    // Date
+    const now = new Date();
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    document.getElementById('currentDate').textContent = now.toLocaleDateString('en-US', options);
+
+    // Load Stats
+    const checkClient = setInterval(() => {
+        if (window.sbClient) {
+            clearInterval(checkClient);
+            loadStats();
+        }
+    }, 100);
+
+    async function loadStats() {
+        const { count: pending } = await window.sbClient.from('material_requests').select('*', { count: 'exact', head: true }).eq('status', 'Pending');
+        const { count: completed } = await window.sbClient.from('material_requests').select('*', { count: 'exact', head: true }).eq('status', 'Completed');
+        document.getElementById('pendingCount').textContent = pending || 0;
+        document.getElementById('completedCount').textContent = completed || 0;
+    }
+  </script>
 </body>
 </html>

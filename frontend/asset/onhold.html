@@ -6,9 +6,22 @@
   <title>On Hold Requests</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <style>
-    :root { --brand-orange: #f47621; --brand-dark: #33383f; --muted: #70757d; --card-border: #e3e6ea; --bg-light: #f5f7fa; }
+    :root {
+      --brand-orange: #f47621;
+      --brand-dark: #33383f;
+      --muted: #70757d;
+      --card-border: #e3e6ea;
+      --bg-light: #f5f7fa;
+      --danger-red: #dc2626;
+    }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: "Inter", sans-serif; color: var(--brand-dark); background: var(--bg-light); min-height: 100vh; display: flex; }
+    body {
+      font-family: "Inter", sans-serif;
+      color: var(--brand-dark);
+      background: var(--bg-light);
+      min-height: 100vh;
+      display: flex;
+    }
     .sidebar { width: 240px; background: #fff; border-right: 1px solid #e9edf1; display: flex; flex-direction: column; justify-content: space-between; padding: 20px 16px; }
     .brand { text-align: center; margin-bottom: 24px; } .brand img { height: 40px; }
     .menu { display: flex; flex-direction: column; gap: 4px; }
@@ -18,7 +31,7 @@
     .submenu a { font-weight: 500; font-size: 14px; color: var(--brand-dark); }
     .submenu a.active, .submenu a:hover { background: var(--brand-orange); color: #fff; }
     .submenu.show { display: flex; }
-    .logout a { display: block; padding: 12px; border-radius: 10px; background: #fbe9dd; text-align: center; font-weight: 600; text-decoration: none; color: var(--brand-dark); cursor: pointer; }
+    .logout a { display: block; padding: 12px; border-radius: 10px; background: #fbe9dd; text-align: center; font-weight: 600; text-decoration: none; color: var(--brand-dark); }
     .main { flex: 1; display: flex; flex-direction: column; }
     .topbar { height: 64px; background: #fff; border-bottom: 1px solid #e9edf1; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; }
     .welcome { font-weight: 700; font-size: 16px; }
@@ -28,8 +41,26 @@
     table { width: 100%; border-collapse: collapse; }
     thead th { text-align: left; font-size: 13px; color: var(--muted); font-weight: 700; padding: 10px 14px; border-bottom: 1px solid var(--card-border); }
     tbody td { padding: 12px 14px; border-bottom: 1px solid var(--card-border); font-size: 14px; }
+    tbody tr:hover { background: #fff9f4; }
     .btn { background: transparent; color: var(--brand-dark); padding: 6px 14px; border-radius: 8px; border: 1px solid var(--brand-dark); font-weight: 600; cursor: pointer; transition: background 0.2s; }
     .btn:hover { background: var(--brand-dark); color: white; }
+    .btn-view { background: #1e88e5; color: #fff; border: none; }
+    .btn-view:hover { background: #1565c0; }
+    
+    /* Modal */
+    .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 999; }
+    .modal-content { background: #fff; border-radius: 16px; max-width: 500px; width: 90%; box-shadow: 0 6px 16px rgba(0,0,0,0.2); overflow: hidden; display: flex; flex-direction: column; }
+    .modal-header { padding: 14px 20px; background: var(--brand-orange); color: #fff; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
+    .modal-body { padding: 20px; overflow-y: auto; }
+    .modal-body p { margin-bottom: 8px; }
+    .modal-footer { padding: 14px 20px; display: flex; justify-content: flex-end; align-items: center; gap: 10px; border-top: 1px solid var(--card-border); }
+    .close { cursor: pointer; font-size: 20px; }
+    textarea { width: 100%; border: 1px solid var(--card-border); border-radius: 8px; padding: 8px; resize: none; font-size: 14px; margin-top: 10px; }
+    .search-box { margin-bottom: 16px; }
+    .search-box input { width: 100%; max-width: 350px; padding: 10px 14px; border: 1px solid var(--card-border); border-radius: 8px; }
+    
+    #toast { position: fixed; bottom: 30px; right: 30px; background: var(--brand-dark); color: white; padding: 14px 24px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); font-weight: 600; opacity: 0; pointer-events: none; transition: opacity 0.4s ease-in-out; z-index: 1000; }
+    #toast.show { opacity: 1; pointer-events: auto; }
   </style>
 </head>
 <body>
@@ -60,44 +91,162 @@
       <div class="welcome">Welcome, User!</div>
       <div class="date-display" id="currentDate"></div>
     </div>
+
     <div class="content">
       <div class="h1">On Hold Requests</div>
       <div class="container">
+        <div class="search-box"><input type="text" id="searchTicket" placeholder="Search by ticket number..." /></div>
         <table id="requestsTable">
-          <thead><tr><th>ID</th><th>Ticket</th><th>Site</th><th>Status</th><th>Remarks</th><th>Action</th></tr></thead>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Ticket</th>
+              <th>Date</th>
+              <th>Site</th>
+              <th>Remarks</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
           <tbody></tbody>
         </table>
       </div>
     </div>
   </main>
 
+  <div class="modal" id="detailsModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <span>Request Details</span>
+        <span class="close" id="closeDetails">&times;</span>
+      </div>
+      <div class="modal-body" id="detailsBody">
+        </div>
+      <div class="modal-footer">
+        <button class="btn" id="resumeBtn">Resume</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="resumeConfirmModal">
+    <div class="modal-content" style="max-width: 400px;">
+      <div class="modal-header">
+        <span>Confirm Resume</span>
+        <span class="close" id="closeResumeConfirm">&times;</span>
+      </div>
+      <div class="modal-body">
+        <p>Resume this request and move to On Going?</p>
+        <label style="display:block; margin-top:10px; font-weight:600;">Remarks (optional)</label>
+        <textarea id="resumeRemarksInput" rows="3"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" id="cancelResumeBtn">Cancel</button>
+        <button class="btn" id="confirmResumeBtn" style="background:var(--brand-orange);color:white;border:none">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../static/supabaseClient.js"></script>
   <script src="dashboard.js"></script>
   <script>
+    let currentRequestId = null;
+
     const checkClient = setInterval(() => {
-      if (window.sbClient) { clearInterval(checkClient); fetchOnHold(); }
+      if (window.sbClient) {
+        clearInterval(checkClient);
+        fetchOnHold();
+      }
     }, 100);
 
     async function fetchOnHold() {
       const { data } = await window.sbClient.from('material_requests').select('*').eq('status', 'On Hold');
       const tbody = document.querySelector('#requestsTable tbody');
       tbody.innerHTML = '';
+      const term = document.getElementById('searchTicket').value.toLowerCase();
+
       if (data) {
         data.forEach(r => {
+          if(term && !r.ticket_id.toLowerCase().includes(term)) return;
           const tr = document.createElement('tr');
-          tr.innerHTML = `<td>${r.id}</td><td>${r.ticket_id}</td><td>${r.site}</td><td>${r.status}</td><td>${r.remarks || '-'}</td><td><button class="btn" onclick="resumeTask(${r.id})">Resume</button></td>`;
+          tr.innerHTML = `
+            <td>${r.id}</td>
+            <td>${r.ticket_id}</td>
+            <td>${r.request_date}</td>
+            <td>${r.site}</td>
+            <td>${r.remarks || '-'}</td>
+            <td>${r.status}</td>
+            <td><button class="btn btn-view" onclick="openDetails(${r.id})">View</button></td>
+          `;
           tbody.appendChild(tr);
         });
       }
     }
+    
+    document.getElementById('searchTicket').addEventListener('input', fetchOnHold);
 
-    async function resumeTask(id) {
-      if(confirm('Resume this request?')) {
-        const { error } = await window.sbClient.from('material_requests').update({ status: 'On Going' }).eq('id', id);
-        if(!error) fetchOnHold();
-      }
+    async function openDetails(id) {
+        currentRequestId = id;
+        
+        // Fetch details + items
+        const { data: req } = await window.sbClient.from('material_requests').select('*').eq('id', id).single();
+        const { data: items } = await window.sbClient.from('material_request_items').select('*').eq('request_id', id);
+        
+        let itemsHtml = '<ul>';
+        if(items && items.length > 0) {
+            items.forEach(i => itemsHtml += `<li>${i.material_name_cache} (Qty: ${i.quantity_requested})</li>`);
+        } else {
+            itemsHtml += '<li>No specific materials</li>';
+        }
+        itemsHtml += '</ul>';
+
+        document.getElementById('detailsBody').innerHTML = `
+            <p><strong>Ticket:</strong> ${req.ticket_id}</p>
+            <p><strong>Site:</strong> ${req.site}</p>
+            <p><strong>Task:</strong> ${req.task_description}</p>
+            <p><strong>On Hold Reason:</strong> ${req.remarks}</p>
+            <hr>
+            <p><strong>Materials:</strong></p>
+            ${itemsHtml}
+        `;
+        
+        document.getElementById('detailsModal').style.display = 'flex';
     }
+
+    // Logic for "Resume"
+    document.getElementById('resumeBtn').onclick = () => {
+        document.getElementById('resumeConfirmModal').style.display = 'flex';
+    };
+
+    document.getElementById('confirmResumeBtn').onclick = async () => {
+        const remarks = document.getElementById('resumeRemarksInput').value;
+        // Append new remark if provided, or replace. Here we'll simply set status.
+        const { error } = await window.sbClient
+            .from('material_requests')
+            .update({ status: 'On Going', remarks: remarks || 'Resumed' })
+            .eq('id', currentRequestId);
+            
+        if(!error) {
+            showToast('Request Resumed');
+            document.getElementById('resumeConfirmModal').style.display = 'none';
+            document.getElementById('detailsModal').style.display = 'none';
+            fetchOnHold();
+        } else {
+            alert("Error: " + error.message);
+        }
+    };
+
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.textContent = msg; t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    document.getElementById('closeDetails').onclick = () => document.getElementById('detailsModal').style.display = 'none';
+    document.getElementById('closeResumeConfirm').onclick = () => document.getElementById('resumeConfirmModal').style.display = 'none';
+    document.getElementById('cancelResumeBtn').onclick = () => document.getElementById('resumeConfirmModal').style.display = 'none';
   </script>
 </body>
 </html>
