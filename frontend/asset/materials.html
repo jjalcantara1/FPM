@@ -6,215 +6,45 @@
   <title>Materials - Asset Management</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <style>
-    :root {
-      --brand-orange: #f47621;
-      --brand-dark: #33383f;
-      --muted: #70757d;
-      --card-border: #e3e6ea;
-      --bg-light: #f5f7fa;
-    }
+    :root { --brand-orange: #f47621; --brand-dark: #33383f; --muted: #70757d; --card-border: #e3e6ea; --bg-light: #f5f7fa; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: "Inter", sans-serif;
-      color: var(--brand-dark);
-      background: var(--bg-light);
-      min-height: 100vh;
-      display: flex;
-    }
-
-    /* Sidebar */
-    .sidebar {
-      width: 240px;
-      background: #fff;
-      border-right: 1px solid #e9edf1;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      padding: 20px 16px;
-    }
-    .brand { text-align: center; margin-bottom: 24px; }
-    .brand img { height: 40px; }
+    body { font-family: "Inter", sans-serif; color: var(--brand-dark); background: var(--bg-light); min-height: 100vh; display: flex; }
+    .sidebar { width: 240px; background: #fff; border-right: 1px solid #e9edf1; display: flex; flex-direction: column; justify-content: space-between; padding: 20px 16px; }
+    .brand { text-align: center; margin-bottom: 24px; } .brand img { height: 40px; }
     .menu { display: flex; flex-direction: column; gap: 4px; }
-    .menu a, .menu button {
-      padding: 10px 12px;
-      border-radius: 8px;
-      text-decoration: none;
-      color: var(--brand-dark);
-      font-weight: 600;
-      text-align: left;
-      background: none;
-      border: none;
-      cursor: pointer;
-      transition: background 0.2s, color 0.2s;
-    }
-    .menu a.active, .menu a:hover,
-    .menu button:hover {
-      background: var(--brand-orange);
-      color: #fff;
-    }
-
-    /* Dropdown */
-    .submenu {
-      display: none;
-      flex-direction: column;
-      margin-left: 16px;
-      gap: 4px;
-    }
-    .submenu a {
-      font-weight: 500;
-      font-size: 14px;
-      color: var(--brand-dark);
-    }
-    .submenu a.active, .submenu a:hover {
-      background: var(--brand-orange);
-      color: #fff;
-    }
+    .menu a, .menu button { padding: 10px 12px; border-radius: 8px; text-decoration: none; color: var(--brand-dark); font-weight: 600; text-align: left; background: none; border: none; cursor: pointer; transition: background 0.2s, color 0.2s; }
+    .menu a.active, .menu a:hover, .menu button:hover { background: var(--brand-orange); color: #fff; }
+    .submenu { display: none; flex-direction: column; margin-left: 16px; gap: 4px; }
+    .submenu a { font-weight: 500; font-size: 14px; color: var(--brand-dark); }
+    .submenu a.active, .submenu a:hover { background: var(--brand-orange); color: #fff; }
     .submenu.show { display: flex; }
-
-    .logout a {
-      display: block;
-      padding: 12px;
-      border-radius: 10px;
-      background: #fbe9dd;
-      text-align: center;
-      font-weight: 600;
-      text-decoration: none;
-      color: var(--brand-dark);
-    }
-
-    /* Main */
+    .logout a { display: block; padding: 12px; border-radius: 10px; background: #fbe9dd; text-align: center; font-weight: 600; text-decoration: none; color: var(--brand-dark); cursor: pointer; }
     .main { flex: 1; display: flex; flex-direction: column; }
-    .topbar {
-      height: 64px;
-      background: #fff;
-      border-bottom: 1px solid #e9edf1;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 24px;
-    }
+    .topbar { height: 64px; background: #fff; border-bottom: 1px solid #e9edf1; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; }
     .welcome { font-weight: 700; font-size: 16px; }
-
     .content { flex: 1; padding: 24px; overflow-y: auto; }
     .h1 { font-size: 28px; font-weight: 800; margin-bottom: 20px; color: var(--brand-orange); }
-
-    /* Card wrapper */
-    .card {
-      background: #fff;
-      border-radius: 16px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-      overflow: hidden;
-      margin-bottom: 24px;
-    }
-    .card-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 16px 20px;
-      border-bottom: 1px solid var(--card-border);
-      font-weight: 700;
-      font-size: 16px;
-    }
+    .card { background: #fff; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 24px; }
+    .card-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--card-border); font-weight: 700; font-size: 16px; }
     .tools { display: flex; gap: 10px; align-items: center; }
-    .btn {
-      background: var(--brand-orange);
-      color: #fff;
-      padding: 8px 16px;
-      border-radius: 8px;
-      border: none;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
+    .btn { background: var(--brand-orange); color: #fff; padding: 8px 16px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; transition: background 0.2s; }
     .btn:hover { background: #d65e12; }
-    .btn.icon {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 36px;
-      height: 36px;
-      padding: 0;
-      border-radius: 50%;
-      font-size: 20px;
-    }
-    input[type="search"] {
-      padding: 8px 10px;
-      border: 1px solid var(--card-border);
-      border-radius: 8px;
-      font-size: 14px;
-    }
-
-    /* Table */
+    .btn.icon { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; padding: 0; border-radius: 50%; font-size: 20px; }
+    input[type="search"] { padding: 8px 10px; border: 1px solid var(--card-border); border-radius: 8px; font-size: 14px; }
     table { width: 100%; border-collapse: collapse; }
-    thead th {
-      text-align: left;
-      font-size: 13px;
-      color: var(--muted);
-      font-weight: 700;
-      padding: 10px 14px;
-      border-bottom: 1px solid var(--card-border);
-    }
-    tbody td {
-      padding: 12px 14px;
-      border-bottom: 1px solid var(--card-border);
-      font-size: 14px;
-    }
+    thead th { text-align: left; font-size: 13px; color: var(--muted); font-weight: 700; padding: 10px 14px; border-bottom: 1px solid var(--card-border); }
+    tbody td { padding: 12px 14px; border-bottom: 1px solid var(--card-border); font-size: 14px; }
     tbody tr:hover { background: #fff9f4; }
-    .qty { font-weight: 700; }
-
-    /* Qty controls */
     .qty-controls { display: inline-flex; align-items: center; gap: 12px; }
-    .qty-btn {
-      width: 32px; height: 32px; border-radius: 50%; border: none; cursor: pointer;
-      background: var(--brand-orange); color: #fff; font-weight: 800; font-size: 16px;
-      display: inline-flex; align-items: center; justify-content: center;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.12);
-    }
-    .qty-btn:active { transform: translateY(1px); }
+    .qty-btn { width: 32px; height: 32px; border-radius: 50%; border: none; cursor: pointer; background: var(--brand-orange); color: #fff; font-weight: 800; font-size: 16px; display: inline-flex; align-items: center; justify-content: center; }
     .qty-value { min-width: 18px; display: inline-block; text-align: center; font-weight: 800; }
-
-    /* Modal */
-    .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,.35);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-    }
-    .modal {
-      width: min(420px, 92vw);
-      background: #fff;
-      border-radius: 16px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.12);
-      overflow: hidden;
-    }
-    .modal-header {
-      padding: 16px 20px;
-      font-weight: 800;
-      border-bottom: 1px solid var(--card-border);
-    }
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.35); display: none; align-items: center; justify-content: center; padding: 16px; }
+    .modal { width: min(420px, 92vw); background: #fff; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.12); overflow: hidden; }
+    .modal-header { padding: 16px 20px; font-weight: 800; border-bottom: 1px solid var(--card-border); }
     .modal-body { padding: 20px; display: flex; flex-direction: column; gap: 10px; }
-    .modal-body input {
-      padding: 8px 10px;
-      border: 1px solid var(--card-border);
-      border-radius: 8px;
-      font-size: 14px;
-    }
-    .modal-actions {
-      display: flex;
-      gap: 10px;
-      justify-content: flex-end;
-      padding: 16px 20px;
-      background: #f9fafb;
-      border-top: 1px solid var(--card-border);
-    }
-    .btn.cancel {
-      background: #fff;
-      border: 1px solid #fca5a5;
-      color: #b91c1c;
-    }
+    .modal-body input { padding: 8px 10px; border: 1px solid var(--card-border); border-radius: 8px; font-size: 14px; }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; padding: 16px 20px; background: #f9fafb; border-top: 1px solid var(--card-border); }
+    .btn.cancel { background: #fff; border: 1px solid #fca5a5; color: #b91c1c; }
   </style>
 </head>
 <body>
@@ -223,7 +53,7 @@
       <div class="brand"><img src="flogo.png" alt="Company logo" /></div>
       <div class="profile" style="text-align:center;margin:12px 0 18px 0;">
         <img src="aiface.jpg" alt="Profile" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid #e9edf1;" />
-        <div style="font-weight:700;margin-top:8px;color:#33383f;">Michael Jerson</div>
+        <div id="profileName" style="font-weight:700;margin-top:8px;color:#33383f;">Loading...</div>
       </div>
       <nav class="menu">
         <a href="dashboard.html">Dashboard</a>
@@ -237,7 +67,7 @@
         </div>
       </nav>
     </div>
-    <div class="logout"><a href="finsilogin.html">Logout</a></div>
+    <div class="logout"><a href="#" id="logoutLink">Logout</a></div>
   </aside>
 
   <main class="main">
@@ -248,7 +78,6 @@
 
     <div class="content">
       <div class="h1">Materials Inventory</div>
-
       <div class="card">
         <div class="card-header">
           <div style="display:flex;align-items:center;gap:10px;">
@@ -259,59 +88,12 @@
             <input type="search" id="search" placeholder="Search materials..." />
           </div>
         </div>
-
         <div style="overflow:auto;">
           <table id="materials-table">
             <thead>
-              <tr>
-                <th width="260">Material</th>
-                <th width="360">Description</th>
-                <th width="90">Unit</th>
-                <th width="90">Qty</th>
-                <th width="120">Actions</th>
-              </tr>
+              <tr><th>Material</th><th>Description</th><th>Unit</th><th>Qty</th><th>Actions</th></tr>
             </thead>
-            <tbody>
-              <tr>
-                <td>Fiber Optic Cable</td>
-                <td>Single-mode fiber, 1000m per roll for long-haul links</td>
-                <td>roll</td>
-                <td>
-                  <div class="qty-controls" data-row-id="1">
-                    <button class="qty-btn" data-action="dec" aria-label="decrease">−</button>
-                    <span class="qty-value">12</span>
-                    <button class="qty-btn" data-action="inc" aria-label="increase">+</button>
-                  </div>
-                </td>
-                <td><button class="btn update-btn">Update</button></td>
-              </tr>
-              <tr>
-                <td>Ethernet Cable Cat6</td>
-                <td>305m bulk UTP, solid copper, blue jacket</td>
-                <td>box</td>
-                <td>
-                  <div class="qty-controls" data-row-id="2">
-                    <button class="qty-btn" data-action="dec" aria-label="decrease">−</button>
-                    <span class="qty-value">30</span>
-                    <button class="qty-btn" data-action="inc" aria-label="increase">+</button>
-                  </div>
-                </td>
-                <td><button class="btn update-btn">Update</button></td>
-              </tr>
-              <tr>
-                <td>Patch Panels 24-port</td>
-                <td>1U rack-mount, labeled, keystone compatible</td>
-                <td>pcs</td>
-                <td>
-                  <div class="qty-controls" data-row-id="3">
-                    <button class="qty-btn" data-action="dec" aria-label="decrease">−</button>
-                    <span class="qty-value">8</span>
-                    <button class="qty-btn" data-action="inc" aria-label="increase">+</button>
-                  </div>
-                </td>
-                <td><button class="btn update-btn">Update</button></td>
-              </tr>
-            </tbody>
+            <tbody></tbody>
           </table>
         </div>
       </div>
@@ -334,141 +116,88 @@
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../static/supabaseClient.js"></script>
+  <script src="dashboard.js"></script>
   <script>
-    const addModal = document.getElementById('addModal');
-    const openAddModal = document.getElementById('openAddModal');
-    const cancelBtn = document.getElementById('cancel');
-    const addBtn = document.getElementById('add');
-    const table = document.getElementById('materials-table').querySelector('tbody');
-    const search = document.getElementById('search');
-
-    openAddModal.addEventListener('click', () => { addModal.style.display = 'flex'; });
-    cancelBtn.addEventListener('click', () => { addModal.style.display = 'none'; });
-    addModal.addEventListener('click', (e) => { if (e.target === addModal) addModal.style.display = 'none'; });
-
-    addBtn.addEventListener('click', () => {
-      const name = document.getElementById('m-name').value.trim();
-      const desc = document.getElementById('m-desc').value.trim();
-      const unit = document.getElementById('m-unit').value.trim();
-      const qty = document.getElementById('m-qty').value.trim();
-      if (!name || !desc || !unit || !qty) {
-        alert('Please fill all fields.');
-        return;
+    const checkClient = setInterval(() => {
+      if (window.sbClient) {
+        clearInterval(checkClient);
+        fetchMaterials();
       }
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${name}</td><td>${desc}</td><td>${unit}</td><td>\
-        <div class=\"qty-controls\">\
-          <button class=\"qty-btn\" data-action=\"dec\" aria-label=\"decrease\">−</button>\
-          <span class=\"qty-value\">${qty}</span>\
-          <button class=\"qty-btn\" data-action=\"inc\" aria-label=\"increase\">+</button>\
-        </div>\
-      </td><td><button class=\"btn update-btn\">Update</button></td>`;
-      table.appendChild(tr);
-      attachQtyHandlers(tr);
-      attachUpdateHandlers(tr);
-      addModal.style.display = 'none';
-      
-      // Clear inputs after adding
-      document.getElementById('m-name').value = '';
-      document.getElementById('m-desc').value = '';
-      document.getElementById('m-unit').value = '';
-      document.getElementById('m-qty').value = '';
+    }, 100);
+
+    const tableBody = document.querySelector('#materials-table tbody');
+    
+    async function fetchMaterials() {
+        const { data, error } = await window.sbClient
+            .from('materials_inventory')
+            .select('*')
+            .order('id', { ascending: true });
+        if(!error) renderMaterials(data || []);
+    }
+
+    function renderMaterials(items) {
+        tableBody.innerHTML = '';
+        items.forEach(item => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${item.name}</td>
+                <td>${item.description || ''}</td>
+                <td>${item.unit}</td>
+                <td>
+                  <div class="qty-controls">
+                    <button class="qty-btn" onclick="updateStock(${item.id}, ${item.quantity - 1})">−</button>
+                    <span class="qty-value">${item.quantity}</span>
+                    <button class="qty-btn" onclick="updateStock(${item.id}, ${item.quantity + 1})">+</button>
+                  </div>
+                </td>
+                <td><button class="btn" style="opacity:0.5;cursor:default;">Saved</button></td>
+            `;
+            tableBody.appendChild(tr);
+        });
+    }
+
+    window.updateStock = async function(id, newQty) {
+        if(newQty < 0) return;
+        const { error } = await window.sbClient
+            .from('materials_inventory')
+            .update({ quantity: newQty })
+            .eq('id', id);
+        if(!error) fetchMaterials();
+    }
+
+    const addModal = document.getElementById('addModal');
+    document.getElementById('openAddModal').onclick = () => addModal.style.display = 'flex';
+    document.getElementById('cancel').onclick = () => addModal.style.display = 'none';
+
+    document.getElementById('add').onclick = async () => {
+        const name = document.getElementById('m-name').value;
+        const desc = document.getElementById('m-desc').value;
+        const unit = document.getElementById('m-unit').value;
+        const qty = parseInt(document.getElementById('m-qty').value);
+        if(!name || !qty) return alert("Name and Quantity are required");
+        const { error } = await window.sbClient
+            .from('materials_inventory')
+            .insert([{ name, description: desc, unit, quantity: qty }]);
+        if(!error) {
+            addModal.style.display = 'none';
+            fetchMaterials();
+            document.getElementById('m-name').value = '';
+            document.getElementById('m-qty').value = '';
+        } else {
+            alert(error.message);
+        }
+    };
+
+    document.getElementById('search').addEventListener('input', (e) => {
+        const term = e.target.value.toLowerCase();
+        const rows = tableBody.querySelectorAll('tr');
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(term) ? '' : 'none';
+        });
     });
-
-    search.addEventListener('input', () => {
-      const q = search.value.trim().toLowerCase();
-      Array.from(table.querySelectorAll('tr')).forEach(r => {
-        const text = r.textContent.toLowerCase();
-        r.style.display = text.includes(q) ? '' : 'none';
-      });
-    });
-
-    // Date
-    function updateDate() {
-      const now = new Date();
-      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-      const el = document.getElementById('currentDate');
-      if (el) el.textContent = now.toLocaleDateString('en-US', options);
-    }
-    updateDate();
-    setInterval(updateDate, 60000);
-
-    // Dropdown toggle
-    const requestsBtn = document.getElementById('requestsBtn');
-    const requestsMenu = document.getElementById('requestsMenu');
-    requestsBtn.addEventListener('click', () => { requestsMenu.classList.toggle('show'); });
-
-    // Qty controls logic
-    function clamp(n) { return Math.max(0, n); }
-    function attachQtyHandlers(scope) {
-      const root = scope || document;
-      root.querySelectorAll('.qty-controls').forEach(ctrl => {
-        const valueEl = ctrl.querySelector('.qty-value');
-        ctrl.querySelectorAll('.qty-btn').forEach(btn => {
-          btn.addEventListener('click', () => {
-            const action = btn.getAttribute('data-action');
-            const current = parseInt(valueEl.textContent, 10) || 0;
-            const next = action === 'inc' ? current + 1 : clamp(current - 1);
-            valueEl.textContent = String(next);
-          });
-        });
-
-        // Make qty-value editable on click
-        valueEl.addEventListener('click', function handleQtyClick() {
-          const current = valueEl.textContent;
-          const input = document.createElement('input');
-          input.type = 'number';
-          input.value = current;
-          input.style.width = '40px';
-          input.className = 'qty-edit-input';
-          valueEl.replaceWith(input);
-          input.focus();
-          input.select();
-
-          function finishEdit() {
-            let val = parseInt(input.value, 10);
-            if (isNaN(val) || val < 0) val = 0;
-            const newSpan = document.createElement('span');
-            newSpan.className = 'qty-value';
-            newSpan.textContent = val;
-            input.replaceWith(newSpan);
-            attachQtyHandlers(ctrl); // re-attach handler for new span
-          }
-
-          input.addEventListener('blur', finishEdit);
-          input.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-              finishEdit();
-            } else if (e.key === 'Escape') {
-              // Cancel edit, revert to original value
-              const newSpan = document.createElement('span');
-              newSpan.className = 'qty-value';
-              newSpan.textContent = current;
-              input.replaceWith(newSpan);
-              attachQtyHandlers(ctrl);
-            }
-          });
-        });
-      });
-    }
-    attachQtyHandlers();
-
-    // Update buttons logic
-    function attachUpdateHandlers(scope) {
-      const root = scope || document;
-      root.querySelectorAll('.update-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const originalText = btn.textContent;
-          btn.disabled = true;
-          btn.textContent = 'Updating...';
-          setTimeout(() => {
-            btn.textContent = originalText;
-            btn.disabled = false;
-          }, 700);
-        });
-      });
-    }
-    attachUpdateHandlers();
   </script>
 </body>
 </html>

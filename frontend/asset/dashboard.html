@@ -6,123 +6,30 @@
   <title>Asset Management Dashboard</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <style>
-    :root {
-      --brand-orange: #f47621;
-      --brand-dark: #33383f;
-      --muted: #70757d;
-      --card-border: #e3e6ea;
-      --bg-light: #f5f7fa;
-    }
+    :root { --brand-orange: #f47621; --brand-dark: #33383f; --muted: #70757d; --card-border: #e3e6ea; --bg-light: #f5f7fa; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: "Inter", sans-serif;
-      color: var(--brand-dark);
-      background: var(--bg-light);
-      min-height: 100vh;
-      display: flex;
-    }
-
-    /* Sidebar */
-    .sidebar {
-      width: 240px;
-      background: #fff;
-      border-right: 1px solid #e9edf1;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      padding: 20px 16px;
-    }
-    .brand { text-align: center; margin-bottom: 24px; }
-    .brand img { height: 40px; }
+    body { font-family: "Inter", sans-serif; color: var(--brand-dark); background: var(--bg-light); min-height: 100vh; display: flex; }
+    .sidebar { width: 240px; background: #fff; border-right: 1px solid #e9edf1; display: flex; flex-direction: column; justify-content: space-between; padding: 20px 16px; }
+    .brand { text-align: center; margin-bottom: 24px; } .brand img { height: 40px; }
     .menu { display: flex; flex-direction: column; gap: 4px; }
-    .menu a, .menu button {
-      padding: 10px 12px;
-      border-radius: 8px;
-      text-decoration: none;
-      color: var(--brand-dark);
-      font-weight: 600;
-      text-align: left;
-      background: none;
-      border: none;
-      cursor: pointer;
-      transition: background 0.2s, color 0.2s;
-    }
-    .menu a.active, .menu a:hover,
-    .menu button:hover {
-      background: var(--brand-orange);
-      color: #fff;
-    }
-
-    /* Dropdown */
-    .submenu {
-      display: none;
-      flex-direction: column;
-      margin-left: 16px;
-      gap: 4px;
-    }
-    .submenu a {
-      font-weight: 500;
-      font-size: 14px;
-      color: var(--brand-dark);
-    }
-    .submenu a.active, .submenu a:hover {
-      background: var(--brand-orange);
-      color: #fff;
-    }
+    .menu a, .menu button { padding: 10px 12px; border-radius: 8px; text-decoration: none; color: var(--brand-dark); font-weight: 600; text-align: left; background: none; border: none; cursor: pointer; transition: background 0.2s, color 0.2s; }
+    .menu a.active, .menu a:hover, .menu button:hover { background: var(--brand-orange); color: #fff; }
+    .submenu { display: none; flex-direction: column; margin-left: 16px; gap: 4px; }
+    .submenu a { font-weight: 500; font-size: 14px; color: var(--brand-dark); }
+    .submenu a.active, .submenu a:hover { background: var(--brand-orange); color: #fff; }
     .submenu.show { display: flex; }
-
-    .logout a {
-      display: block;
-      padding: 12px;
-      border-radius: 10px;
-      background: #fbe9dd;
-      text-align: center;
-      font-weight: 600;
-      text-decoration: none;
-      color: var(--brand-dark);
-    }
-
-    /* Main */
+    .logout a { display: block; padding: 12px; border-radius: 10px; background: #fbe9dd; text-align: center; font-weight: 600; text-decoration: none; color: var(--brand-dark); cursor: pointer; }
     .main { flex: 1; display: flex; flex-direction: column; }
-    .topbar {
-      height: 64px;
-      background: #fff;
-      border-bottom: 1px solid #e9edf1;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 24px;
-    }
+    .topbar { height: 64px; background: #fff; border-bottom: 1px solid #e9edf1; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; }
     .welcome { font-weight: 700; font-size: 16px; }
-
     .content { flex: 1; padding: 24px; overflow-y: auto; }
     .h1 { font-size: 28px; font-weight: 800; margin-bottom: 20px; }
-
-    /* Cards */
-    .cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 16px;
-      margin-bottom: 28px;
-    }
-    .card {
-      background: #fff;
-      border-radius: 16px;
-      padding: 20px;
-      text-align: center;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-      transition: transform 0.2s;
-    }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 28px; }
+    .card { background: #fff; border-radius: 16px; padding: 20px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.08); transition: transform 0.2s; }
     .card:hover { transform: translateY(-3px); }
     .metric { font-size: 28px; font-weight: 800; margin-bottom: 6px; }
     .label { font-size: 14px; color: var(--muted); }
-
-    /* Links inside cards */
-    .card-link {
-      text-decoration: none;
-      color: inherit;
-      display: block;
-    }
+    .card-link { text-decoration: none; color: inherit; display: block; }
   </style>
 </head>
 <body>
@@ -131,13 +38,11 @@
       <div class="brand"><img src="flogo.png" alt="Company logo" /></div>
       <div class="profile" style="text-align:center;margin:12px 0 18px 0;">
         <img src="aiface.jpg" alt="Profile" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid #e9edf1;" />
-        <!-- MODIFIED: Added id for JS targeting -->
         <div id="profileName" style="font-weight:700;margin-top:8px;color:#33383f;">Loading...</div>
       </div>
       <nav class="menu">
         <a class="active" href="dashboard.html">Dashboard</a>
         <a href="materials.html">Materials</a>
-
         <button id="requestsBtn">Requests ▾</button>
         <div class="submenu" id="requestsMenu">
           <a href="requestpending.html">Pending</a>
@@ -147,14 +52,13 @@
         </div>
       </nav>
     </div>
-    <!-- MODIFIED: Changed href to id for JS logout function -->
-    <div class="logout"><a href="#" id="logoutLink">Logout</a></div>
+    <div class="logout"><a id="logoutLink">Logout</a></div>
   </aside>
 
   <main class="main">
     <div class="topbar">
       <div class="welcome">Welcome, User!</div>
-      <div class="date-display" id="currentDate">Loading date...</div>
+      <div class="date-display" id="currentDate"></div>
     </div>
 
     <div class="content">
@@ -163,16 +67,14 @@
       <div class="cards">
         <a class="card-link" href="requestpending.html">
           <div class="card">
-            <!-- MODIFIED: Added id for JS targeting -->
-            <div class="metric" id="pendingCount">...</div>
+            <div class="metric" id="pendingCount">0</div>
             <div class="label">Pending Material Requests</div>
           </div>
         </a>
 
         <a class="card-link" href="completed.html">
           <div class="card">
-            <!-- MODIFIED: Added id for JS targeting -->
-            <div class="metric" id="completedCount">...</div>
+            <div class="metric" id="completedCount">0</div>
             <div class="label">Completed Requests</div>
           </div>
         </a>
@@ -180,10 +82,8 @@
     </div>
   </main>
 
-  <!-- ADDED: Supabase client and new dashboard logic -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../static/supabaseClient.js"></script>
   <script src="dashboard.js"></script>
-  
 </body>
 </html>

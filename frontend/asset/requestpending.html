@@ -6,399 +6,37 @@
   <title>Pending Requests - Asset Management</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <style>
-    :root {
-      --brand-orange: #f47621;
-      --brand-dark: #33383f;
-      --muted: #70757d;
-      --card-border: #e3e6ea;
-      --bg-light: #f5f7fa;
-      --danger-red: #dc2626;
-    }
+    :root { --brand-orange: #f47621; --brand-dark: #33383f; --muted: #70757d; --card-border: #e3e6ea; --bg-light: #f5f7fa; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: "Inter", sans-serif;
-      color: var(--brand-dark);
-      background: var(--bg-light);
-      min-height: 100vh;
-      display: flex;
-    }
-
-    .sidebar {
-      width: 240px;
-      background: #fff;
-      border-right: 1px solid #e9edf1;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      padding: 20px 16px;
-    }
-    .brand { text-align: center; margin-bottom: 24px; }
-    .brand img { height: 40px; }
+    body { font-family: "Inter", sans-serif; color: var(--brand-dark); background: var(--bg-light); min-height: 100vh; display: flex; }
+    .sidebar { width: 240px; background: #fff; border-right: 1px solid #e9edf1; display: flex; flex-direction: column; justify-content: space-between; padding: 20px 16px; }
+    .brand { text-align: center; margin-bottom: 24px; } .brand img { height: 40px; }
     .menu { display: flex; flex-direction: column; gap: 4px; }
-    .menu a, .menu button {
-      padding: 10px 12px;
-      border-radius: 8px;
-      text-decoration: none;
-      color: var(--brand-dark);
-      font-weight: 600;
-      text-align: left;
-      background: none;
-      border: none;
-      cursor: pointer;
-      transition: background 0.2s, color 0.2s;
-    }
-    .menu a.active, .menu a:hover,
-    .menu button:hover {
-      background: var(--brand-orange);
-      color: #fff;
-    }
+    .menu a, .menu button { padding: 10px 12px; border-radius: 8px; text-decoration: none; color: var(--brand-dark); font-weight: 600; text-align: left; background: none; border: none; cursor: pointer; transition: background 0.2s, color 0.2s; }
+    .menu a.active, .menu a:hover, .menu button:hover { background: var(--brand-orange); color: #fff; }
     .submenu { display: none; flex-direction: column; margin-left: 16px; gap: 4px; }
     .submenu a { font-weight: 500; font-size: 14px; color: var(--brand-dark); }
     .submenu a.active, .submenu a:hover { background: var(--brand-orange); color: #fff; }
     .submenu.show { display: flex; }
-    .logout a {
-      display: block;
-      padding: 12px;
-      border-radius: 10px;
-      background: #fbe9dd;
-      text-align: center;
-      font-weight: 600;
-      text-decoration: none;
-      color: var(--brand-dark);
-    }
-
+    .logout a { display: block; padding: 12px; border-radius: 10px; background: #fbe9dd; text-align: center; font-weight: 600; text-decoration: none; color: var(--brand-dark); cursor: pointer; }
     .main { flex: 1; display: flex; flex-direction: column; }
-    .topbar {
-      height: 64px;
-      background: #fff;
-      border-bottom: 1px solid #e9edf1;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 24px;
-    }
+    .topbar { height: 64px; background: #fff; border-bottom: 1px solid #e9edf1; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; }
     .welcome { font-weight: 700; font-size: 16px; }
     .content { flex: 1; padding: 24px; overflow-y: auto; }
     .h1 { font-size: 28px; font-weight: 800; margin-bottom: 20px; color: var(--brand-orange); }
-
-    .container {
-      background: #fff;
-      border-radius: 16px;
-      padding: 20px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    }
-
+    .container { background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
     table { width: 100%; border-collapse: collapse; }
-    thead th {
-      text-align: left;
-      font-size: 13px;
-      color: var(--muted);
-      font-weight: 700;
-      padding: 10px 14px;
-      border-bottom: 1px solid var(--card-border);
-    }
-    tbody td {
-      padding: 12px 14px;
-      border-bottom: 1px solid var(--card-border);
-      font-size: 14px;
-    }
-    tbody tr:hover { background: #fff9f4; }
-    .btn {
-      background: transparent;
-      color: var(--brand-dark);
-      padding: 6px 14px;
-      border-radius: 8px;
-      border: 1px solid var(--brand-dark);
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s, color 0.2s, opacity 0.2s;
-    }
-
-    .btn:hover {
-      background: var(--brand-dark);
-      color: white;
-    }
-
-    .btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      background: transparent;
-      color: var(--brand-dark);
-      border: 1px solid var(--brand-dark);
-    }
-
-
-    .modal {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 999;
-    }
-    .modal-content {
-      background: #fff;
-      border-radius: 16px;
-      max-width: 500px;
-      width: 90%;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.2);
-      overflow: hidden;
-    }
-    .modal-header {
-      padding: 14px 20px;
-      background: var(--brand-orange);
-      color: #fff;
-      font-weight: 700;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+    thead th { text-align: left; font-size: 13px; color: var(--muted); font-weight: 700; padding: 10px 14px; border-bottom: 1px solid var(--card-border); }
+    tbody td { padding: 12px 14px; border-bottom: 1px solid var(--card-border); font-size: 14px; }
+    .btn { background: transparent; color: var(--brand-dark); padding: 6px 14px; border-radius: 8px; border: 1px solid var(--brand-dark); font-weight: 600; cursor: pointer; transition: background 0.2s; }
+    .btn:hover { background: var(--brand-dark); color: white; }
+    .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 999; }
+    .modal-content { background: #fff; border-radius: 16px; max-width: 500px; width: 90%; box-shadow: 0 6px 16px rgba(0,0,0,0.2); overflow: hidden; }
+    .modal-header { padding: 14px 20px; background: var(--brand-orange); color: #fff; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
     .modal-body { padding: 20px; }
-    .modal-body p { margin-bottom: 8px; }
-    .modal-footer {
-      padding: 14px 20px;
-      display: flex;
-      justify-content: flex-end;
-      align-items: center;
-      gap: 10px;
-      border-top: 1px solid var(--card-border);
-    }
+    .modal-footer { padding: 14px 20px; display: flex; justify-content: flex-end; align-items: center; gap: 10px; border-top: 1px solid var(--card-border); }
     .close { cursor: pointer; font-size: 20px; }
-    textarea {
-      width: 100%;
-      border: 1px solid var(--card-border);
-      border-radius: 8px;
-      padding: 8px;
-      resize: none;
-      font-size: 14px;
-      margin-top: 10px;
-    }
-
-    /* Custom toast notification */
-    #toast {
-      position: fixed;
-      bottom: 30px;
-      right: 30px;
-      background: var(--brand-dark);
-      color: white;
-      padding: 14px 24px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      font-weight: 600;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.4s ease-in-out;
-      z-index: 1000;
-    }
-    #toast.show {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    /* Search box styles */
-    .search-box {
-      margin-bottom: 16px;
-      position: relative;
-    }
-    .search-box input {
-      width: 100%;
-      max-width: 350px;
-      padding: 10px 14px;
-      border: 1px solid var(--card-border);
-      border-radius: 8px;
-      font-size: 14px;
-      font-family: "Inter", sans-serif;
-    }
-    .search-box input:focus {
-      outline: none;
-      border-color: var(--brand-orange);
-    }
-
-    /* Approve confirmation modal override styles */
-    #approveConfirmModal .modal-header {
-      background: var(--brand-orange);
-      color: white;
-    }
-    #approveConfirmModal .btn {
-      font-weight: 600;
-    }
-    #approveConfirmModal .btn:first-child {
-      background: #ccc;
-      color: black;
-      border: none;
-    }
-    #approveConfirmModal .btn:last-child {
-      background: var(--brand-orange);
-      color: white;
-      border: none;
-    }
-
-    /* On Hold (formerly Decline) reason and confirmation modal overrides */
-    #declineReasonModal .modal-header { background: var(--brand-orange); color: white; }
-    #declineReasonModal .btn.primary { background: var(--brand-orange); color: white; border: none; }
-    #declineConfirmModal .modal-header { background: var(--brand-orange); color: white; }
-    #declineConfirmModal .btn.primary { background: var(--brand-orange); color: white; border: none; }
-
-    /* Materials Dropdown Section */
-    .materials-section {
-      margin-top: 12px;
-      border: 1px solid var(--card-border);
-      border-radius: 8px;
-      overflow: hidden;
-    }
-    .materials-header {
-      background: var(--bg-light);
-      padding: 12px 14px;
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-weight: 600;
-      transition: background 0.2s;
-    }
-    .materials-header:hover {
-      background: #e9ecef;
-    }
-    .materials-header .arrow {
-      transition: transform 0.3s;
-      font-size: 16px;
-    }
-    .materials-header.active .arrow {
-      transform: rotate(180deg);
-    }
-    .materials-content {
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.3s ease;
-      background: white;
-    }
-    .materials-content.show {
-      max-height: 600px;
-      overflow-y: auto;
-    }
-    .material-picker {
-      padding: 14px;
-      border-bottom: 1px solid var(--card-border);
-      background: #fafbfc;
-    }
-    .picker-row {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
-    .picker-row select {
-      flex: 1;
-      padding: 8px 12px;
-      border: 1px solid var(--card-border);
-      border-radius: 6px;
-      font-family: "Inter", sans-serif;
-      font-size: 14px;
-      background: white;
-    }
-    .picker-row select:focus {
-      outline: none;
-      border-color: var(--brand-orange);
-    }
-    .picker-row input[type="number"] {
-      width: 80px;
-      padding: 8px 12px;
-      border: 1px solid var(--card-border);
-      border-radius: 6px;
-      font-family: "Inter", sans-serif;
-      font-size: 14px;
-    }
-    .picker-row input[type="number"]:focus {
-      outline: none;
-      border-color: var(--brand-orange);
-    }
-    .add-material-btn {
-      padding: 8px 16px;
-      background: var(--brand-orange);
-      color: white;
-      border: none;
-      border-radius: 6px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s;
-      white-space: nowrap;
-    }
-    .add-material-btn:hover {
-      background: #e36612;
-    }
-    .selected-materials-empty {
-      padding: 20px;
-      text-align: center;
-      color: var(--muted);
-      font-size: 14px;
-    }
-    .material-item {
-      padding: 12px 14px;
-      border-top: 1px solid var(--card-border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .material-name {
-      font-weight: 500;
-      flex: 1;
-    }
-    .material-actions {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .quantity-controls {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .qty-btn {
-      width: 28px;
-      height: 28px;
-      border: 1px solid var(--brand-orange);
-      background: white;
-      color: var(--brand-orange);
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: 700;
-      transition: all 0.2s;
-    }
-    .qty-btn:hover {
-      background: var(--brand-orange);
-      color: white;
-    }
-    .qty-btn:disabled {
-      opacity: 0.3;
-      cursor: not-allowed;
-    }
-    .qty-value {
-      min-width: 40px;
-      text-align: center;
-      font-weight: 600;
-      font-size: 15px;
-    }
-    .remove-material-btn {
-      width: 28px;
-      height: 28px;
-      border: 1px solid var(--danger-red);
-      background: white;
-      color: var(--danger-red);
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: 700;
-      transition: all 0.2s;
-    }
-    .remove-material-btn:hover {
-      background: var(--danger-red);
-      color: white;
-    }
-    .material-status {
-      font-size: 12px;
-      color: var(--muted);
-      margin-top: 4px;
-    }
+    .search-box input { width: 100%; max-width: 350px; padding: 10px 14px; border: 1px solid var(--card-border); border-radius: 8px; font-size: 14px; }
   </style>
 </head>
 <body>
@@ -407,13 +45,13 @@
       <div class="brand"><img src="flogo.png" alt="Company logo" /></div>
       <div class="profile" style="text-align:center;margin:12px 0 18px 0;">
         <img src="aiface.jpg" alt="Profile" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid #e9edf1;" />
-        <div style="font-weight:700;margin-top:8px;color:#33383f;">Michael Jerson</div>
+        <div id="profileName" style="font-weight:700;margin-top:8px;color:#33383f;">Loading...</div>
       </div>
       <nav class="menu">
         <a href="dashboard.html">Dashboard</a>
         <a href="materials.html">Materials</a>
         <button id="requestsBtn">Requests ▾</button>
-        <div class="submenu" id="requestsMenu">
+        <div class="submenu show" id="requestsMenu">
           <a href="requestpending.html" class="active">Pending</a>
           <a href="ongoing.html">On Going</a>
           <a href="onhold.html">On Hold</a>
@@ -421,7 +59,7 @@
         </div>
       </nav>
     </div>
-    <div class="logout"><a href="finsilogin.html">Logout</a></div>
+    <div class="logout"><a href="#" id="logoutLink">Logout</a></div>
   </aside>
 
   <main class="main">
@@ -433,600 +71,72 @@
     <div class="content">
       <div class="h1">Pending Requests</div>
       <div class="container">
-        <div class="search-box">
-          <input type="text" id="searchTicket" placeholder="Search by ticket number..." />
-        </div>
         <table id="requestsTable">
           <thead>
-            <tr>
-              <th>ID</th>
-              <th>Ticket</th>
-              <th>Date</th>
-              <th>Site</th>
-              <th>Remarks</th>
-              <th>Status</th>
-              <th>Priority Level</th>
-              <th>Requested Materials</th>
-              <th>Action</th>
-            </tr>
+            <tr><th>ID</th><th>Ticket</th><th>Date</th><th>Site</th><th>Status</th><th>Priority</th><th>Action</th></tr>
           </thead>
-          <tbody>
-            <tr>
-              <td>1</td>
-              <td>#1001</td>
-              <td>2025-10-11</td>
-              <td>Makati - Ayala North</td>
-              <td>Install network infrastructure for new office</td>
-              <td>Pending</td>
-              <td>Medium</td>
-              <td><strong>Network Switch - 3 pcs</strong></td>
-              <td><button class="btn view-btn">View</button></td>
-            </tr>
-            <tr>
-              <td>2</td>
-              <td>#016</td>
-              <td>2025-09-22</td>
-              <td>Server Room</td>
-              <td>Switch Rack Cable Cleanup</td>
-              <td>Pending</td>
-              <td>Medium</td>
-              <td><strong>Patch Cords, Fiber Jumpers, Cable Ties, Labels</strong></td>
-              <td><button class="btn view-btn">View</button></td>
-            </tr>
-          </tbody>
+          <tbody></tbody>
         </table>
       </div>
-
     </div>
   </main>
 
-  <!-- Details Modal -->
   <div class="modal" id="detailsModal">
     <div class="modal-content">
-      <div class="modal-header">
-        <span>Request Details</span>
-        <span class="close" id="closeDetails">&times;</span>
-      </div>
-      <div class="modal-body" id="detailsBody">
-        <!-- Content will be dynamically populated when View button is clicked -->
-      </div>
-      <div class="modal-footer" style="justify-content: flex-end; gap: 10px;">
-        <button class="btn" id="onHoldBtn">On Hold</button>
-        <button class="btn" id="approveBtn">Approve</button>
+      <div class="modal-header"><span>Request Details</span><span class="close" id="closeDetails">&times;</span></div>
+      <div class="modal-body" id="detailsBody"></div>
+      <div class="modal-footer">
+        <button class="btn" onclick="updateStatus('On Hold')">On Hold</button>
+        <button class="btn" style="background:var(--brand-orange);color:white" onclick="updateStatus('On Going')">Approve</button>
       </div>
     </div>
   </div>
 
-  <!-- Forward Confirmation Modal removed -->
-
-  <!-- Approve Confirmation Modal -->
-  <div class="modal" id="approveConfirmModal">
-    <div class="modal-content" style="max-width: 400px;">
-      <div class="modal-header">
-        <span>Confirm Approval</span>
-        <span class="close" id="closeApproveConfirm">&times;</span>
-      </div>
-      <div class="modal-body" style="font-size: 16px;">
-        <p>Approve details?</p>
-        <label for="approveRemarksInput" style="display:block; margin-top:10px; font-weight:600;">Remarks (optional)</label>
-        <textarea id="approveRemarksInput" rows="3" placeholder="Enter any remarks..."></textarea>
-      </div>
-      <div class="modal-footer" style="justify-content: flex-end;">
-        <button class="btn" id="cancelApproveBtn">Cancel</button>
-        <button class="btn" id="confirmApproveBtn" style="background: var(--brand-orange); color: white; border: none;">OK</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- On Hold Reason Modal (for Pending items) -->
-  <div class="modal" id="holdReasonModal">
-    <div class="modal-content" style="max-width: 520px;">
-      <div class="modal-header" style="background: var(--brand-orange); color: white;">
-        <span>On Hold Reason</span>
-        <span class="close" id="closeHoldReason">&times;</span>
-      </div>
-      <div class="modal-body">
-        <label for="holdReasonInput"><strong>Reason</strong></label>
-        <textarea id="holdReasonInput" rows="4" placeholder="Enter the reason for putting this request on hold..."></textarea>
-        <div id="holdReasonError" style="color: var(--danger-red); font-size: 13px; margin-top: 6px; display: none;">Reason is required.</div>
-      </div>
-      <div class="modal-footer" style="justify-content: flex-end;">
-        <button class="btn" id="cancelHoldReason">Cancel</button>
-        <button class="btn" id="sendHoldReasonBtn" style="background: var(--brand-orange); color: white; border: none;">Send</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- On Hold Confirmation Modal (final step forwards) -->
-  <div class="modal" id="holdConfirmModal">
-    <div class="modal-content" style="max-width: 420px;">
-      <div class="modal-header" style="background: var(--brand-orange); color: white;">
-        <span>Confirm</span>
-        <span class="close" id="closeHoldConfirm">&times;</span>
-      </div>
-      <div class="modal-body" style="font-size: 16px;">
-        <p>Put this request On Hold and forward?</p>
-      </div>
-      <div class="modal-footer" style="justify-content: flex-end;">
-        <button class="btn" id="cancelHoldConfirmBtn">Cancel</button>
-        <button class="btn" id="confirmHoldSendBtn" style="background: var(--brand-orange); color: white; border: none;">OK</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Toast Notification -->
-  <div id="toast"></div>
-
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../static/supabaseClient.js"></script>
+  <script src="dashboard.js"></script>
   <script>
-    // Sidebar submenu toggle
-    const requestsBtn = document.getElementById('requestsBtn');
-    const requestsMenu = document.getElementById('requestsMenu');
-
-    requestsBtn.addEventListener('click', () => {
-      requestsMenu.classList.toggle('show');
-    });
-
-    // Date display
-    const currentDate = document.getElementById('currentDate');
-    const date = new Date();
-    currentDate.textContent = date.toLocaleDateString();
-
-    // Search functionality
-    const searchTicket = document.getElementById('searchTicket');
-    const requestsTable = document.getElementById('requestsTable');
-    const tableRows = requestsTable.querySelectorAll('tbody tr');
-
-    searchTicket.addEventListener('input', (e) => {
-      const searchValue = e.target.value.toLowerCase().trim();
-      
-      tableRows.forEach(row => {
-        const ticketCell = row.cells[1]; // Ticket is in the second column (index 1)
-        const ticketText = ticketCell.textContent.toLowerCase();
-        
-        if (ticketText.includes(searchValue)) {
-          row.style.display = '';
-        } else {
-          row.style.display = 'none';
-        }
-      });
-    });
-
-    // Toast function
-    function showToast(message) {
-      const toast = document.getElementById('toast');
-      toast.textContent = message;
-      toast.classList.add('show');
-      setTimeout(() => {
-        toast.classList.remove('show');
-      }, 3000);
-    }
-
-    // Modal variables
-    const detailsModal = document.getElementById('detailsModal');
-    const closeDetails = document.getElementById('closeDetails');
-    // Forward confirmation modal references removed
-
-    const approveConfirmModal = document.getElementById('approveConfirmModal');
-    const closeApproveConfirm = document.getElementById('closeApproveConfirm');
-    const cancelApproveBtn = document.getElementById('cancelApproveBtn');
-    const confirmApproveBtn = document.getElementById('confirmApproveBtn');
-    const approveBtn = document.getElementById('approveBtn');
-    const onHoldBtn = document.getElementById('onHoldBtn');
-
-    // On Hold reason/confirm refs
-    const holdReasonModal = document.getElementById('holdReasonModal');
-    const closeHoldReason = document.getElementById('closeHoldReason');
-    const cancelHoldReason = document.getElementById('cancelHoldReason');
-    const sendHoldReasonBtn = document.getElementById('sendHoldReasonBtn');
-    const holdReasonInput = document.getElementById('holdReasonInput');
-    const holdReasonError = document.getElementById('holdReasonError');
-    const holdConfirmModal = document.getElementById('holdConfirmModal');
-    const closeHoldConfirm = document.getElementById('closeHoldConfirm');
-    const cancelHoldConfirmBtn = document.getElementById('cancelHoldConfirmBtn');
-    const confirmHoldSendBtn = document.getElementById('confirmHoldSendBtn');
-
-    // Available materials inventory
-    const availableMaterials = [
-      { id: 1, name: "Fiber Optic Cable", stock: 50 },
-      { id: 2, name: "Network Switch", stock: 15 },
-      { id: 3, name: "Ethernet Cable Cat6", stock: 100 }
-    ];
-
-    // Data from table rows for demo (simulate loading data on "View" click)
-    let currentContext = 'pending'; // 'pending' | 'onhold'
-    let approveAction = 'approve'; // 'approve' | 'forward'
-    let currentRequestIndex = 0;
-    const requestsData = [
-      {
-        id: "1",
-        ticket: "#1001",
-        date: "2025-10-11",
-        site: "Makati - Ayala North",
-        task: "Install network infrastructure for new office",
-        status: "Pending",
-        priority: "Medium",
-        materials: "Network Switch - 3 pcs",
-        materialsList: [],
-        requestedBy: "Anna Santos",
-        assignedTo: "Asset Team"
-      },
-      {
-        id: "2",
-        ticket: "#016",
-        date: "2025-09-22",
-        site: "Server Room",
-        task: "Switch Rack Cable Cleanup",
-        status: "Pending",
-        priority: "Medium",
-        materials: "Patch Cords, Fiber Jumpers, Cable Ties, Labels",
-        materialsList: [],
-        requestedBy: "Allan Cruz",
-        assignedTo: "Asset Team"
+    let currentRequestId = null;
+    const checkClient = setInterval(() => {
+      if (window.sbClient) {
+        clearInterval(checkClient);
+        fetchPending();
       }
-    ];
+    }, 100);
 
-    const onHoldData = [
-      {
-        id: "O-2001",
-        ticket: "#2001",
-        date: "2025-09-27",
-        site: "Warehouse A",
-        task: "Replace faulty router",
-        status: "On Hold",
-        priority: "Low",
-        materials: "Router - 1 pc",
-        materialsList: [],
-        requestedBy: "Carlos Lopez"
-      },
-      {
-        id: "O-2002",
-        ticket: "#2002",
-        date: "2025-09-26",
-        site: "Headquarters",
-        task: "Upgrade server RAM",
-        status: "On Hold",
-        priority: "Medium",
-        materials: "DDR4 RAM - 64GB",
-        materialsList: [],
-        requestedBy: "Maria Reyes"
-      },
-      {
-        id: "O-2003",
-        ticket: "#2003",
-        date: "2025-09-25",
-        site: "Branch Office",
-        task: "Install CCTV camera",
-        status: "On Hold",
-        priority: "High",
-        materials: "CCTV Camera - 4 pcs",
-        materialsList: [],
-        requestedBy: "Ramon Cruz"
-      }
-    ];
-
-    // Function to generate material options
-    function getMaterialOptions() {
-      return availableMaterials.map(mat => 
-        `<option value="${mat.id}">${mat.name} (Stock: ${mat.stock})</option>`
-      ).join('');
-    }
-
-    // Track picker rows counter
-    let pickerRowCounter = 0;
-
-    // Function to render materials picker and list
-    function renderMaterialsSection(materialsList, requestIndex, originalMaterials) {
-      const selectedHtml = materialsList.length > 0 
-        ? materialsList.map((material, matIndex) => `
-          <div class="material-item">
-            <div>
-              <div class="material-name">${material.name}</div>
-              <div class="material-status">
-                <span>Quantity: <strong>${material.quantity} pcs</strong></span>
-              </div>
-            </div>
-            <div class="material-actions">
-              <div class="quantity-controls">
-                <button class="qty-btn" onclick="decreaseQty(${requestIndex}, ${matIndex})" ${material.quantity <= 1 ? 'disabled' : ''}>−</button>
-                <span class="qty-value">${material.quantity}</span>
-                <button class="qty-btn" onclick="increaseQty(${requestIndex}, ${matIndex})">+</button>
-              </div>
-              <button class="remove-material-btn" onclick="removeMaterial(${requestIndex}, ${matIndex})" title="Remove">×</button>
-            </div>
-          </div>
-        `).join('')
-        : '';
-
-      return `
-        <div style="padding: 14px; background: #fff9f4; border-bottom: 1px solid var(--card-border);">
-          <p style="margin: 0; font-size: 14px;"><strong>Requested Materials:</strong> ${originalMaterials}</p>
-        </div>
-        <div class="material-picker" id="materialPickerContainer">
-          <div class="picker-row" data-row-id="0">
-            <select class="materialSelect" data-row-id="0">
-              <option value="">-- Select Material --</option>
-              ${getMaterialOptions()}
-            </select>
-            <input type="number" class="materialQty" data-row-id="0" min="1" value="1" placeholder="Qty">
-          </div>
-          <div style="padding: 10px 14px 0 14px;">
-            <button class="add-material-btn" onclick="addAnotherPickerRow(${requestIndex})" style="background: #fff; color: var(--brand-orange); border: 1px solid var(--brand-orange);">
-              + Add Another
-            </button>
-          </div>
-        </div>
-        <div class="selected-materials">
-          ${selectedHtml}
-        </div>
-      `;
-    }
-
-    // Handle View button click to open details modal with correct data
-    document.querySelectorAll('.view-btn').forEach((btn, index) => {
-      btn.addEventListener('click', () => {
-        currentRequestIndex = index;
-        const data = requestsData[index];
-        const detailsBody = document.getElementById('detailsBody');
-        detailsBody.innerHTML = `
-          <p><strong>ID:</strong> ${data.id}</p>
-          <p><strong>Ticket:</strong> ${data.ticket}</p>
-          <p><strong>Date:</strong> ${data.date}</p>
-          <p><strong>Site:</strong> ${data.site}</p>
-          <p><strong>Remarks:</strong> ${data.task}</p>
-          <p><strong>Status:</strong> ${data.status}</p>
-          <p><strong>Priority Level:</strong> ${data.priority}</p>
-          <p><strong>Requested By:</strong> ${data.requestedBy}</p>
-          <p><strong>Assigned To:</strong> ${data.assignedTo}</p>
-          
-          <!-- Materials Dropdown Section -->
-          <div class="materials-section">
-            <div class="materials-header" id="materialsToggle">
-              <span><strong>Select Materials to Fulfill Request</strong></span>
-              <span class="arrow">▼</span>
-            </div>
-            <div class="materials-content" id="materialsContent">
-              ${renderMaterialsSection(data.materialsList, index, data.materials)}
-            </div>
-          </div>
-        `;
-        
-        // Setup toggle functionality
-        const materialsToggle = document.getElementById('materialsToggle');
-        const materialsContent = document.getElementById('materialsContent');
-        materialsToggle.addEventListener('click', () => {
-          materialsToggle.classList.toggle('active');
-          materialsContent.classList.toggle('show');
+    async function fetchPending() {
+      const { data } = await window.sbClient
+        .from('material_requests')
+        .select('*')
+        .eq('status', 'Pending');
+      const tbody = document.querySelector('#requestsTable tbody');
+      tbody.innerHTML = '';
+      if (data) {
+        data.forEach(r => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td>${r.id}</td><td>${r.ticket_id}</td><td>${r.request_date}</td><td>${r.site}</td><td>${r.status}</td><td>${r.priority}</td><td><button class="btn" onclick="viewDetails(${r.id})">View</button></td>`;
+          tbody.appendChild(tr);
         });
-        
-        currentContext = 'pending';
-        approveAction = 'approve';
-        approveBtn.disabled = false;
-        onHoldBtn.style.display = 'inline-block';
-        detailsModal.style.display = "flex";
-      });
-    });
-
-    // Handle View button for On Hold table
-    document.querySelectorAll('.view-onhold-btn').forEach((btn, index) => {
-      btn.addEventListener('click', () => {
-        currentRequestIndex = index;
-        const data = onHoldData[index];
-        const detailsBody = document.getElementById('detailsBody');
-        detailsBody.innerHTML = `
-          <p><strong>ID:</strong> ${data.id}</p>
-          <p><strong>Ticket:</strong> ${data.ticket}</p>
-          <p><strong>Date:</strong> ${data.date}</p>
-          <p><strong>Site:</strong> ${data.site}</p>
-          <p><strong>Remarks:</strong> ${data.task}</p>
-          <p><strong>Status:</strong> ${data.status}</p>
-          <p><strong>Priority Level:</strong> ${data.priority}</p>
-          <p><strong>Requested By:</strong> ${data.requestedBy}</p>
-          
-          <!-- Materials Dropdown Section -->
-          <div class="materials-section">
-            <div class="materials-header" id="materialsToggle">
-              <span><strong>Select Materials to Fulfill Request</strong></span>
-              <span class="arrow">▼</span>
-            </div>
-            <div class="materials-content" id="materialsContent">
-              ${renderMaterialsSection(data.materialsList, index, data.materials)}
-            </div>
-          </div>
-        `;
-        
-        // Setup toggle functionality
-        const materialsToggle = document.getElementById('materialsToggle');
-        const materialsContent = document.getElementById('materialsContent');
-        materialsToggle.addEventListener('click', () => {
-          materialsToggle.classList.toggle('active');
-          materialsContent.classList.toggle('show');
-        });
-
-        currentContext = 'onhold';
-        approveAction = 'forward';
-        approveBtn.disabled = false;
-        onHoldBtn.style.display = 'none';
-        detailsModal.style.display = 'flex';
-      });
-    });
-
-    // Close details modal
-    closeDetails.onclick = () => {
-      detailsModal.style.display = "none";
-    };
-
-    // Approve button logic with confirmation modal
-    const approveConfirmMessageEl = approveConfirmModal.querySelector('.modal-body p');
-    const approveRemarksInput = document.getElementById('approveRemarksInput');
-    approveBtn.onclick = () => {
-      if (!approveBtn.disabled) {
-        approveConfirmMessageEl.textContent = (approveAction === 'forward') ? 'Forward this request?' : 'Approve details?';
-        if (approveRemarksInput) approveRemarksInput.value = '';
-        approveConfirmModal.style.display = 'flex';
       }
-    };
+    }
 
-    closeApproveConfirm.onclick = () => {
-      approveConfirmModal.style.display = 'none';
-    };
-    cancelApproveBtn.onclick = () => {
-      approveConfirmModal.style.display = 'none';
-    };
-    confirmApproveBtn.onclick = () => {
-      const remarks = approveRemarksInput ? approveRemarksInput.value.trim() : '';
-      if (approveAction === 'forward') {
-        showToast(remarks ? 'Remarks sent. Request Forwarded.' : 'Request Forwarded.');
-      } else {
-        showToast(remarks ? 'Remarks sent. Request Approved.' : 'Request Approved.');
-      }
-      approveBtn.disabled = true;
-      onHoldBtn.style.display = 'none';
-      approveConfirmModal.style.display = 'none';
-    };
+    async function viewDetails(id) {
+      currentRequestId = id;
+      const { data: items } = await window.sbClient.from('material_request_items').select('*').eq('request_id', id);
+      const { data: req } = await window.sbClient.from('material_requests').select('*').eq('id', id).single();
+      let itemsHtml = '<ul>';
+      if (items) items.forEach(i => { itemsHtml += `<li>${i.material_name_cache} (Qty: ${i.quantity_requested})</li>`; });
+      itemsHtml += '</ul>';
+      document.getElementById('detailsBody').innerHTML = `<p><strong>Ticket:</strong> ${req.ticket_id}</p><p><strong>Task:</strong> ${req.task_description}</p><hr><p><strong>Materials:</strong></p>${itemsHtml}`;
+      document.getElementById('detailsModal').style.display = 'flex';
+    }
 
-    // On Hold flow (Pending only): reason -> confirm -> forwarded
-    onHoldBtn.onclick = () => {
-      if (onHoldBtn.style.display !== 'none') {
-        holdReasonInput.value = '';
-        holdReasonError.style.display = 'none';
-        holdReasonModal.style.display = 'flex';
-      }
-    };
-    closeHoldReason.onclick = () => { holdReasonModal.style.display = 'none'; };
-    cancelHoldReason.onclick = () => { holdReasonModal.style.display = 'none'; };
-    holdReasonInput.addEventListener('input', () => {
-      if (holdReasonInput.value.trim().length > 0) holdReasonError.style.display = 'none';
-    });
-    sendHoldReasonBtn.onclick = () => {
-      const reason = holdReasonInput.value.trim();
-      if (!reason) { holdReasonError.style.display = 'block'; return; }
-      holdReasonModal.style.display = 'none';
-      holdConfirmModal.style.display = 'flex';
-    };
-    closeHoldConfirm.onclick = () => { holdConfirmModal.style.display = 'none'; };
-    cancelHoldConfirmBtn.onclick = () => { holdConfirmModal.style.display = 'none'; };
-    confirmHoldSendBtn.onclick = () => {
-      showToast('Reason sent. Request Forwarded.');
-      approveBtn.disabled = true;
-      onHoldBtn.style.display = 'none';
-      holdConfirmModal.style.display = 'none';
-    };
-
-    // Add another picker row
-    window.addAnotherPickerRow = function(requestIndex) {
-      pickerRowCounter++;
-      const rowId = pickerRowCounter;
-      const container = document.getElementById('materialPickerContainer');
-      
-      // Find the "Add Another" button container and insert before it
-      const addAnotherBtnContainer = container.querySelector('div[style*="padding"]');
-      
-      const newRow = document.createElement('div');
-      newRow.className = 'picker-row';
-      newRow.setAttribute('data-row-id', rowId);
-      newRow.style.marginTop = '8px';
-      newRow.innerHTML = `
-        <select class="materialSelect" data-row-id="${rowId}">
-          <option value="">-- Select Material --</option>
-          ${getMaterialOptions()}
-        </select>
-        <input type="number" class="materialQty" data-row-id="${rowId}" min="1" value="1" placeholder="Qty">
-        <button class="remove-material-btn" onclick="removePickerRow(${rowId})" title="Remove row">×</button>
-      `;
-      
-      container.insertBefore(newRow, addAnotherBtnContainer);
-    };
-
-    // Remove a picker row
-    window.removePickerRow = function(rowId) {
-      const row = document.querySelector(`.picker-row[data-row-id="${rowId}"]`);
-      if (row) {
-        row.remove();
-      }
-    };
-
-    // Add material from specific row
-    window.addMaterialFromRow = function(requestIndex, rowId) {
-      const materialSelect = document.querySelector(`.materialSelect[data-row-id="${rowId}"]`);
-      const materialQty = document.querySelector(`.materialQty[data-row-id="${rowId}"]`);
-      
-      if (!materialSelect || !materialQty) return;
-      
-      const selectedId = parseInt(materialSelect.value);
-      const quantity = parseInt(materialQty.value);
-      
-      if (!selectedId || quantity < 1) {
-        showToast('Please select a material and enter a valid quantity');
-        return;
-      }
-      
-      const selectedMaterial = availableMaterials.find(m => m.id === selectedId);
-      if (!selectedMaterial) return;
-      
-      // Check if material already added
-      const data = currentContext === 'pending' ? requestsData[requestIndex] : onHoldData[requestIndex];
-      const existingIndex = data.materialsList.findIndex(m => m.name === selectedMaterial.name);
-      
-      if (existingIndex >= 0) {
-        showToast('Material already added. Use +/- buttons to adjust quantity.');
-        return;
-      }
-      
-      // Add new material
-      data.materialsList.push({
-        name: selectedMaterial.name,
-        quantity: quantity
-      });
-      
-      // Re-render
-      const materialsContent = document.getElementById('materialsContent');
-      materialsContent.innerHTML = renderMaterialsSection(data.materialsList, requestIndex, data.materials);
-      
-      showToast(`${selectedMaterial.name} added`);
-    };
-
-    // Remove material function
-    window.removeMaterial = function(requestIndex, matIndex) {
-      const data = currentContext === 'pending' ? requestsData[requestIndex] : onHoldData[requestIndex];
-      const removedMaterial = data.materialsList[matIndex].name;
-      data.materialsList.splice(matIndex, 1);
-      
-      // Re-render
-      const materialsContent = document.getElementById('materialsContent');
-      materialsContent.innerHTML = renderMaterialsSection(data.materialsList, requestIndex, data.materials);
-      
-      showToast(`${removedMaterial} removed`);
-    };
-
-    // Decrease quantity function
-    window.decreaseQty = function(requestIndex, matIndex) {
-      const data = currentContext === 'pending' ? requestsData[requestIndex] : onHoldData[requestIndex];
-      if (data.materialsList[matIndex].quantity > 1) {
-        data.materialsList[matIndex].quantity--;
-        // Re-render materials list
-        const materialsContent = document.getElementById('materialsContent');
-        materialsContent.innerHTML = renderMaterialsSection(data.materialsList, requestIndex, data.materials);
-      }
-    };
-
-    // Increase quantity function
-    window.increaseQty = function(requestIndex, matIndex) {
-      const data = currentContext === 'pending' ? requestsData[requestIndex] : onHoldData[requestIndex];
-      data.materialsList[matIndex].quantity++;
-      // Re-render materials list
-      const materialsContent = document.getElementById('materialsContent');
-      materialsContent.innerHTML = renderMaterialsSection(data.materialsList, requestIndex, data.materials);
-    };
-
-    // Forward button and modal logic removed
-
-    // Close modals when clicking outside modal-content
-    window.onclick = (event) => {
-      if (event.target === detailsModal) detailsModal.style.display = "none";
-      if (event.target === approveConfirmModal) approveConfirmModal.style.display = "none";
-      if (event.target === holdReasonModal) holdReasonModal.style.display = "none";
-      if (event.target === holdConfirmModal) holdConfirmModal.style.display = "none";
-    };
+    async function updateStatus(newStatus) {
+      if(!currentRequestId) return;
+      const { error } = await window.sbClient.from('material_requests').update({ status: newStatus }).eq('id', currentRequestId);
+      if(!error) { document.getElementById('detailsModal').style.display = 'none'; fetchPending(); } else { alert('Error updating status'); }
+    }
+    document.getElementById('closeDetails').onclick = () => document.getElementById('detailsModal').style.display = 'none';
   </script>
 </body>
 </html>

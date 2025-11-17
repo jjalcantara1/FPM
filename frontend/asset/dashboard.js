@@ -1,85 +1,125 @@
-// Wait for the page to load completely
-document.addEventListener('DOMContentLoaded', () => {
+// Make client available globally
+window.sbClient = null;
 
-    // 1. Check if Supabase library is loaded
+document.addEventListener('DOMContentLoaded', async () => {
+    // 1. Initialize Supabase
     if (typeof supabase === 'undefined') {
-        console.error("Error: Supabase library not loaded. Check your internet connection or the <script> tag in dashboard.html");
+        console.error("Supabase library not found.");
         return;
     }
-
-    // 2. Check if keys are loaded
     if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
-        console.error("Error: Supabase keys not found. Check frontend/static/supabaseClient.js");
+        console.error("Supabase keys missing. Check ../static/supabaseClient.js");
         return;
     }
+    window.sbClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
 
-    // 3. Initialize Client
-    const { createClient } = supabase;
-    const supabaseClient = createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+    // 2. Run Session Check
+    await checkSession();
+    setupLogout();
+    setupSidebarToggle(); // Initialize sidebar toggle
 
-    // 4. Main Logic
-    checkSession();
-
+    // 3. Helper: Check Session & Load Profile
     async function checkSession() {
         try {
-            const { data: { session }, error } = await supabaseClient.auth.getSession();
+            const { data: { session }, error } = await window.sbClient.auth.getSession();
             
-            if (!session) {
+            if (error || !session) {
                 window.location.href = 'finsilogin.html';
                 return;
             }
 
-            // Load your data here...
-            loadDashboardData();
-            updateUI(session.user);
+            await loadUserProfile(session.user.id);
+            
+            const dateEl = document.getElementById('currentDate');
+            if (dateEl) {
+                dateEl.textContent = new Date().toLocaleDateString('en-US', {
+                    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+                });
+            }
+
+            if (document.getElementById('pendingCount')) {
+                await loadDashboardStats();
+            }
 
         } catch (err) {
-            console.error("Session check failed:", err);
+            console.error("Session verification failed:", err);
             window.location.href = 'finsilogin.html';
         }
     }
 
-    function updateUI(user) {
-        // Update profile name if element exists
+    // 4. Fetch Asset Manager Name
+    async function loadUserProfile(userId) {
         const profileNameEl = document.getElementById('profileName');
-        if (profileNameEl) profileNameEl.textContent = user.email;
-        
-        // Update date
-        const currentDate = document.getElementById('currentDate');
-        if (currentDate) {
-            currentDate.textContent = new Date().toLocaleDateString('en-US', {
-                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        if (!profileNameEl) return;
+
+        try {
+            const { data, error } = await window.sbClient
+                .from('asset_manager_records')
+                .select('firstName')
+                .eq('user_id', userId)
+                .single();
+
+            if (data && data.firstName) {
+                profileNameEl.textContent = data.firstName;
+            } else {
+                profileNameEl.textContent = 'Manager';
+            }
+        } catch (err) {
+            console.error("Error loading profile:", err);
+            profileNameEl.textContent = 'Manager';
+        }
+    }
+
+    // 5. Load Counters for Dashboard
+    async function loadDashboardStats() {
+        try {
+            const { count: pending } = await window.sbClient
+                .from('material_requests')
+                .select('*', { count: 'exact', head: true })
+                .eq('status', 'Pending');
+
+            const { count: completed } = await window.sbClient
+                .from('material_requests')
+                .select('*', { count: 'exact', head: true })
+                .eq('status', 'Completed');
+
+            const pendingEl = document.getElementById('pendingCount');
+            const completedEl = document.getElementById('completedCount');
+
+            if (pendingEl) pendingEl.textContent = pending || 0;
+            if (completedEl) completedEl.textContent = completed || 0;
+
+        } catch (err) {
+            console.error("Error loading stats:", err);
+        }
+    }
+
+    // 6. Setup Logout
+    function setupLogout() {
+        const logoutLink = document.getElementById('logoutLink');
+        if (logoutLink) {
+            logoutLink.addEventListener('click', async (e) => {
+                e.preventDefault();
+                await window.sbClient.auth.signOut();
+                window.location.href = 'finsilogin.html';
             });
         }
     }
 
-    async function loadDashboardData() {
-        // Example: Get Pending Count
-        const { count: pending } = await supabaseClient
-            .from('material_requests')
-            .select('*', { count: 'exact', head: true })
-            .eq('status', 'Pending');
+    // 7. Sidebar Toggle Logic
+    function setupSidebarToggle() {
+        const requestsBtn = document.getElementById('requestsBtn');
+        const requestsMenu = document.getElementById('requestsMenu');
+        
+        if (requestsBtn && requestsMenu) {
+            // Remove any existing listeners (optional safety) and add new one
+            requestsBtn.replaceWith(requestsBtn.cloneNode(true));
+            const newBtn = document.getElementById('requestsBtn');
             
-        const { count: completed } = await supabaseClient
-            .from('material_requests')
-            .select('*', { count: 'exact', head: true })
-            .eq('status', 'Completed');
-
-        if (document.getElementById('pendingCount')) {
-            document.getElementById('pendingCount').textContent = pending || 0;
+            newBtn.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent bubbling
+                requestsMenu.classList.toggle('show');
+            });
         }
-        if (document.getElementById('completedCount')) {
-            document.getElementById('completedCount').textContent = completed || 0;
-        }
-    }
-
-    // Logout handler
-    const logoutLink = document.getElementById('logoutLink');
-    if (logoutLink) {
-        logoutLink.addEventListener('click', async (e) => {
-            e.preventDefault();
-            await supabaseClient.auth.signOut();
-            window.location.href = 'finsilogin.html';
-        });
     }
 });
