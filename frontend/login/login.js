@@ -10,7 +10,12 @@ async function handleLogin(e) {
     if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Signing in...'; }
 
     try {
-        const { data, error } = await supabase.auth.signInWithPassword({
+        if (typeof supabaseClient === 'undefined') {
+            throw new Error('System not initialized. Please refresh the page.');
+        }
+
+        // Use supabaseClient, not supabase
+        const { data, error } = await supabaseClient.auth.signInWithPassword({
             email: email,
             password: password
         });
@@ -18,31 +23,31 @@ async function handleLogin(e) {
         if (error) throw new Error('Invalid login credentials.');
         if (!data.user) throw new Error('No user data found after login.');
 
-        const { data: profile, error: profileError } = await supabase
+        // Check facility owner status
+        const { data: profile, error: profileError } = await supabaseClient
             .from('facility_owner_records')
             .select('status')
             .eq('user_id', data.user.id)
             .single();
 
         if (profileError) {
-            await supabase.auth.signOut();
+            // If not in facility_owner_records, log out
+            await supabaseClient.auth.signOut();
             throw new Error('This login is for Facility Owners only.');
         }
 
         if (profile.status === 'pending') {
-            await supabase.auth.signOut();
+            await supabaseClient.auth.signOut();
             statusEl.textContent = 'Your account is still pending approval.';
             statusEl.className = 'status error';
-
         } else if (profile.status === 'approved') {
             statusEl.textContent = 'Login successful. Redirecting...';
             statusEl.className = 'status success';
             setTimeout(() => {
                 window.location.href = '../homepage/homepage.html';
             }, 500);
-
         } else {
-            await supabase.auth.signOut();
+            await supabaseClient.auth.signOut();
             statusEl.textContent = `Your account status is: ${profile.status}. Please contact support.`;
             statusEl.className = 'status error';
         }
@@ -55,9 +60,10 @@ async function handleLogin(e) {
     }
 }
 
+// Ensure the form listener is attached safely
 document.addEventListener('DOMContentLoaded', () => {
-    const loginForm = document.getElementById('login-form');
-    if (loginForm) {
+    const loginForm = document.querySelector('form');
+    if (loginForm && !loginForm.getAttribute('onsubmit')) {
         loginForm.addEventListener('submit', handleLogin);
     }
 });

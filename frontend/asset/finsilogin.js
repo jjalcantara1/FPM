@@ -9,18 +9,14 @@ async function handleAssetLogin(e) {
     var statusEl = document.getElementById('loginStatus');
     var submitBtn = document.querySelector('.btn');
     
-    // 1. Check if Supabase is available
-    if (typeof supabase === 'undefined' || !window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
-        console.error('Supabase client not loaded. Check script order and supabaseClient.js');
+    // Use global supabaseClient
+    if (typeof supabaseClient === 'undefined') {
+        console.error('Supabase client not loaded.');
         statusEl.textContent = 'Login client failed to load.';
         statusEl.style.color = 'red';
         return;
     }
     
-    // 2. Create the client
-    const { createClient } = supabase;
-    const supabaseClient = createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
-
     if (statusEl) { statusEl.textContent = ''; statusEl.className = 'status'; }
     if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Signing in...'; }
     
@@ -36,14 +32,13 @@ async function handleAssetLogin(e) {
 
         // 4. Verify the user is an Asset Manager
         const { data: profile, error: profileError } = await supabaseClient
-            .from('asset_manager_records') // Checks the table we created
+            .from('asset_manager_records')
             .select('user_id')
             .eq('user_id', data.user.id)
             .single();
 
-        // If no profile is found, this user is not an asset manager
         if (profileError || !profile) {
-            await supabaseClient.auth.signOut(); // Log them out immediately
+            await supabaseClient.auth.signOut(); 
             throw new Error('This login is for Asset Managers only.');
         }
 
@@ -52,7 +47,7 @@ async function handleAssetLogin(e) {
         statusEl.style.color = 'green';
         
         setTimeout(() => {
-            window.location.href = 'dashboard.html'; // Redirect to asset dashboard
+            window.location.href = 'dashboard.html';
         }, 500);
 
     } catch (err) {

@@ -7,6 +7,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../static/supabaseClient.js"></script>
+
   <style>
     :root {
       --brand-orange: #f47621;
@@ -83,139 +87,6 @@
       font-weight: 500;
     }
 
-    .notification-dropdown {
-      position: relative;
-    }
-
-    .dropdown-toggle {
-      background: none;
-      border: none;
-      font-size: 20px;
-      color: var(--brand-dark);
-      cursor: pointer;
-      transition: color 0.2s;
-      position: relative;
-    }
-
-    .dropdown-toggle:hover {
-      color: var(--brand-orange);
-    }
-
-    .notification-badge {
-      position: absolute;
-      top: -8px;
-      right: -8px;
-      background: #dc3545;
-      color: white;
-      border-radius: 50%;
-      width: 18px;
-      height: 18px;
-      font-size: 10px;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      animation: pulse 2s infinite;
-    }
-
-    .dropdown-menu {
-      position: absolute;
-      top: 100%;
-      right: 0;
-      background: white;
-      border: 1px solid #e3e6ea;
-      border-radius: 12px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-      min-width: 320px;
-      max-height: 400px;
-      overflow-y: auto;
-      z-index: 1000;
-      display: none;
-    }
-
-    .dropdown-menu.show {
-      display: block;
-    }
-
-    .dropdown-header {
-      padding: 16px 20px;
-      border-bottom: 1px solid #e3e6ea;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .dropdown-header h4 {
-      margin: 0;
-      font-size: 16px;
-      font-weight: 700;
-      color: var(--brand-dark);
-    }
-
-    .view-all {
-      color: var(--brand-orange);
-      text-decoration: none;
-      font-size: 14px;
-      font-weight: 600;
-    }
-
-    .view-all:hover {
-      text-decoration: underline;
-    }
-
-    .dropdown-content {
-      padding: 8px 0;
-    }
-
-    .notification-preview {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      padding: 12px 20px;
-      transition: background 0.2s;
-    }
-
-    .notification-preview:hover {
-      background: #f8f9fa;
-    }
-
-    .notification-preview.unread {
-      background: #fff8f5;
-      border-left: 3px solid var(--brand-orange);
-    }
-
-    .preview-icon {
-      font-size: 18px;
-      flex-shrink: 0;
-    }
-
-    .preview-content {
-      flex: 1;
-    }
-
-    .preview-content h5 {
-      margin: 0 0 4px 0;
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--brand-dark);
-    }
-
-    .preview-content p {
-      margin: 0 0 4px 0;
-      font-size: 12px;
-      color: var(--muted);
-      line-height: 1.4;
-    }
-
-    .preview-time {
-      font-size: 11px;
-      color: #999;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
-    }
     .content { flex: 1; padding: 24px; background: #fff; overflow-y: auto; }
     .page-title { font-size: 28px; font-weight: 800; margin-bottom: 24px; }
 
@@ -272,7 +143,6 @@
       background: #fff; padding: 20px; border-radius: 12px; width: 400px; max-width: 90%;
       box-shadow: 0 6px 12px rgba(0,0,0,0.2); position: relative;
     }
-    /* Ensure action confirm modal sits above any inline modals */
     #actionConfirmModal { z-index: 3000; }
     #actionConfirmModal .modal-content { width: 360px; box-shadow: 0 12px 28px rgba(0,0,0,0.25); border-radius: 14px; }
     .modal-content h2 { margin-bottom: 16px; font-size: 20px; }
@@ -306,23 +176,10 @@
       margin-right: 4px;
     }
 
-    .btn-small.btn-primary {
-      background: #007bff;
-      color: white;
-    }
-
-    .btn-small.btn-primary:hover {
-      background: #0056b3;
-    }
-
-    .btn-small.btn-danger {
-      background: #dc3545;
-      color: white;
-    }
-
-    .btn-small.btn-danger:hover {
-      background: #c82333;
-    }
+    .btn-small.btn-primary { background: #007bff; color: white; }
+    .btn-small.btn-primary:hover { background: #0056b3; }
+    .btn-small.btn-danger { background: #dc3545; color: white; }
+    .btn-small.btn-danger:hover { background: #c82333; }
 
     @media (max-width: 768px) {
       .sidebar { width: 100%; flex-direction: row; justify-content: space-between; align-items: center; }
@@ -336,9 +193,7 @@
 <body>
   <aside class="sidebar">
     <div>
-      <div class="brand">
-        <img src="flogo.png" alt="Company logo" />
-      </div>
+      <div class="brand"><img src="flogo.png" alt="Company logo" /></div>
       <nav class="menu">
         <a href="dashboardf.html"><span>Dashboard</span></a>
         <a class="active" href="users.html"><span>Users</span></a>
@@ -348,14 +203,12 @@
         <a href="history.html"><span>History Log</span></a>
       </nav>
     </div>
-    <div class="logout">
-      <a href="loginfleet.html"><span>Logout</span></a>
-    </div>
+    <div class="logout"><a href="#" onclick="logout()">Logout</a></div>
   </aside>
 
   <main class="main">
     <div class="topbar">
-      <div class="welcome">Welcome, Michael!</div>
+      <div class="welcome" id="welcomeMsg">Welcome!</div>
       <div class="topbar-right">
         <div class="date-display" id="currentDate"></div>
       </div>
@@ -376,7 +229,6 @@
         <table class="table" id="userTable">
           <thead>
             <tr>
-              <th>ID</th>
               <th>Given Name</th>
               <th>Middle Name</th>
               <th>Last Name</th>
@@ -385,231 +237,46 @@
               <th>Actions</th>
             </tr>
           </thead>
-          <tbody>
-            <tr data-page="1">
-              <td>1</td>
-              <td>Reynaldo</td>
-              <td>N/A</td>
-              <td>Dela Cruz</td>
-              <td>09123456789</td>
-              <td><a href="mailto:rdelacruz@finsi.com">rdelacruz@finsi.com</a></td>
-              <td>
-                <button class="btn-small btn-primary" onclick="editUser(1)">Edit</button>
-                <button class="btn-small btn-danger" onclick="deleteUser(1)">Delete</button>
-              </td>
-            </tr>
-            <tr data-page="1">
-              <td>2</td>
-              <td>Maria</td>
-              <td>Santos</td>
-              <td>Garcia</td>
-              <td>09123456790</td>
-              <td><a href="mailto:mgarcia@finsi.com">mgarcia@finsi.com</a></td>
-              <td>
-                <button class="btn-small btn-primary" onclick="editUser(2)">Edit</button>
-                <button class="btn-small btn-danger" onclick="deleteUser(2)">Delete</button>
-              </td>
-            </tr>
-            <tr data-page="1">
-              <td>3</td>
-              <td>Jose</td>
-              <td>Antonio</td>
-              <td>Reyes</td>
-              <td>09123456791</td>
-              <td><a href="mailto:jreyes@finsi.com">jreyes@finsi.com</a></td>
-              <td>
-                <button class="btn-small btn-primary" onclick="editUser(3)">Edit</button>
-                <button class="btn-small btn-danger" onclick="deleteUser(3)">Delete</button>
-              </td>
-            </tr>
-            <tr data-page="1">
-              <td>4</td>
-              <td>Ana</td>
-              <td>Marie</td>
-              <td>Lopez</td>
-              <td>09123456792</td>
-              <td><a href="mailto:alopez@finsi.com">alopez@finsi.com</a></td>
-              <td>
-                <button class="btn-small btn-primary" onclick="editUser(4)">Edit</button>
-                <button class="btn-small btn-danger" onclick="deleteUser(4)">Delete</button>
-              </td>
-            </tr>
-            <tr data-page="1">
-              <td>5</td>
-              <td>Carlos</td>
-              <td>Miguel</td>
-              <td>Torres</td>
-              <td>09123456793</td>
-              <td><a href="mailto:ctorres@finsi.com">ctorres@finsi.com</a></td>
-              <td>
-                <button class="btn-small btn-primary" onclick="editUser(5)">Edit</button>
-                <button class="btn-small btn-danger" onclick="deleteUser(5)">Delete</button>
-              </td>
-            </tr>
-            <tr data-page="1">
-              <td>6</td>
-              <td>Isabel</td>
-              <td>Rose</td>
-              <td>Ramos</td>
-              <td>09123456794</td>
-              <td><a href="mailto:iramos@finsi.com">iramos@finsi.com</a></td>
-              <td>
-                <button class="btn-small btn-primary" onclick="editUser(6)">Edit</button>
-                <button class="btn-small btn-danger" onclick="deleteUser(6)">Delete</button>
-              </td>
-            </tr>
-            <tr data-page="1">
-              <td>7</td>
-              <td>Roberto</td>
-              <td>Luis</td>
-              <td>Mendoza</td>
-              <td>09123456795</td>
-              <td><a href="mailto:rmendoza@finsi.com">rmendoza@finsi.com</a></td>
-              <td>
-                <button class="btn-small btn-primary" onclick="editUser(7)">Edit</button>
-                <button class="btn-small btn-danger" onclick="deleteUser(7)">Delete</button>
-              </td>
-            </tr>
-            <tr data-page="1">
-              <td>8</td>
-              <td>Sophia</td>
-              <td>Grace</td>
-              <td>Fernandez</td>
-              <td>09123456796</td>
-              <td><a href="mailto:sfernandez@finsi.com">sfernandez@finsi.com</a></td>
-              <td>
-                <button class="btn-small btn-primary" onclick="editUser(8)">Edit</button>
-                <button class="btn-small btn-danger" onclick="deleteUser(8)">Delete</button>
-              </td>
-            </tr>
-            <tr data-page="1">
-              <td>9</td>
-              <td>Miguel</td>
-              <td>Angel</td>
-              <td>Villanueva</td>
-              <td>09123456797</td>
-              <td><a href="mailto:mvillanueva@finsi.com">mvillanueva@finsi.com</a></td>
-              <td>
-                <button class="btn-small btn-primary" onclick="editUser(9)">Edit</button>
-                <button class="btn-small btn-danger" onclick="deleteUser(9)">Delete</button>
-              </td>
-            </tr>
-            <tr data-page="1">
-              <td>10</td>
-              <td>Carmen</td>
-              <td>Rosa</td>
-              <td>Cruz</td>
-              <td>09123456798</td>
-              <td><a href="mailto:ccruz@finsi.com">ccruz@finsi.com</a></td>
-              <td>
-                <button class="btn-small btn-primary" onclick="editUser(10)">Edit</button>
-                <button class="btn-small btn-danger" onclick="deleteUser(10)">Delete</button>
-              </td>
-            </tr>
-            <tr data-page="2">
-              <td>11</td>
-              <td>Ricardo</td>
-              <td>Jose</td>
-              <td>Bautista</td>
-              <td>09123456799</td>
-              <td><a href="mailto:rbautista@finsi.com">rbautista@finsi.com</a></td>
-              <td>
-                <button class="btn-small btn-primary" onclick="editUser(11)">Edit</button>
-                <button class="btn-small btn-danger" onclick="deleteUser(11)">Delete</button>
-              </td>
-            </tr>
-            <tr data-page="2">
-              <td>12</td>
-              <td>Elena</td>
-              <td>Victoria</td>
-              <td>Aquino</td>
-              <td>09123456800</td>
-              <td><a href="mailto:eaquino@finsi.com">eaquino@finsi.com</a></td>
-              <td>
-                <button class="btn-small btn-primary" onclick="editUser(12)">Edit</button>
-                <button class="btn-small btn-danger" onclick="deleteUser(12)">Delete</button>
-              </td>
-            </tr>
-            <tr data-page="2">
-              <td>13</td>
-              <td>Francisco</td>
-              <td>Manuel</td>
-              <td>Santiago</td>
-              <td>09123456801</td>
-              <td><a href="mailto:fsantiago@finsi.com">fsantiago@finsi.com</a></td>
-              <td>
-                <button class="btn-small btn-primary" onclick="editUser(13)">Edit</button>
-                <button class="btn-small btn-danger" onclick="deleteUser(13)">Delete</button>
-              </td>
-            </tr>
-            <tr data-page="2">
-              <td>14</td>
-              <td>Beatriz</td>
-              <td>Elena</td>
-              <td>Rivera</td>
-              <td>09123456802</td>
-              <td><a href="mailto:brivera@finsi.com">brivera@finsi.com</a></td>
-              <td>
-                <button class="btn-small btn-primary" onclick="editUser(14)">Edit</button>
-                <button class="btn-small btn-danger" onclick="deleteUser(14)">Delete</button>
-              </td>
-            </tr>
-            <tr data-page="2">
-              <td>15</td>
-              <td>Daniel</td>
-              <td>Rafael</td>
-              <td>Morales</td>
-              <td>09123456803</td>
-              <td><a href="mailto:dmorales@finsi.com">dmorales@finsi.com</a></td>
-              <td>
-                <button class="btn-small btn-primary" onclick="editUser(15)">Edit</button>
-                <button class="btn-small btn-danger" onclick="deleteUser(15)">Delete</button>
-              </td>
-            </tr>
+          <tbody id="tableBody">
+            <tr><td colspan="6" style="text-align:center; padding:20px;">Loading...</td></tr>
           </tbody>
         </table>
       </div>
 
-      <div class="pagination">
-        <button class="page-btn" onclick="changePage(1)">1</button>
-        <button class="page-btn" onclick="changePage(2)">2</button>
-      </div>
+      <div class="pagination" id="pagination"></div>
     </div>
   </main>
 
-  <!-- Add User Modal -->
   <div id="addUserModal" class="modal">
     <div class="modal-content">
       <span class="close" onclick="closeModal()">&times;</span>
-      <h2>Add User</h2>
+      <h2 id="modalTitle">Add User</h2>
       <form id="addUserForm">
-        <label>Given Name</label>
-        <input type="text" name="givenName" required />
+        <input type="hidden" id="userIdField"> <label>Given Name</label>
+        <input type="text" name="first_name" id="firstNameField" required />
         <label>Middle Name</label>
-        <input type="text" name="middleName" />
+        <input type="text" name="middle_name" id="middleNameField" />
         <label>Last Name</label>
-        <input type="text" name="lastName" required />
+        <input type="text" name="last_name" id="lastNameField" required />
         <label>Phone Number</label>
-        <input type="tel" name="phone" required />
+        <input type="tel" name="phone_number" id="phoneField" required />
         <label>Email Address</label>
-        <input type="email" name="email" required />
-        <button type="submit" class="add-btn">Create</button>
+        <input type="email" name="email" id="emailField" required />
+        <button type="submit" class="add-btn" id="modalSubmitBtn">Create</button>
       </form>
     </div>
   </div>
 
-  <!-- Confirmation Modal -->
   <div id="confirmModal" class="modal">
     <div class="modal-content">
-      <h2>Are you sure you want to create this user?</h2>
+      <h2>Confirm Creation?</h2>
       <div class="confirm-actions">
-        <button class="cancel-btn">Cancel</button>
+        <button class="cancel-btn" onclick="closeConfirmModal()">Cancel</button>
         <button class="add-btn" id="confirmCreateBtn">Create</button>
       </div>
     </div>
   </div>
 
-  <!-- Generic Action Confirmation Modal -->
   <div id="actionConfirmModal" class="modal">
     <div class="modal-content">
       <h2 id="actionConfirmText">Are you sure?</h2>
@@ -620,294 +287,203 @@
     </div>
   </div>
 
-  <!-- Success Popup -->
-  <div id="successPopup" style="
-    display:none;
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: #4BB543;
-    color: white;
-    padding: 12px 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    font-weight: 600;
-    z-index: 3000;
-  ">
-    User added successfully!
+  <div id="successPopup" style="display:none; position: fixed; bottom: 20px; right: 20px; background: #4BB543; color: white; padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); font-weight: 600; z-index: 3000;">
+    Action completed successfully!
   </div>
 
   <script>
-    // Search functionality
-    function searchUsers() {
-      const input = document.getElementById('searchInput');
-      const filter = input.value.toLowerCase();
-      const table = document.querySelector('.table');
-      const rows = table.getElementsByTagName('tr');
-      for (let i = 1; i < rows.length; i++) {
-        const row = rows[i];
-        const cells = row.getElementsByTagName('td');
-        let found = false;
-        for (let j = 0; j < cells.length; j++) {
-          const cellText = cells[j].textContent || cells[j].innerText;
-          if (cellText.toLowerCase().indexOf(filter) > -1) { found = true; break; }
-        }
-        row.style.display = found ? '' : 'none';
-      }
-    }
-
-    // Modal elements
+    // Variables at the top level to avoid reference errors
+    const sb = window.supabaseClient;
     const modal = document.getElementById("addUserModal");
     const confirmModal = document.getElementById("confirmModal");
     const actionConfirmModal = document.getElementById("actionConfirmModal");
     const actionConfirmText = document.getElementById("actionConfirmText");
     const actionCancelBtn = document.getElementById("actionCancelBtn");
     const actionConfirmBtn = document.getElementById("actionConfirmBtn");
-    let pendingAction = null;
+    
+    let allUsers = [];
     let pendingData = null;
+    let pendingAction = null;
+    let isEditMode = false;
 
-    function openModal() { modal.classList.add("show"); }
-    function closeModal() { modal.classList.remove("show"); }
-    function closeConfirmModal() { confirmModal.classList.remove("show"); }
-    function closeActionConfirmModal() { actionConfirmModal.classList.remove("show"); pendingAction = null; }
-    function openActionConfirm(message, onConfirm) {
-      actionConfirmText.textContent = message || 'Are you sure?';
-      pendingAction = onConfirm || null;
-      actionConfirmModal.classList.add('show');
+    async function logout() {
+        await sb.auth.signOut();
+        window.location.href = 'loginfleet.html';
     }
 
-    // Clicking outside modal closes them
+    // --- Initialization ---
+    document.addEventListener('DOMContentLoaded', async () => {
+        const { data: { session } } = await sb.auth.getSession();
+        if (!session) {
+             window.location.href = 'loginfleet.html';
+             return;
+        }
+        
+        // Load User Name
+        const { data: profile } = await sb.from('fleet_manager_records').select('first_name').eq('user_id', session.user.id).single();
+        if (profile) document.getElementById('welcomeMsg').textContent = `Welcome, ${profile.first_name}!`;
+
+        updateDate();
+        setInterval(updateDate, 60000);
+        
+        loadUsers();
+    });
+
+    function updateDate() {
+      const now = new Date();
+      document.getElementById('currentDate').textContent = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    }
+
+    async function loadUsers() {
+        const { data, error } = await sb.from('fleet_drivers').select('*').order('created_at', {ascending: false});
+        if (error) return console.error(error);
+        allUsers = data || [];
+        renderTable(allUsers);
+    }
+
+    function renderTable(users) {
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = '';
+        
+        if (users.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center">No users found.</td></tr>';
+            return;
+        }
+
+        users.forEach(u => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${u.first_name}</td>
+                <td>${u.middle_name || ''}</td>
+                <td>${u.last_name}</td>
+                <td>${u.phone_number || ''}</td>
+                <td><a href="mailto:${u.email}">${u.email || ''}</a></td>
+                <td>
+                    <button class="btn-small btn-primary" onclick="prepareEditUser(${u.id})">Edit</button>
+                    <button class="btn-small btn-danger" onclick="deleteUser(${u.id})">Delete</button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    function searchUsers() {
+        const term = document.getElementById('searchInput').value.toLowerCase();
+        const filtered = allUsers.filter(u => 
+            (u.first_name + ' ' + u.last_name).toLowerCase().includes(term) ||
+            (u.email && u.email.toLowerCase().includes(term))
+        );
+        renderTable(filtered);
+    }
+
+    // --- Modal Logic ---
+    function openModal(edit = false) { 
+        isEditMode = edit;
+        document.getElementById('modalTitle').textContent = edit ? 'Edit User' : 'Add User';
+        document.getElementById('modalSubmitBtn').textContent = edit ? 'Update' : 'Create';
+        if(!edit) {
+            document.getElementById("addUserForm").reset();
+            document.getElementById("userIdField").value = "";
+        }
+        modal.classList.add("show"); 
+    }
+    function closeModal() { modal.classList.remove("show"); }
+    function closeConfirmModal() { confirmModal.classList.remove("show"); }
+    
+    function closeActionConfirmModal() { 
+        actionConfirmModal.classList.remove("show"); 
+        pendingAction = null; 
+    }
+
+    function openActionConfirm(message, onConfirm) {
+      actionConfirmText.textContent = message;
+      pendingAction = onConfirm;
+      actionConfirmModal.classList.add('show');
+    }
+    
+    // --- Add/Edit User Form ---
+    document.getElementById("addUserForm").addEventListener("submit", function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        pendingData = Object.fromEntries(formData.entries());
+        
+        if (isEditMode) {
+            // If Edit, trigger immediate update
+             openActionConfirm('Are you sure you want to update this user?', async () => {
+                 const { error } = await sb.from('fleet_drivers').update(pendingData).eq('id', pendingData.id);
+                 if(error) alert("Error: " + error.message);
+                 else {
+                     showSuccessPopup("User updated successfully!");
+                     closeModal();
+                     loadUsers();
+                 }
+             });
+        } else {
+            // If Add, show confirmation modal
+            confirmModal.classList.add("show");
+        }
+    });
+
+    document.getElementById("confirmCreateBtn").addEventListener("click", async function() {
+        if (!pendingData) return;
+        // Remove id field for insert
+        const { id, ...insertData } = pendingData;
+        
+        const { error } = await sb.from('fleet_drivers').insert([insertData]);
+        
+        closeConfirmModal();
+        if (error) {
+            alert("Error adding user: " + error.message);
+        } else {
+            closeModal();
+            document.getElementById("addUserForm").reset();
+            showSuccessPopup("User added successfully!");
+            loadUsers();
+        }
+    });
+
+    function prepareEditUser(id) {
+        const user = allUsers.find(u => u.id === id);
+        if(!user) return;
+        document.getElementById('userIdField').value = user.id;
+        document.getElementById('firstNameField').value = user.first_name;
+        document.getElementById('middleNameField').value = user.middle_name || '';
+        document.getElementById('lastNameField').value = user.last_name;
+        document.getElementById('phoneField').value = user.phone_number;
+        document.getElementById('emailField').value = user.email;
+        openModal(true);
+    }
+
+    function deleteUser(id) {
+        openActionConfirm('Are you sure you want to delete this user?', async () => {
+             const { error } = await sb.from('fleet_drivers').delete().eq('id', id);
+             if(error) alert("Error: " + error.message);
+             else {
+                 showSuccessPopup("User deleted!");
+                 loadUsers();
+             }
+        });
+    }
+
+    // Confirmation Buttons
+    actionCancelBtn.addEventListener('click', closeActionConfirmModal);
+    actionConfirmBtn.addEventListener('click', function() {
+        if (typeof pendingAction === 'function') pendingAction();
+        closeActionConfirmModal();
+    });
+
+    function showSuccessPopup(msg) {
+      const popup = document.getElementById("successPopup");
+      popup.textContent = msg;
+      popup.style.display = "block";
+      setTimeout(() => { popup.style.display = "none"; }, 3000);
+    }
+
     window.onclick = function(event) {
       if (event.target === modal) closeModal();
       if (event.target === confirmModal) closeConfirmModal();
       if (event.target === actionConfirmModal) closeActionConfirmModal();
     };
-    // Action confirm modal buttons
-    actionCancelBtn.addEventListener('click', function(){ closeActionConfirmModal(); });
-    actionConfirmBtn.addEventListener('click', function(){ if (typeof pendingAction === 'function') { pendingAction(); } closeActionConfirmModal(); });
-
-
-    // Show success popup function
-    function showSuccessPopup() {
-      const popup = document.getElementById("successPopup");
-      popup.style.display = "block";
-      setTimeout(() => {
-        popup.style.display = "none";
-      }, 3000);
-    }
-
-    // On add user form submit: show confirmation modal instead of adding directly
-    document.getElementById("addUserForm").addEventListener("submit", function(e) {
-      e.preventDefault();
-      const formData = new FormData(this);
-      pendingData = Object.fromEntries(formData.entries());
-      confirmModal.classList.add("show"); // show confirm dialog
-    });
-
-    // Cancel button closes confirmation modal
-    document.querySelector(".cancel-btn").addEventListener("click", function() {
-      closeConfirmModal();
-    });
-
-    // Confirm create button adds user, closes modals, shows success popup
-    document.getElementById("confirmCreateBtn").addEventListener("click", function() {
-      if (!pendingData) return;
-      const tableBody = document.getElementById("userTable").getElementsByTagName("tbody")[0];
-      const nextId = tableBody.rows.length + 1;
-      const newRow = tableBody.insertRow();
-      newRow.innerHTML = `
-        <td>${nextId}</td>
-        <td>${pendingData.givenName}</td>
-        <td>${pendingData.middleName || "N/A"}</td>
-        <td>${pendingData.lastName}</td>
-        <td>${pendingData.phone}</td>
-        <td><a href="mailto:${pendingData.email}">${pendingData.email}</a></td>
-      `;
-      pendingData = null;
-      closeConfirmModal();
-      closeModal();
-      document.getElementById("addUserForm").reset();
-      showSuccessPopup();
-    });
-
-    // Display current date
-    function updateDate() {
-      const now = new Date();
-      const options = { 
-        weekday: 'long', 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
-      };
-      const dateString = now.toLocaleDateString('en-US', options);
-      document.getElementById('currentDate').textContent = dateString;
-    }
-
-    // Update date on page load
-    updateDate();
-
-    // Update date every minute
-    setInterval(updateDate, 60000);
-
-    // Removed notification dropdown per requirement
-
-    // Edit user function
-    function editUser(userId) {
-      const table = document.getElementById('userTable');
-      const rows = table.getElementsByTagName('tbody')[0].rows;
-      let userData = null;
-      let rowIndex = -1;
-      
-      // Find the user data
-      for (let i = 0; i < rows.length; i++) {
-        if (parseInt(rows[i].cells[0].textContent) === userId) {
-          userData = {
-            id: rows[i].cells[0].textContent,
-            givenName: rows[i].cells[1].textContent,
-            middleName: rows[i].cells[2].textContent,
-            lastName: rows[i].cells[3].textContent,
-            phone: rows[i].cells[4].textContent,
-            email: rows[i].cells[5].textContent.replace('mailto:', '')
-          };
-          rowIndex = i;
-          break;
-        }
-      }
-      
-      if (userData) {
-        // Create edit modal
-        const modal = document.createElement('div');
-        modal.style.cssText = `
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background: rgba(0,0,0,0.5);
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          z-index: 1000;
-        `;
-        
-        modal.innerHTML = `
-          <div style="background: white; padding: 30px; border-radius: 12px; width: 500px; max-width: 90%;">
-            <h3 style="margin-bottom: 20px;">Edit User - ${userData.givenName} ${userData.lastName}</h3>
-            <form id="editUserForm">
-              <div style="margin-bottom: 15px;">
-                <label style="display: block; margin-bottom: 5px; font-weight: 600;">Given Name:</label>
-                <input type="text" name="givenName" value="${userData.givenName}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px;" required>
-              </div>
-              <div style="margin-bottom: 15px;">
-                <label style="display: block; margin-bottom: 5px; font-weight: 600;">Middle Name:</label>
-                <input type="text" name="middleName" value="${userData.middleName}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px;">
-              </div>
-              <div style="margin-bottom: 15px;">
-                <label style="display: block; margin-bottom: 5px; font-weight: 600;">Last Name:</label>
-                <input type="text" name="lastName" value="${userData.lastName}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px;" required>
-              </div>
-              <div style="margin-bottom: 15px;">
-                <label style="display: block; margin-bottom: 5px; font-weight: 600;">Phone Number:</label>
-                <input type="text" name="phone" value="${userData.phone}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px;" required>
-              </div>
-              <div style="margin-bottom: 20px;">
-                <label style="display: block; margin-bottom: 5px; font-weight: 600;">Email Address:</label>
-                <input type="email" name="email" value="${userData.email}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px;" required>
-              </div>
-              <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                <button type="button" onclick="closeEditModal()" style="padding: 10px 20px; border: 1px solid #ddd; background: #f8f9fa; border-radius: 6px; cursor: pointer;">Cancel</button>
-                <button type="submit" style="padding: 10px 20px; border: none; background: var(--brand-orange); color: white; border-radius: 6px; cursor: pointer;">Update User</button>
-              </div>
-            </form>
-          </div>
-        `;
-        
-        document.body.appendChild(modal);
-        
-    // Handle form submission with confirmation
-    document.getElementById('editUserForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      const formData = new FormData(this);
-      openActionConfirm('Are you sure you want to update this user?', function(){
-        updateUser(userId, formData, rowIndex);
-        closeEditModal();
-      });
-    });
-      }
-    }
-
-    function updateUser(userId, formData, rowIndex) {
-      const data = Object.fromEntries(formData.entries());
-      const table = document.getElementById('userTable');
-      const row = table.getElementsByTagName('tbody')[0].rows[rowIndex];
-      
-      // Update the table row
-      row.cells[1].textContent = data.givenName;
-      row.cells[2].textContent = data.middleName || 'N/A';
-      row.cells[3].textContent = data.lastName;
-      row.cells[4].textContent = data.phone;
-      row.cells[5].innerHTML = `<a href="mailto:${data.email}">${data.email}</a>`;
-      
-      alert('User updated successfully!');
-    }
-
-    function closeEditModal() {
-      const modal = document.querySelector('div[style*="position: fixed"]');
-      if (modal) {
-        modal.remove();
-      }
-    }
-
-    // Delete user function
-    function deleteUser(userId) {
-      openActionConfirm('Are you sure you want to delete this user?', function(){
-        const table = document.getElementById('userTable');
-        const rows = table.getElementsByTagName('tbody')[0].rows;
-        for (let i = 0; i < rows.length; i++) {
-          if (parseInt(rows[i].cells[0].textContent) === userId) {
-            rows[i].remove();
-            alert('User deleted successfully!');
-            break;
-          }
-        }
-      });
-    }
-
-    // Pagination functionality
-    let currentPage = 1;
-    
-    function changePage(pageNumber) {
-      currentPage = pageNumber;
-      const rows = document.querySelectorAll('#userTable tbody tr');
-      const pageButtons = document.querySelectorAll('.page-btn');
-      
-      // Hide all rows first
-      rows.forEach(row => {
-        row.style.display = 'none';
-      });
-      
-      // Show only rows for current page
-      rows.forEach(row => {
-        if (row.getAttribute('data-page') == pageNumber) {
-          row.style.display = '';
-        }
-      });
-      
-      // Update active button
-      pageButtons.forEach((btn, index) => {
-        if (index + 1 === pageNumber) {
-          btn.classList.add('active');
-        } else {
-          btn.classList.remove('active');
-        }
-      });
-    }
-    
-    // Initialize page 1 on load
-    window.addEventListener('DOMContentLoaded', function() {
-      changePage(1);
-    });
   </script>
 </body>
 </html>
-z

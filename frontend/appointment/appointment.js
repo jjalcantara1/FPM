@@ -7,22 +7,20 @@ function toggleMenu() {
 }
 
 async function logout() {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-        console.error('Error logging out:', error.message);
+    if (typeof supabaseClient !== 'undefined') {
+        await supabaseClient.auth.signOut();
     }
     window.location.href = '../landingpage/landingpage.html#home';
 }
 
 async function checkUserSession() {
-    const { data, error } = await supabase.auth.getSession();
-    if (error) {
-        console.error('Error getting session:', error.message);
-        window.location.href = '../login/login.html';
+    if (typeof supabaseClient === 'undefined') {
+        console.error('Supabase client not ready');
         return;
     }
 
-    if (!data.session) {
+    const { data, error } = await supabaseClient.auth.getSession();
+    if (error || !data.session) {
         console.log('No session found, redirecting to login.');
         window.location.href = '../login/login.html';
         return;
@@ -30,7 +28,7 @@ async function checkUserSession() {
 
     currentUser = data.session.user;
 
-    const { data: profile, error: profileError } = await supabase
+    const { data: profile, error: profileError } = await supabaseClient
         .from('facility_owner_records')
         .select('*')
         .eq('user_id', currentUser.id)
@@ -77,13 +75,14 @@ document.addEventListener('DOMContentLoaded', function(){
         if (!overlay.querySelector('.modal-card')) {
             overlay.innerHTML = '\n<div class="modal-card">\n  <div class="modal-header">\n    <h3 class="modal-title"></h3>\n    <button type="button" class="modal-close" data-modal-close>Close</button>\n  </div>\n  <div class="modal-body"></div>\n  <div class="modal-actions"></div>\n</div>\n';
         }
-        if (!overlay._hasClickHandler) {
+        // Ensure click handler is added only once
+        if (!overlay.dataset.hasHandler) {
             overlay.addEventListener('click', function(e){
                 if (e.target === overlay || e.target.hasAttribute('data-modal-close')) {
                     hideModal();
                 }
             });
-            overlay._hasClickHandler = true;
+            overlay.dataset.hasHandler = "true";
         }
         var titleEl = overlay.querySelector('.modal-title');
         var bodyEl = overlay.querySelector('.modal-body');
@@ -134,8 +133,10 @@ document.addEventListener('DOMContentLoaded', function(){
         btn.addEventListener('click', function(){ menu.classList.toggle('open'); });
         document.addEventListener('click', function(e){ if (!menu.contains(e.target) && !btn.contains(e.target)) { menu.classList.remove('open'); } });
     }
+    
+    // Initialize session check
+    checkUserSession();
 });
-
 
 const state = {
     current: new Date(),
@@ -175,7 +176,6 @@ async function loadAvailability() {
         }
         
         const dailyCounts = await response.json(); 
-
         const totalSlotsPerDay = 5; 
 
         for (const date in dailyCounts) {
@@ -343,7 +343,6 @@ if (form) {
             if (statusEl) statusEl.textContent = 'Please specify the custom appointment type.';
             return;
         }
-        
 
         const slotsCheck = state.dateSlots.get(date);
         if (slotsCheck && slotsCheck.available <= 0) {
@@ -351,7 +350,6 @@ if (form) {
             if (statusEl) statusEl.textContent = 'Selected date is fully booked. Please choose another date.';
             return;
         }
-
 
         var confirmEl = document.createElement('div');
         confirmEl.innerHTML = '<div style="line-height:1.7">' +
@@ -389,8 +387,8 @@ if (form) {
             };
 
             try {
-
-                const { data, error } = await supabase
+                // Use supabaseClient
+                const { data, error } = await supabaseClient
                     .from('appointment_records')
                     .insert(newAppointment)
                     .select();
@@ -398,7 +396,6 @@ if (form) {
                 if (error) {
                     throw new Error(error.message);
                 }
-
 
                 await initCalendar(); 
                 
@@ -420,14 +417,9 @@ if (form) {
             }
         }
 
-
         showModal('Confirm Submission', confirmEl, [
-            { label: 'No', onClick: function(){ 
-                
-            } },
+            { label: 'No', onClick: function(){ } },
             { label: 'Yes', primary: true, onClick: function(){ performSubmission(); } }
         ]);
     });
 }
-
-document.addEventListener('DOMContentLoaded', checkUserSession);

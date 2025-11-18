@@ -2,649 +2,92 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Notifications - Fleet Management</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../static/supabaseClient.js"></script>
   <style>
-    :root {
-      --brand-orange: #f47621;
-      --brand-dark: #33383f;
-      --sidebar-bg: #fff;
-      --sidebar-text: #33383f;
-      --muted: #70757d;
-      --card-bg: #f5f6f8;
-      --card-border: #e3e6ea;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      color: var(--brand-dark);
-      background: #f3f5f7;
-      min-height: 100vh;
-      display: flex;
-    }
-
-    /* Sidebar */
-    .sidebar {
-      width: 240px;
-      background: var(--sidebar-bg);
-      border-right: 1px solid #e9edf1;
-      color: var(--sidebar-text);
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      padding: 20px 16px;
-      height: 100vh;
-      position: sticky;
-      top: 0;
-    }
-
-    .brand {
-      text-align: center;
-      margin-bottom: 24px;
-    }
-
-    .brand img {
-      height: 40px;
-    }
-
-    .menu {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .menu a {
-      padding: 10px 12px;
-      border-radius: 8px;
-      text-decoration: none;
-      color: var(--brand-dark);
-      font-weight: 600;
-      transition: background 0.2s, color 0.2s;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .menu a.active,
-    .menu a:hover {
-      background: var(--brand-orange);
-      color: #fff;
-    }
-
-    .logout a {
-      display: block;
-      padding: 10px 12px;
-      border-radius: 8px;
-      background: #fbe9dd;
-      text-align: center;
-      color: var(--brand-dark);
-      font-weight: 600;
-      text-decoration: none;
-      transition: background 0.2s;
-    }
-
-    .logout a:hover {
-      background: #f8d8c1;
-    }
-
-    /* Main */
-    .main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* Topbar */
-    .topbar {
-      height: 64px;
-      background: #fff;
-      border-bottom: 1px solid #e9edf1;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 24px;
-    }
-
-    .welcome {
-      font-weight: 700;
-      font-size: 16px;
-    }
-
-    .topbar-right {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-    }
-
-    .date-display {
-      font-size: 14px;
-      color: var(--muted);
-      font-weight: 500;
-    }
-
-    /* Content */
-    .content {
-      flex: 1;
-      padding: 24px;
-      overflow-y: auto;
-    }
-
-    .page-title {
-      font-size: 28px;
-      font-weight: 800;
-      margin-bottom: 24px;
-    }
-
-    /* Notification Controls */
-    .notification-controls {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 24px;
-      padding: 20px;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-      flex-wrap: wrap;
-      gap: 16px;
-    }
-
-    .filter-tabs {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
-
-    .filter-tab {
-      padding: 8px 16px;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      font-size: 14px;
-      font-weight: 600;
-      background: white;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .filter-tab.active {
-      background: var(--brand-orange);
-      color: white;
-      border-color: var(--brand-orange);
-    }
-
-    .filter-tab:hover:not(.active) {
-      background: #f8f9fa;
-    }
-
-    .action-buttons {
-      display: flex;
-      gap: 12px;
-    }
-
-    .btn {
-      padding: 8px 16px;
-      border: none;
-      border-radius: 6px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      font-size: 14px;
-    }
-
-    .btn-primary {
-      background: var(--brand-orange);
-      color: white;
-    }
-
-    .btn-primary:hover {
-      background: #e66a1a;
-    }
-
-    .btn-secondary {
-      background: #6c757d;
-      color: white;
-    }
-
-    .btn-secondary:hover {
-      background: #5a6268;
-    }
-
-    /* Notifications List */
-    .notifications-container {
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-      overflow: hidden;
-    }
-
-    .notification-item {
-      padding: 20px;
-      border-bottom: 1px solid #e9ecef;
-      display: flex;
-      gap: 16px;
-      transition: background 0.2s;
-      cursor: pointer;
-      position: relative;
-    }
-
-    .notification-item:hover {
-      background: #f8f9fa;
-    }
-
-    .notification-item:last-child {
-      border-bottom: none;
-    }
-
-    .notification-item.unread {
-      background: #fff8f5;
-      border-left: 4px solid var(--brand-orange);
-    }
-
-    .notification-item.unread::before {
-      content: '';
-      position: absolute;
-      left: 8px;
-      top: 24px;
-      width: 8px;
-      height: 8px;
-      background: var(--brand-orange);
-      border-radius: 50%;
-    }
-
-    .notification-icon {
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-      flex-shrink: 0;
-      margin-left: 12px;
-    }
-
-    .notification-icon.task {
-      background: #e3f2fd;
-      color: #1976d2;
-    }
-
-    .notification-icon.alert {
-      background: #fff3e0;
-      color: #f57c00;
-    }
-
-    .notification-icon.success {
-      background: #e8f5e9;
-      color: #388e3c;
-    }
-
-    .notification-icon.system {
-      background: #f3e5f5;
-      color: #7b1fa2;
-    }
-
-    .notification-content {
-      flex: 1;
-    }
-
-    .notification-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 8px;
-    }
-
-    .notification-title {
-      font-size: 16px;
-      font-weight: 700;
-      color: var(--brand-dark);
-      margin-bottom: 4px;
-    }
-
-    .notification-time {
-      font-size: 12px;
-      color: #999;
-      white-space: nowrap;
-    }
-
-    .notification-message {
-      font-size: 14px;
-      color: var(--muted);
-      line-height: 1.5;
-      margin-bottom: 8px;
-    }
-
-    .notification-meta {
-      display: flex;
-      gap: 12px;
-      font-size: 12px;
-      color: #999;
-    }
-
-    .notification-actions {
-      display: flex;
-      gap: 8px;
-      margin-top: 12px;
-    }
-
-    .btn-small {
-      padding: 6px 12px;
-      border: none;
-      border-radius: 4px;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .btn-mark-read {
-      background: #e9ecef;
-      color: var(--brand-dark);
-    }
-
-    .btn-mark-read:hover {
-      background: #dee2e6;
-    }
-
-    .btn-view {
-      background: #007bff;
-      color: white;
-    }
-
-    .btn-view:hover {
-      background: #0056b3;
-    }
-
-    .empty-state {
-      padding: 80px 20px;
-      text-align: center;
-      color: var(--muted);
-    }
-
-    .empty-state-icon {
-      font-size: 64px;
-      margin-bottom: 16px;
-      opacity: 0.3;
-    }
-
-    .empty-state-text {
-      font-size: 18px;
-      font-weight: 600;
-    }
-
-    @media (max-width: 768px) {
-      .sidebar {
-        width: 100%;
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-      }
-
-      .menu {
-        flex-direction: row;
-        gap: 12px;
-      }
-
-      .logout {
-        display: none;
-      }
-
-      .notification-controls {
-        flex-direction: column;
-        align-items: stretch;
-      }
-
-      .filter-tabs {
-        justify-content: center;
-      }
-
-      .action-buttons {
-        justify-content: center;
-      }
-    }
+    :root { --brand-orange: #f47621; --brand-dark: #33383f; --bg-light: #f5f7fa; }
+    body { font-family: "Inter", sans-serif; color: var(--brand-dark); background: var(--bg-light); display: flex; min-height: 100vh; margin:0; }
+    .sidebar { width: 240px; background: #fff; border-right: 1px solid #e9edf1; display: flex; flex-direction: column; justify-content: space-between; padding: 20px 16px; }
+    .menu a { padding: 10px 12px; border-radius: 8px; text-decoration: none; color: var(--brand-dark); font-weight: 600; display: block; margin-bottom: 4px; transition: 0.2s; }
+    .menu a.active, .menu a:hover { background: var(--brand-orange); color: #fff; }
+    .logout a { display: block; padding: 12px; background: #fbe9dd; text-align: center; border-radius: 8px; text-decoration: none; color: var(--brand-dark); font-weight: 600; cursor: pointer; }
+    .main { flex: 1; padding: 24px; }
+    .notif-card { background: #fff; padding: 16px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid var(--brand-orange); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+    .notif-title { font-weight: 700; margin-bottom: 4px; font-size: 16px; }
+    .notif-time { font-size: 12px; color: #777; margin-top: 8px; }
+    .welcome { font-weight: 600; font-size: 16px; color: var(--brand-dark); }
   </style>
 </head>
 <body>
   <aside class="sidebar">
     <div>
-      <div class="brand">
-        <img src="flogo.png" alt="Company logo" />
-      </div>
+      <div style="text-align:center; margin-bottom:20px;"><img src="flogo.png" height="40" alt="Logo"></div>
       <nav class="menu">
-        <a href="dashboardf.html"><span>Dashboard</span></a>
-        <a href="users.html"><span>Users</span></a>
-        <a href="task.html"><span>Task Assign</span></a>
-        <a class="active" href="notifications.html"><span>Notifications</span></a>
-        <a href="track.html"><span>Tracking</span></a>
-        <a href="history.html"><span>History Log</span></a>
+        <a href="dashboardf.html">Dashboard</a>
+        <a href="users.html">Users</a>
+        <a href="task.html">Task Assign</a>
+        <a href="notifications.html" class="active">Notifications</a>
+        <a href="track.html">Tracking</a>
+        <a href="history.html">History Log</a>
       </nav>
     </div>
-    <div class="logout">
-      <a href="loginfleet.html"><span>Logout</span></a>
-    </div>
+    <div class="logout"><a onclick="logout()">Logout</a></div>
   </aside>
 
   <main class="main">
-    <div class="topbar">
-      <div class="welcome">Welcome, Michael!</div>
-      <div class="topbar-right">
-        <div class="date-display" id="currentDate"></div>
-      </div>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+        <div>
+             <div class="welcome" id="welcomeMsg">Welcome!</div>
+             <h1>Notifications</h1>
+        </div>
+        <div id="currentDate" style="color:#666; font-size:14px;"></div>
     </div>
-
-    <div class="content">
-      <h1 class="page-title">Notifications</h1>
-
-      <div class="notification-controls">
-        <div class="filter-tabs">
-          <button class="filter-tab active" data-filter="all">All</button>
-          <button class="filter-tab" data-filter="unread">Unread</button>
-          <button class="filter-tab" data-filter="read">Read</button>
-        </div>
-        <div class="action-buttons">
-          <button class="btn btn-secondary" onclick="markAllAsRead()">Mark All as Read</button>
-          <button class="btn btn-primary" onclick="clearReadNotifications()">Clear Read</button>
-        </div>
-      </div>
-
-      <div class="notifications-container" id="notificationsContainer">
-        <!-- Notification items will be inserted here -->
-      </div>
+    <div id="notifList">
+        <p>Loading notifications...</p>
     </div>
   </main>
 
   <script>
-    // Sample notification data
-    const notifications = [
-      {
-        id: 7,
-        type: 'success',
-        icon: '✅',
-        title: 'Driver Reached Destination',
-        message: 'Rene Apalla has arrived at the destination for Task #006',
-        time: 'Just now',
-        read: false,
-        meta: { taskId: '#006', driver: 'Rene Apalla' }
-      },
-      {
-        id: 1,
-        type: 'task',
-        icon: '📋',
-        title: 'New Task Assigned',
-        message: 'You have been assigned to Task #003 - Delivery to Downtown Area',
-        time: '5 minutes ago',
-        read: false,
-        meta: { taskId: '#003', driver: 'John Smith' }
-      },
-      {
-        id: 2,
-        type: 'success',
-        icon: '✅',
-        title: 'Task Completed',
-        message: 'Task #001 has been marked as completed by Rene Apalla',
-        time: '1 hour ago',
-        read: false,
-        meta: { taskId: '#001', driver: 'Rene Apalla' }
-      },
-      {
-        id: 3,
-        type: 'alert',
-        icon: '⚠️',
-        title: 'Vehicle Maintenance Due',
-        message: 'Vehicle NVP-100 is due for maintenance in 3 days',
-        time: '2 hours ago',
-        read: true,
-        meta: { vehicle: 'NVP-100' }
-      },
-      {
-        id: 4,
-        type: 'task',
-        icon: '📋',
-        title: 'Task Status Updated',
-        message: 'Task #002 status changed from Pending to In Progress',
-        time: '3 hours ago',
-        read: true,
-        meta: { taskId: '#002' }
-      },
-      {
-        id: 5,
-        type: 'system',
-        icon: '🔔',
-        title: 'System Update',
-        message: 'Fleet Management System has been updated to version 2.1.0',
-        time: 'Yesterday',
-        read: true,
-        meta: {}
-      },
-      {
-        id: 6,
-        type: 'alert',
-        icon: '⚠️',
-        title: 'Driver Check-in Required',
-        message: 'Derick Cruz Raldo needs to check in for Task #005',
-        time: 'Yesterday',
-        read: true,
-        meta: { taskId: '#005', driver: 'Derick Cruz Raldo' }
-      }
-    ];
+    const sb = window.supabaseClient;
 
-    let currentFilter = 'all';
-
-    function updateDate() {
-      const now = new Date();
-      const options = {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      };
-      const dateString = now.toLocaleDateString('en-US', options);
-      const el = document.getElementById('currentDate');
-      if (el) el.textContent = dateString;
-    }
-    updateDate();
-    setInterval(updateDate, 60000);
-
-    function renderNotifications() {
-      const container = document.getElementById('notificationsContainer');
-      const filtered = notifications.filter(n => {
-        if (currentFilter === 'all') return true;
-        if (currentFilter === 'unread') return !n.read;
-        if (currentFilter === 'read') return n.read;
-        return true;
-      });
-
-      if (filtered.length === 0) {
-        container.innerHTML = `
-          <div class="empty-state">
-            <div class="empty-state-icon">🔔</div>
-            <div class="empty-state-text">No notifications to display</div>
-          </div>
-        `;
-        return;
-      }
-
-      container.innerHTML = filtered.map(n => `
-        <div class="notification-item ${n.read ? '' : 'unread'}" data-id="${n.id}">
-          <div class="notification-icon ${n.type}">
-            ${n.icon}
-          </div>
-          <div class="notification-content">
-            <div class="notification-header">
-              <div class="notification-title">${n.title}</div>
-              <div class="notification-time">${n.time}</div>
-            </div>
-            <div class="notification-message">${n.message}</div>
-            ${Object.keys(n.meta).length > 0 ? `
-              <div class="notification-meta">
-                ${n.meta.taskId ? `<span>Task: ${n.meta.taskId}</span>` : ''}
-                ${n.meta.driver ? `<span>Driver: ${n.meta.driver}</span>` : ''}
-                ${n.meta.vehicle ? `<span>Vehicle: ${n.meta.vehicle}</span>` : ''}
-              </div>
-            ` : ''}
-            <div class="notification-actions">
-              ${!n.read ? `<button class="btn-small btn-mark-read" onclick="markAsRead(${n.id})">Mark as Read</button>` : ''}
-              ${n.meta.taskId ? `<button class="btn-small btn-view" onclick="viewTask('${n.meta.taskId}')">View Task</button>` : ''}
-            </div>
-          </div>
-        </div>
-      `).join('');
+    async function logout() {
+        await sb.auth.signOut();
+        window.location.href = 'loginfleet.html';
     }
 
-    function markAsRead(id) {
-      const notification = notifications.find(n => n.id === id);
-      if (notification) {
-        notification.read = true;
-        renderNotifications();
-      }
-    }
+    document.addEventListener('DOMContentLoaded', async () => {
+        const { data: { session } } = await sb.auth.getSession();
+        if (!session) return window.location.href = 'loginfleet.html';
 
-    function markAllAsRead() {
-      notifications.forEach(n => n.read = true);
-      renderNotifications();
-    }
+        // Load Profile
+        const { data: profile } = await sb.from('fleet_manager_records').select('first_name').eq('user_id', session.user.id).single();
+        if(profile) document.getElementById('welcomeMsg').textContent = `Welcome, ${profile.first_name}!`;
 
-    function clearReadNotifications() {
-      const readCount = notifications.filter(n => n.read).length;
-      if (readCount === 0) {
-        alert('No read notifications to clear.');
-        return;
-      }
-      if (confirm(`Are you sure you want to clear ${readCount} read notification(s)?`)) {
-        for (let i = notifications.length - 1; i >= 0; i--) {
-          if (notifications[i].read) {
-            notifications.splice(i, 1);
-          }
+        // Load Date
+        document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+        // Load Notifications (Pending Requests)
+        const { data, error } = await sb.from('vehicle_requests').select('*').eq('status', 'Pending').order('created_at', { ascending: false });
+        const container = document.getElementById('notifList');
+        container.innerHTML = '';
+
+        if (data && data.length > 0) {
+            data.forEach(r => {
+                const el = document.createElement('div');
+                el.className = 'notif-card';
+                el.innerHTML = `
+                    <div class="notif-title">New Request: ${r.ticket_id || 'Ticket'}</div>
+                    <div>${r.requested_by || 'Unknown'} requested a vehicle for <strong>${r.location}</strong>.</div>
+                    <div class="notif-time">${new Date(r.created_at).toLocaleString()}</div>
+                `;
+                container.appendChild(el);
+            });
+        } else {
+            container.innerHTML = '<p>No new notifications.</p>';
         }
-        renderNotifications();
-      }
-    }
-
-    function viewTask(taskId) {
-      window.location.href = `task.html?id=${taskId}`;
-    }
-
-    // Filter tabs
-    document.querySelectorAll('.filter-tab').forEach(tab => {
-      tab.addEventListener('click', function() {
-        document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
-        this.classList.add('active');
-        currentFilter = this.getAttribute('data-filter');
-        renderNotifications();
-      });
     });
-
-    // Initial render
-    renderNotifications();
   </script>
 </body>
 </html>

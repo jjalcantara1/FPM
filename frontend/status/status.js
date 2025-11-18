@@ -13,13 +13,20 @@ function statusClass(s){
 }
         
 async function logout(){ 
-    const { error } = await supabase.auth.signOut();
-    if (error) console.error('Error logging out:', error.message);
+    if (typeof supabaseClient !== 'undefined') {
+        const { error } = await supabaseClient.auth.signOut();
+        if (error) console.error('Error logging out:', error.message);
+    }
     window.location.href = '../landingpage/landingpage.html#home'; 
 }
 
 async function checkUserSession() {
-    const { data, error } = await supabase.auth.getSession();
+    if (typeof supabaseClient === 'undefined') {
+        console.error("Supabase client not initialized");
+        return;
+    }
+
+    const { data, error } = await supabaseClient.auth.getSession();
     if (error || !data.session) {
         console.log('No session found, redirecting to login.');
         window.location.href = '../login/login.html';
@@ -28,7 +35,7 @@ async function checkUserSession() {
 
     currentUser = data.session.user;
 
-    const { data: profile, error: profileError } = await supabase
+    const { data: profile, error: profileError } = await supabaseClient
         .from('facility_owner_records')
         .select('*')
         .eq('user_id', currentUser.id)
@@ -68,11 +75,12 @@ async function loadAndRenderAppointments() {
     tableBody.innerHTML = `<tr><td colspan="9" style="text-align: center;">Loading your appointments...</td></tr>`;
 
     try {
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
         if (sessionError || !session) {
             throw new Error('You are not logged in.');
         }
 
+        // This fetch call goes to your Node.js backend
         const response = await fetch('http://localhost:3000/api/my-appointments', {
             headers: {
                 'Authorization': `Bearer ${session.access_token}`
@@ -82,7 +90,7 @@ async function loadAndRenderAppointments() {
         if (!response.ok) {
             const errorText = await response.text();
             console.error('Server responded with an error:', errorText);
-            throw new Error(`Failed to fetch appointments. Server said: ${response.statusText}`);
+            throw new Error(`Failed to fetch appointments.`);
         }
 
         const data = await response.json();

@@ -10,7 +10,12 @@ async function handlePMLogin(e) {
     if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Signing in...'; }
     
     try {
-        const { data, error } = await supabase.auth.signInWithPassword({
+        // Ensure client is available
+        if (typeof supabaseClient === 'undefined') {
+            throw new Error('Database connection not initialized.');
+        }
+
+        const { data, error } = await supabaseClient.auth.signInWithPassword({
             email: email,
             password: password
         });
@@ -18,14 +23,14 @@ async function handlePMLogin(e) {
         if (error) throw new Error('Invalid login credentials.');
         if (!data.user) throw new Error('No user data found after login.');
 
-        const { data: profile, error: profileError } = await supabase
+        const { data: profile, error: profileError } = await supabaseClient
             .from('project_manager_records')
             .select('user_id')
             .eq('user_id', data.user.id)
             .single();
 
         if (profileError || !profile) {
-            await supabase.auth.signOut();
+            await supabaseClient.auth.signOut();
             throw new Error('This login is for Project Managers only.');
         }
 

@@ -1,8 +1,6 @@
-// Global Client
 window.sbClient = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // 1. Initialize
     if (typeof supabase === 'undefined') {
         console.error("Supabase not loaded");
         return;
@@ -13,14 +11,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     window.sbClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
 
-    // 2. Session & Profile
     await checkSession();
     
-    // 3. Global Event Listeners
     setupLogout();
     setupSidebarToggle();
 
-    // 4. Page Specific Loaders
     if (document.getElementById('pendingCount')) loadDashboardStats();
 });
 
@@ -88,7 +83,6 @@ function setupSidebarToggle() {
     const btn = document.getElementById('requestsBtn');
     const menu = document.getElementById('requestsMenu');
     if (btn && menu) {
-        // Remove old inline onclicks first
         btn.onclick = null; 
         btn.addEventListener('click', (e) => {
             e.stopPropagation();

@@ -29,7 +29,6 @@
       overflow: auto;
     }
 
-    /* Large soft white arcs to mimic the reference */
     body::before,
     body::after {
       content: "";
@@ -156,7 +155,6 @@
     }
     .brand-tag { font-size: 12px; color: #6b6f75; }
 
-    /* Responsive */
     @media (max-width: 820px) {
       .card { grid-template-columns: 1fr; gap: 12px; }
       .right { padding-top: 0; }
@@ -166,9 +164,6 @@
       .login-btn { width: 100%; }
     }
   </style>
-  <!--
-    flogo ito chat ito ung logo chat
-  -->
 </head>
 <body>
   <div class="container">
@@ -180,7 +175,6 @@
           <label for="email">Email</label>
           <div class="field">
             <span class="icon" aria-hidden="true">
-              <!-- user icon -->
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M12 12c2.761 0 5-2.239 5-5s-2.239-5-5-5-5 2.239-5 5 2.239 5 5 5Zm0 2c-4.418 0-8 2.239-8 5v2h16v-2c0-2.761-3.582-5-8-5Z" fill="#202124"/>
               </svg>
@@ -193,7 +187,6 @@
           <label for="password">Password</label>
           <div class="field">
             <span class="icon" aria-hidden="true">
-              <!-- lock icon -->
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M17 9h-1V7a4 4 0 1 0-8 0v2H7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2Zm-6 6.732V17a1 1 0 1 0 2 0v-1.268a2 2 0 1 0-2 0ZM9 7a3 3 0 1 1 6 0v2H9V7Z" fill="#202124"/>
               </svg>
@@ -202,7 +195,8 @@
           </div>
         </div>
 
-        <button class="login-btn" type="button" onclick="location.href='dashboardf.html'">Login</button>
+        <button class="login-btn" type="button" id="loginBtn">Login</button>
+        <div id="errorMsg" style="color: #d32f2f; font-size: 13px; margin-top: 8px; text-align: center;"></div>
         <div class="helper">Forgot Password? <a href="#" title="Recover account">Click here</a></div>
       </div>
 
@@ -213,7 +207,58 @@
       </div>
     </div>
   </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    // 1. Initialize Supabase Client (Renamed variable to 'sb' to avoid conflict)
+    const SUPABASE_URL = 'https://bicvcqolkaokimtwimhn.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJpY3ZjcW9sa2Fva2ltdHdpbWhuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MjUzMDIwMCwiZXhwIjoyMDc4MTA2MjAwfQ.eAYHk5c53gz5y2r85Rkz_-48taKCZWii-5cR2glCMP0';
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    document.getElementById('loginBtn').addEventListener('click', async () => {
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+        const errorMsg = document.getElementById('errorMsg');
+        const btn = document.getElementById('loginBtn');
+
+        errorMsg.textContent = '';
+        if(!email || !password) {
+            errorMsg.textContent = 'Please enter email and password.';
+            return;
+        }
+
+        btn.textContent = 'Logging in...';
+        btn.disabled = true;
+
+        try {
+            // 2. Authenticate
+            const { data, error } = await sb.auth.signInWithPassword({ email, password });
+            if (error) throw error;
+
+            // 3. Check Fleet Manager Role
+            const { data: profile, error: profileError } = await sb
+                .from('fleet_manager_records')
+                .select('*')
+                .eq('user_id', data.user.id)
+                .single();
+
+            // Optional: strict check can be uncommented
+            /*
+            if (profileError || !profile) {
+                await sb.auth.signOut();
+                throw new Error('Access Denied: Not a Fleet Manager.');
+            }
+            */
+
+            window.location.href = 'dashboardf.html';
+
+        } catch (err) {
+            console.error(err);
+            errorMsg.textContent = err.message || 'Login failed.';
+            btn.textContent = 'Login';
+            btn.disabled = false;
+        }
+    });
+  </script>
 </body>
 </html>
-
-

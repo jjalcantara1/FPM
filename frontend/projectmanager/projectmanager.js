@@ -6,14 +6,18 @@ const state = {
     engineers: []
 };
 
-
 async function logout() {
-    await supabase.auth.signOut();
+    await supabaseClient.auth.signOut();
     window.location.href = '../pm_login/pm_login.html';
 }
 
 async function checkPMSession() {
-    const { data, error } = await supabase.auth.getSession();
+    if (typeof supabaseClient === 'undefined') {
+        console.error('Supabase client not initialized');
+        return;
+    }
+
+    const { data, error } = await supabaseClient.auth.getSession();
     if (error || !data.session) {
         console.log('No session, redirecting to PM login.');
         window.location.href = '../pm_login/pm_login.html';
@@ -21,7 +25,7 @@ async function checkPMSession() {
     }
     state.currentUser = data.session.user;
 
-    const { data: profile, error: profileError } = await supabase
+    const { data: profile, error: profileError } = await supabaseClient
         .from('project_manager_records')
         .select('*')
         .eq('user_id', state.currentUser.id)
@@ -47,7 +51,6 @@ function updatePMHeader() {
     if (welcomeText) welcomeText.textContent = `Welcome, ${name}!`;
 }
 
-
 async function loadDashboardData() {
     try {
         const response = await fetch('http://localhost:3000/api/pm/dashboard-data');
@@ -66,7 +69,8 @@ async function loadDashboardData() {
 
     } catch (error) {
         console.error(error.message);
-        alert('Could not load dashboard data. Is the backend server running?');
+        // Only alert once to avoid spamming
+        console.warn('Could not load dashboard data. Is the backend server running?');
     }
 }
 

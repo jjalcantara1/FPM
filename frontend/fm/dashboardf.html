@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Fleet Dashboard</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
   <style>
     :root {
       --brand-orange: #f47621;
@@ -141,7 +144,7 @@
       width: 100%; 
       height: 180px;
       border-radius: 12px;
-      object-fit: contain;
+      object-fit: cover;
       background: #e9edf1;
       flex-shrink: 0;
     }
@@ -156,7 +159,7 @@
 
     /* Modal */
     .modal {
-      display: none; /* keep hidden on start */
+      display: none;
       position: fixed;
       inset: 0;
       background: rgba(0,0,0,0.5);
@@ -215,46 +218,29 @@
   </aside>
 
   <main class="main">
-
-      <!-- Cards -->
       <div class="cards">
-        <div class="card"><div class="metric">15</div><div class="label">Total Drivers</div></div>
-        <div class="card" onclick="window.location.href='task.html?status=Ongoing'"><div class="metric">2</div><div class="label">Ongoing Tasks</div></div>
-        <div class="card" onclick="window.location.href='task.html?status=Pending'"><div class="metric">2</div><div class="label">Pending Tasks</div></div>
-        <div class="card" onclick="window.location.href='task.html?status=Completed'"><div class="metric">2</div><div class="label">Completed Tasks</div></div>
+        <div class="card"><div class="metric" id="countDrivers">0</div><div class="label">Total Drivers</div></div>
+        <div class="card" onclick="window.location.href='task.html?status=Ongoing'"><div class="metric" id="countOngoing">0</div><div class="label">Ongoing Tasks</div></div>
+        <div class="card" onclick="window.location.href='task.html?status=Pending'"><div class="metric" id="countPending">0</div><div class="label">Pending Tasks</div></div>
+        <div class="card" onclick="window.location.href='task.html?status=Completed'"><div class="metric" id="countCompleted">0</div><div class="label">Completed Tasks</div></div>
       </div>
 
-      <!-- Vehicles -->
       <div class="section-header">
         <div class="section-title">Vehicle Information</div>
         <button class="btn" onclick="openModal()">+ Add Vehicle</button>
       </div>
       <div class="vehicle-grid" id="vehicleGrid">
-        <div class="vehicle-card">
-          <img class="vehicle-photo" src="vehicle1.jpg" alt="Vehicle 1" />
-          <div class="kv">
-            <div><b>Type:</b> L300</div>
-            <div><b>Model:</b> Toyota</div>
-            <div><b>Plate:</b> NVP-100</div>
-            <div>
-              <div style="font-weight: 700; margin-top: 6px; margin-bottom: 4px;">OR/CR:</div>
-              <img src="ORCR.jpg" style="width: 100%; height: 180px; object-fit: contain; border-radius: 12px; background: #e9edf1;" alt="OR/CR Document" />
-            </div>
-          </div>
-        </div>
       </div>
-    </div>
   </main>
 
-  <!-- Modal -->
   <div class="modal" id="vehicleModal">
     <div class="modal-content">
       <h2>Add Vehicle</h2>
-      <div class="form-group"><label>Vehicle Type</label><input type="text" id="vType"></div>
-      <div class="form-group"><label>Model</label><input type="text" id="vModel"></div>
-      <div class="form-group"><label>Photo</label><input type="file" id="vPhoto" accept="image/*"></div>
+      <div class="form-group"><label>Vehicle Type</label><input type="text" id="vType" placeholder="e.g. L300"></div>
+      <div class="form-group"><label>Model</label><input type="text" id="vModel" placeholder="e.g. Toyota"></div>
+      <div class="form-group"><label>Photo URL</label><input type="text" id="vPhoto" placeholder="Image Link (optional)"></div>
       <div class="form-group"><label>Plate Number</label><input type="text" id="vPlate"></div>
-      <div class="form-group"><label>OR/CR Document</label><input type="file" id="vORCR" accept="image/*"></div>
+      <div class="form-group"><label>OR/CR URL</label><input type="text" id="vORCR" placeholder="Document Link (optional)"></div>
       <div class="form-actions">
         <button class="btn-secondary" onclick="closeModal()">Cancel</button>
         <button class="btn" onclick="saveVehicle()">Save</button>
@@ -263,76 +249,94 @@
   </div>
 
   <script>
-    // Display current date/time
-    function updateDate() {
-      const now = new Date();
-      const options = { 
-        weekday: 'long', 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
-      };
-      const dateString = now.toLocaleDateString('en-US', options);
-      const el = document.getElementById('currentDate');
-      if (el) el.textContent = dateString;
-    }
-    updateDate();
-    setInterval(updateDate, 60000);
+    const SUPABASE_URL = 'https://bicvcqolkaokimtwimhn.supabase.co';
+    // Using key from your provided file
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJpY3ZjcW9sa2Fva2ltdHdpbWhuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MjUzMDIwMCwiZXhwIjoyMDc4MTA2MjAwfQ.eAYHk5c53gz5y2r85Rkz_-48taKCZWii-5cR2glCMP0';
+    
+    // RENAMED 'supabase' to 'sb' to avoid ReferenceError
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    function openModal() {
-      document.getElementById("vehicleModal").style.display = "flex";
-    }
-    function closeModal() {
-      document.getElementById("vehicleModal").style.display = "none";
-    }
-    function saveVehicle() {
-      const type = document.getElementById("vType").value;
-      const model = document.getElementById("vModel").value;
-      const photoInput = document.getElementById("vPhoto");
-      const plate = document.getElementById("vPlate").value;
-      const orcrInput = document.getElementById("vORCR");
+    async function initDashboard() {
+        // 1. Check Session
+        const { data: { session } } = await sb.auth.getSession();
+        if (!session) window.location.href = 'loginfleet.html';
 
-      const createCard = (imgSrc, orcrSrc) => {
+        // 2. Load Metrics
+        const { count: drivers } = await sb.from('fleet_drivers').select('*', { count: 'exact', head: true });
+        const { count: pending } = await sb.from('vehicle_requests').select('*', { count: 'exact', head: true }).eq('status', 'Pending');
+        const { count: ongoing } = await sb.from('vehicle_requests').select('*', { count: 'exact', head: true }).in('status', ['On Going', 'In Progress']);
+        const { count: completed } = await sb.from('vehicle_requests').select('*', { count: 'exact', head: true }).eq('status', 'Completed');
+
+        document.getElementById('countDrivers').textContent = drivers || 0;
+        document.getElementById('countPending').textContent = pending || 0;
+        document.getElementById('countOngoing').textContent = ongoing || 0;
+        document.getElementById('countCompleted').textContent = completed || 0;
+
+        // 3. Load Vehicles
+        const { data: vehicles } = await sb.from('fleet_vehicles').select('*').order('created_at', {ascending: false});
         const grid = document.getElementById("vehicleGrid");
-        const card = document.createElement("div");
-        card.className = "vehicle-card";
-        card.innerHTML = `
-          <img class="vehicle-photo" src="${imgSrc || ''}" alt="${type}" />
-          <div class="kv">
-            <div><b>Type:</b> ${type}</div>
-            <div><b>Model:</b> ${model}</div>
-            <div><b>Plate:</b> ${plate}</div>
-            ${orcrSrc
-              ? `<div><div style="font-weight: 700; margin-top: 6px; margin-bottom: 4px;">OR/CR:</div><img src="${orcrSrc}" style="width: 100%; height: 180px; object-fit: contain; border-radius: 12px; background: #e9edf1;" alt="OR/CR Document" /></div>`
-              : '<div><div style="font-weight: 700; margin-top: 6px; margin-bottom: 4px;">OR/CR:</div><span style="color: var(--muted); font-style: italic;">No document uploaded</span></div>'}
-          </div>`;
-        grid.appendChild(card);
-        closeModal();
-        alert("Vehicle added successfully ✅");
-      };
+        grid.innerHTML = '';
 
-      if (photoInput && photoInput.files && photoInput.files[0]) {
-        const photoFile = photoInput.files[0];
-        const photoReader = new FileReader();
-        photoReader.onload = function(e) {
-          const vehiclePhotoSrc = e.target.result;
-          if (orcrInput && orcrInput.files && orcrInput.files[0]) {
-            const orcrFile = orcrInput.files[0];
-            const orcrReader = new FileReader();
-            orcrReader.onload = function(e) { createCard(vehiclePhotoSrc, e.target.result); };
-            orcrReader.readAsDataURL(orcrFile);
-          } else { createCard(vehiclePhotoSrc, null); }
-        };
-        photoReader.readAsDataURL(photoFile);
-      } else {
-        if (orcrInput && orcrInput.files && orcrInput.files[0]) {
-          const orcrFile = orcrInput.files[0];
-          const orcrReader = new FileReader();
-          orcrReader.onload = function(e) { createCard("", e.target.result); };
-          orcrReader.readAsDataURL(orcrFile);
-        } else { createCard("", null); }
-      }
+        if (vehicles && vehicles.length > 0) {
+            vehicles.forEach(v => {
+                const card = document.createElement("div");
+                card.className = "vehicle-card";
+                const img = v.photo_url ? v.photo_url : 'vehicle1.jpg'; 
+                
+                let orcrHtml = '';
+                if(v.orcr_url) {
+                     orcrHtml = `<div><div style="font-weight: 700; margin-top: 6px;">OR/CR:</div><a href="${v.orcr_url}" target="_blank" style="color:var(--brand-orange);text-decoration:none;">View Document</a></div>`;
+                } else {
+                     orcrHtml = `<div><div style="font-weight: 700; margin-top: 6px;">OR/CR:</div><span style="color:var(--muted)">No document</span></div>`;
+                }
+
+                card.innerHTML = `
+                  <img class="vehicle-photo" src="${img}" alt="${v.type}" onerror="this.src='vehicle1.jpg'" />
+                  <div class="kv">
+                    <div><b>Type:</b> ${v.type}</div>
+                    <div><b>Model:</b> ${v.model || '-'}</div>
+                    <div><b>Plate:</b> ${v.plate_number}</div>
+                    <div><b>Status:</b> ${v.status}</div>
+                    ${orcrHtml}
+                  </div>`;
+                grid.appendChild(card);
+            });
+        } else {
+            grid.innerHTML = '<p style="color:var(--muted)">No vehicles found.</p>';
+        }
     }
+
+    // Modal Functions
+    function openModal() { document.getElementById("vehicleModal").style.display = "flex"; }
+    function closeModal() { document.getElementById("vehicleModal").style.display = "none"; }
+
+    async function saveVehicle() {
+        const type = document.getElementById("vType").value;
+        const model = document.getElementById("vModel").value;
+        const plate = document.getElementById("vPlate").value;
+        const photo = document.getElementById("vPhoto").value;
+        const orcr = document.getElementById("vORCR").value;
+
+        if(!type || !plate) return alert("Type and Plate Number are required.");
+
+        const { error } = await sb.from('fleet_vehicles').insert([{
+            type, model, plate_number: plate, photo_url: photo, orcr_url: orcr, status: 'Idle'
+        }]);
+
+        if(error) {
+            alert("Error: " + error.message);
+        } else {
+            alert("Vehicle added!");
+            closeModal();
+            initDashboard();
+            document.getElementById("vType").value = "";
+            document.getElementById("vModel").value = "";
+            document.getElementById("vPlate").value = "";
+            document.getElementById("vPhoto").value = "";
+        }
+    }
+
+    initDashboard();
   </script>
 </body>
 </html>
