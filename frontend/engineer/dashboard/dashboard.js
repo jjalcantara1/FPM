@@ -1,863 +1,521 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const mobileLayout = document.querySelector('.mobile-layout');
-  const desktopLayout = document.querySelector('.desktop-layout');
+const SUPABASE_URL = 'https://bicvcqolkaokimtwimhn.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJpY3ZjcW9sa2Fva2ltdHdpbWhuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MjUzMDIwMCwiZXhwIjoyMDc4MTA2MjAwfQ.eAYHk5c53gz5y2r85Rkz_-48taKCZWii-5cR2glCMP0';
 
-  function syncLayouts() {
-    const isMobile = window.innerWidth <= 1023;
-    if (mobileLayout) {
-      mobileLayout.style.display = isMobile ? 'flex' : 'none';
+let supabase;
+let currentUser = null;
+let assignmentsData = [];
+let currentAssignmentId = null;
+
+// Initialize Supabase
+if (window.supabase) {
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+    // 1. Auth Check
+    if (!supabase) {
+        console.error("Supabase not loaded");
+        return;
     }
-    if (desktopLayout) {
-      desktopLayout.style.display = isMobile ? 'none' : 'flex';
+
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+        window.location.href = '../login/login.html';
+        return;
     }
-  }
+    currentUser = session.user;
 
-  syncLayouts();
-  window.addEventListener('resize', syncLayouts);
-
-  // Mobile tab functionality
-  const tabs = document.querySelectorAll(".assignment-tabs .tab");
-  const containers = document.querySelectorAll(".assignment-list .task-container");
-
-  function setActiveTab(targetKey) {
-    tabs.forEach((tab) => {
-      const tabKey = tab.getAttribute("data-tab");
-      if (tabKey === targetKey) {
-        tab.classList.add("tab-active");
-      } else {
-        tab.classList.remove("tab-active");
-      }
-    });
-
-    containers.forEach((container) => {
-      const containerKey = container.getAttribute("data-container");
-      if (containerKey === targetKey) {
-        container.classList.add("task-container-active");
-      } else {
-        container.classList.remove("task-container-active");
-      }
-    });
-  }
-
-  tabs.forEach((tab) => {
-    tab.addEventListener("click", () => {
-      const targetKey = tab.getAttribute("data-tab");
-      if (!targetKey) return;
-      setActiveTab(targetKey);
-    });
-  });
-
-  // Main navigation functionality
-  const mainNavLinks = document.querySelectorAll(".main-navigation .nav-item");
-  const mainSections = document.querySelectorAll(".main-section");
-
-  function setActiveMainPage(targetPage) {
-    mainNavLinks.forEach((link) => {
-      const pageKey = link.getAttribute("data-main-page");
-      if (pageKey === targetPage) {
-        link.classList.add("nav-item-active");
-      } else {
-        link.classList.remove("nav-item-active");
-      }
-    });
-
-    mainSections.forEach((section) => {
-      const sectionKey = section.getAttribute("data-main-section");
-      if (sectionKey === targetPage) {
-        section.classList.add("main-section-active");
-      } else {
-        section.classList.remove("main-section-active");
-      }
-    });
-  }
-
-  mainNavLinks.forEach((link) => {
-    link.addEventListener("click", (e) => {
-      e.preventDefault();
-      const targetPage = link.getAttribute("data-main-page");
-      if (!targetPage) return;
-      setActiveMainPage(targetPage);
-    });
-  });
-
-  // Desktop filter functionality (Teams-style)
-  const filterButtons = document.querySelectorAll(".filter-btn");
-  const feedSections = document.querySelectorAll(".feed-section");
-
-  function setActiveFilter(targetFilter) {
-    filterButtons.forEach((btn) => {
-      const filterKey = btn.getAttribute("data-filter");
-      if (filterKey === targetFilter) {
-        btn.classList.add("filter-btn-active");
-      } else {
-        btn.classList.remove("filter-btn-active");
-      }
-    });
-
-    feedSections.forEach((section) => {
-      const feedKey = section.getAttribute("data-feed");
-      if (feedKey === targetFilter) {
-        section.classList.add("feed-section-active");
-      } else {
-        section.classList.remove("feed-section-active");
-      }
-    });
-  }
-
-  filterButtons.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const targetFilter = btn.getAttribute("data-filter");
-      if (!targetFilter) return;
-      setActiveFilter(targetFilter);
-    });
-  });
-
-  // Section tabs functionality
-  const sectionTabs = document.querySelectorAll(".section-tab");
-  const sectionPanels = document.querySelectorAll(".section-panel");
-
-  function setActiveSection(targetSection) {
-    sectionTabs.forEach((tab) => {
-      const sectionKey = tab.getAttribute("data-section");
-      if (sectionKey === targetSection) {
-        tab.classList.add("section-tab-active");
-      } else {
-        tab.classList.remove("section-tab-active");
-      }
-    });
-
-    sectionPanels.forEach((panel) => {
-      const panelKey = panel.getAttribute("data-panel");
-      if (panelKey === targetSection) {
-        panel.classList.add("section-panel-active");
-      } else {
-        panel.classList.remove("section-panel-active");
-      }
-    });
-  }
-
-  sectionTabs.forEach((tab) => {
-    tab.addEventListener("click", () => {
-      const targetSection = tab.getAttribute("data-section");
-      if (!targetSection) return;
-      setActiveSection(targetSection);
-    });
-  });
-
-  // Mobile navigation functionality
-  const mobileNavButtons = document.querySelectorAll(".bottom-nav .nav-item");
-  const mobileContentSections = document.querySelectorAll(".mobile-content-section");
-
-  function setActiveMobilePage(targetPage) {
-    mobileNavButtons.forEach((button) => {
-      const pageKey = button.getAttribute("data-mobile-page");
-      if (pageKey === targetPage) {
-        button.classList.add("nav-item-active");
-      } else {
-        button.classList.remove("nav-item-active");
-      }
-    });
-
-    mobileContentSections.forEach((section) => {
-      const contentKey = section.getAttribute("data-mobile-content");
-      if (contentKey === targetPage) {
-        section.classList.add("mobile-content-section-active");
-      } else {
-        section.classList.remove("mobile-content-section-active");
-      }
-    });
-  }
-
-  mobileNavButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      const targetPage = button.getAttribute("data-mobile-page");
-      if (!targetPage) return;
-      setActiveMobilePage(targetPage);
-    });
-  });
-
-  // Ensure all modals start hidden on load (defensive in case CSS didn't apply yet)
-  document.querySelectorAll('.modal').forEach(m => {
-    m.classList.remove('show');
-    m.style.visibility = 'hidden';
-    m.style.opacity = '0';
-    m.style.pointerEvents = 'none';
-  });
+    // 2. Initialize Navigation (Desktop & Mobile)
+    initSidebarNavigation();
+    initMobileNavigation();
+    initTabs();
+    
+    // 3. Load Data
+    loadUserProfile();
+    fetchAssignments();
 });
 
-// Function to open assignment details (for mobile cards)
-function openAssignmentDetails(assignmentId) {
-  // Check if we're on mobile or desktop
-  const isMobile = window.innerWidth <= 1023;
-  
-  if (isMobile) {
-    // Show mobile assignment details
-    const mobileDetails = document.getElementById('mobileAssignmentDetails');
+// --- NAVIGATION LOGIC ---
+
+function initSidebarNavigation() {
+    // Desktop Sidebar Links
+    const navLinks = document.querySelectorAll(".sidebar-nav .nav-link");
+    const contentSections = document.querySelectorAll(".content-section");
+
+    navLinks.forEach((link) => {
+        link.addEventListener("click", (e) => {
+            e.preventDefault();
+            const targetPage = link.getAttribute("data-page");
+
+            // Update Active State
+            navLinks.forEach(l => l.classList.remove("nav-link-active"));
+            link.classList.add("nav-link-active");
+
+            // Switch View
+            contentSections.forEach(s => {
+                s.classList.remove("content-section-active");
+                if (s.getAttribute("data-content") === targetPage) {
+                    s.classList.add("content-section-active");
+                }
+            });
+        });
+    });
+}
+
+function initMobileNavigation() {
+    // Mobile Bottom Nav
+    const mobileNavButtons = document.querySelectorAll(".bottom-nav .nav-item");
+    const mobileSections = document.querySelectorAll(".mobile-content-section");
+
+    mobileNavButtons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const targetPage = btn.getAttribute("data-mobile-page");
+            
+            mobileNavButtons.forEach(b => b.classList.remove("nav-item-active"));
+            btn.classList.add("nav-item-active");
+
+            mobileSections.forEach(s => {
+                s.classList.remove("mobile-content-section-active");
+                if (s.getAttribute("data-mobile-content") === targetPage) {
+                    s.classList.add("mobile-content-section-active");
+                }
+            });
+        });
+    });
+}
+
+function initTabs() {
+    // Assignment Status Tabs (Pending/Ongoing/Completed)
+    const tabs = document.querySelectorAll(".tab");
+    tabs.forEach(t => {
+        t.addEventListener("click", () => {
+            tabs.forEach(x => x.classList.remove("tab-active"));
+            t.classList.add("tab-active");
+            
+            const target = t.getAttribute("data-tab");
+            document.querySelectorAll(".task-container").forEach(c => {
+                c.classList.remove("task-container-active");
+                if (c.getAttribute("data-container") === target) {
+                    c.classList.add("task-container-active");
+                }
+            });
+        });
+    });
+
+    // Desktop Filter Buttons
+    const filterBtns = document.querySelectorAll(".filter-btn");
+    filterBtns.forEach(btn => {
+        btn.addEventListener("click", () => {
+            filterBtns.forEach(b => b.classList.remove("filter-btn-active"));
+            btn.classList.add("filter-btn-active");
+            
+            const target = btn.getAttribute("data-filter");
+            document.querySelectorAll(".feed-section").forEach(s => {
+                s.classList.remove("feed-section-active");
+                if (s.getAttribute("data-feed") === target) {
+                    s.classList.add("feed-section-active");
+                }
+            });
+        });
+    });
+}
+
+// --- DATA & RENDERING ---
+
+async function loadUserProfile() {
+    const { data } = await supabase
+        .from('engineer_records')
+        .select('*')
+        .eq('user_id', currentUser.id)
+        .single();
     
-    if (mobileDetails) {
-      mobileDetails.classList.add('show');
-      document.body.classList.add('modal-open');
+    if (data) {
+        const fullName = `${data.firstName} ${data.lastName}`;
+        const initials = (data.firstName[0] + data.lastName[0]).toUpperCase();
+        
+        // Update all name fields
+        document.querySelectorAll('.user-name, .profile-name, .hero-subtitle, .profile-name-large, .mobile-profile-name').forEach(el => {
+            el.textContent = fullName;
+        });
+        
+        // Update emails
+        document.querySelectorAll('.profile-email, .profile-email-large, .mobile-profile-email').forEach(el => {
+            el.textContent = data.email;
+        });
+
+        // Update avatars
+        document.querySelectorAll('.profile-initials, .profile-initials-large, .mobile-profile-initials').forEach(el => {
+            el.textContent = initials;
+        });
     }
-
-    // Toggle mobile footer buttons based on assignment type
-    toggleMobileActions(assignmentId);
-
-    // Populate mobile details with the same data model
-    updateMobileDetails(assignmentId);
-  } else {
-    // Navigate to assignment details page for desktop
-    window.location.href = `./assignment-details.html?type=${assignmentId}&id=${Date.now()}`;
-  }
-  
-  console.log('Opening assignment details for:', assignmentId);
 }
 
-// Function to close mobile assignment details
+async function fetchAssignments() {
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    try {
+        const response = await fetch('http://localhost:3000/api/engineer/assignments', {
+            headers: { 'Authorization': `Bearer ${session.access_token}` }
+        });
+        
+        if (!response.ok) throw new Error('Failed to fetch assignments');
+        
+        assignmentsData = await response.json();
+        
+        renderAssignments(assignmentsData);
+        renderHistory(assignmentsData);
+        renderNotifications(assignmentsData);
+        updateStats(assignmentsData);
+        
+    } catch (error) {
+        console.error("Error:", error);
+    }
+}
+
+function renderAssignments(data) {
+    // Prepare containers
+    const sections = ['pending', 'ongoing', 'completed'];
+    const containers = {};
+    
+    sections.forEach(key => {
+        containers[key] = {
+            mobile: document.querySelector(`.task-container[data-container="${key}"]`),
+            desktop: document.querySelector(`.feed-section[data-feed="${key}"]`)
+        };
+        // Clear loading/static content
+        if(containers[key].mobile) containers[key].mobile.innerHTML = '';
+        if(containers[key].desktop) containers[key].desktop.innerHTML = '';
+    });
+
+    // Sort items
+    data.forEach(item => {
+        const status = (item.status || '').toLowerCase();
+        let category = 'pending';
+        
+        if (['in progress', 'ongoing', 'in_progress', 'accepted'].includes(status)) category = 'ongoing';
+        else if (['completed', 'done'].includes(status)) category = 'completed';
+        else if (['pending', 'assigned'].includes(status)) category = 'pending';
+        else return; 
+
+        const dateStr = new Date(item.date).toLocaleDateString();
+        const priority = (item.priority_level || 'Low').toLowerCase();
+        const priorityClass = priority === 'high' ? 'priority-high' : 'priority-medium';
+
+        // Render Mobile Card
+        if (containers[category].mobile) {
+            const card = document.createElement('article');
+            card.className = 'assignment-card';
+            card.onclick = () => openAssignmentDetails(item.id);
+            card.innerHTML = `
+                <div class="assignment-card-header">
+                  <div class="assignment-title">${item.type_of_appointment}</div>
+                  <div class="assignment-priority ${priorityClass}">${item.priority_level || 'Normal'}</div>
+                </div>
+                <div class="assignment-location">Site: ${item.site}</div>
+                <div class="assignment-due-label">${category === 'completed' ? 'Completed' : 'Due'}: ${dateStr}</div>
+                <div class="assignment-progress assignment-progress-${priority === 'high' ? 'high' : 'medium'}"></div>
+            `;
+            containers[category].mobile.appendChild(card);
+        }
+
+        // Render Desktop List Item
+        if (containers[category].desktop) {
+            const div = document.createElement('div');
+            div.className = 'assignment-item';
+            div.onclick = () => selectDesktopAssignment(item.id);
+            div.innerHTML = `
+                <div class="assignment-avatar"><span class="assignment-icon">📋</span></div>
+                <div class="assignment-info">
+                    <div class="assignment-name">${item.type_of_appointment}</div>
+                    <div class="assignment-location">${item.site}</div>
+                    <div class="assignment-time">Due: ${dateStr}</div>
+                </div>
+            `;
+            containers[category].desktop.appendChild(div);
+        }
+    });
+
+    // Update Counts
+    sections.forEach(key => {
+        const count = document.querySelector(`.filter-btn[data-filter="${key}"] .filter-count`);
+        if(count) {
+            let num = 0;
+            if(key === 'pending') num = data.filter(i => ['pending','assigned'].includes((i.status||'').toLowerCase())).length;
+            if(key === 'ongoing') num = data.filter(i => ['in progress','ongoing'].includes((i.status||'').toLowerCase())).length;
+            if(key === 'completed') num = data.filter(i => ['completed'].includes((i.status||'').toLowerCase())).length;
+            count.textContent = num;
+        }
+    });
+}
+
+function renderHistory(data) {
+    const completedItems = data.filter(a => (a.status || '').toLowerCase() === 'completed');
+    
+    // Mobile History
+    const mobHistGroup = document.querySelector('.mobile-history-group');
+    if(mobHistGroup) {
+        mobHistGroup.innerHTML = '<div class="mobile-history-group-title">Recent</div>';
+        completedItems.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'mobile-history-card';
+            div.innerHTML = `
+                <div class="mobile-history-icon">✅</div>
+                <div class="mobile-history-info">
+                    <h3>${item.type_of_appointment}</h3>
+                    <p class="history-sub">${item.site}</p>
+                    <p class="history-meta">Completed · ${new Date(item.completed_at || Date.now()).toLocaleDateString()}</p>
+                </div>
+            `;
+            mobHistGroup.appendChild(div);
+        });
+    }
+
+    // Desktop History
+    const deskHistList = document.querySelector('.history-list');
+    if(deskHistList) {
+        deskHistList.innerHTML = '';
+        completedItems.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'history-item';
+            div.innerHTML = `
+                <div class="history-title">${item.type_of_appointment} - ${item.site}</div>
+                <div class="history-meta">Completed on ${new Date(item.completed_at || Date.now()).toDateString()}</div>
+            `;
+            deskHistList.appendChild(div);
+        });
+    }
+}
+
+function renderNotifications(data) {
+    const notifs = [];
+    data.forEach(item => {
+        if((item.status||'').toLowerCase() === 'pending') {
+            notifs.push({ title: 'New Assignment', msg: `You have a new task at ${item.site}`, time: item.created_at });
+        }
+    });
+
+    // Desktop Notifications
+    const notifList = document.querySelector('.notification-list');
+    if(notifList) {
+        notifList.innerHTML = '';
+        if(notifs.length === 0) notifList.innerHTML = '<div style="padding:20px;color:#666">No new notifications</div>';
+        
+        notifs.forEach(n => {
+            const div = document.createElement('div');
+            div.className = 'notification-item';
+            div.innerHTML = `
+                <div class="notification-title">${n.title}</div>
+                <div class="notification-message">${n.msg}</div>
+                <div class="notification-time">${new Date(n.time).toLocaleTimeString()}</div>
+            `;
+            notifList.appendChild(div);
+        });
+    }
+}
+
+function updateStats(data) {
+    const total = data.length;
+    const completed = data.filter(i => (i.status||'').toLowerCase() === 'completed').length;
+    const rate = total > 0 ? Math.round((completed/total)*100) + '%' : '0%';
+
+    // Update Desktop Profile Stats
+    const statCards = document.querySelectorAll('.profile-stat-card .stat-number');
+    if(statCards.length >= 3) {
+        statCards[0].textContent = total;
+        statCards[1].textContent = completed;
+        statCards[2].textContent = rate;
+    }
+
+    // Update Mobile Profile Stats
+    const mobStats = document.querySelectorAll('.mobile-stat-number');
+    if(mobStats.length >= 3) {
+        mobStats[0].textContent = total;
+        mobStats[1].textContent = completed;
+        mobStats[2].textContent = rate;
+    }
+}
+
+// --- DETAILS & ACTIONS ---
+
+function getAssignment(id) { return assignmentsData.find(a => a.id == id); }
+
+// Mobile Details Open
+function openAssignmentDetails(id) {
+    currentAssignmentId = id;
+    const item = getAssignment(id);
+    if(!item) return;
+
+    document.getElementById('mTitle').textContent = item.type_of_appointment;
+    document.getElementById('mSite').textContent = item.site;
+    document.getElementById('mDue').textContent = new Date(item.date).toLocaleDateString();
+    
+    document.getElementById('mTicket').textContent = item.ticket_code;
+    document.getElementById('mDescription').textContent = item.task_description;
+    document.getElementById('mRemarks').textContent = item.pm_remarks || 'None';
+
+    // Toggle Buttons
+    const status = (item.status||'').toLowerCase();
+    const btnAck = document.getElementById('mobileActionBtn');
+    const btnReq = document.getElementById('mobileRequestMaterialBtn');
+    const btnComp = document.getElementById('mobileMarkCompletedBtn');
+
+    btnAck.style.display = 'none';
+    btnReq.style.display = 'none';
+    btnComp.style.display = 'none';
+
+    if(['pending', 'assigned'].includes(status)) {
+        btnAck.style.display = 'block';
+    } else if(['in progress', 'ongoing'].includes(status)) {
+        btnReq.style.display = 'block';
+        btnComp.style.display = 'block';
+    }
+
+    document.getElementById('mobileAssignmentDetails').classList.add('show');
+}
+
 function closeMobileAssignmentDetails() {
-  const mobileDetails = document.getElementById('mobileAssignmentDetails');
-  
-  if (mobileDetails) {
-    mobileDetails.classList.remove('show');
-    document.body.classList.remove('modal-open');
-  }
+    document.getElementById('mobileAssignmentDetails').classList.remove('show');
 }
 
-// Function to select assignment in Teams-style layout
-function selectAssignment(assignmentType) {
-  // Remove selected class from all assignment items
-  document.querySelectorAll('.assignment-item').forEach(item => {
-    item.classList.remove('selected');
-  });
-  
-  // Add selected class to clicked item
-  event.currentTarget.classList.add('selected');
-  
-  // Update main content area with assignment details
-  updateAssignmentDetails(assignmentType);
-}
+// Desktop Details Select
+function selectDesktopAssignment(id) {
+    currentAssignmentId = id;
+    const item = getAssignment(id);
+    if(!item) return;
 
-// Function to update assignment details in main content
-// Centralized assignment data
-function getAssignments() {
-  return {
-    'site-inspection': {
-      title: 'Site Inspection',
-      site: 'Site: Quezon City - North Fairview',
-      due: 'Due: Oct 21, 2025',
-      priority: 'MEDIUM',
-      ticketNumber: 'TKT-1001',
-      dateTime: '2025-21-11 14:30',
-      priorityText: 'Medium',
-      type: 'Site Inspection',
-      location: 'Quezon City - North Fairview',
-      description: 'Site Malfunction',
-      remarks: 'Coordinate with site manager before arrival.',
-      status: 'pending'
-    },
-    'installation': {
-      title: 'Installation',
-      site: 'Site: Makati - Ayala',
-      due: 'Due: Oct 11, 2025',
-      priority: 'MEDIUM',
-      ticketNumber: 'TKT-1002',
-      dateTime: '2025-11-10 09:00',
-      priorityText: 'Medium',
-      type: 'Installation',
-      location: 'Makati - Ayala',
-      description: 'Network Equipment Installation',
-      remarks: 'Bring necessary installation tools.',
-      status: 'pending'
-    },
-    'network-upgrade': {
-      title: 'Installation',
-      site: 'Site: BGC - Taguig',
-      due: 'Due: Nov 05, 2025',
-      priority: 'MEDIUM',
-      ticketNumber: 'TKT-1003',
-      dateTime: '2025-05-11 13:00',
-      priorityText: 'Medium',
-      type: 'Installation',
-      location: 'BGC - Taguig',
-      description: 'Upgrade network infrastructure',
-      remarks: 'Schedule during off-peak hours.',
-      status: 'ongoing'
-    },
-    'system-check': {
-      title: 'Site Inspection',
-      site: 'Site: Quezon City - North Fairview',
-      due: 'Completed: Sep 30, 2025',
-      priority: 'MEDIUM',
-      ticketNumber: 'TKT-1001',
-      dateTime: '2025-21-11 14:30',
-      priorityText: 'Medium',
-      type: 'Site Inspection',
-      location: 'Quezon City - North Fairview',
-      description: 'Site Malfunction',
-      remarks: 'All systems functioning normally.',
-      status: 'completed'
-    },
-    // Aliases to support new cards
-    'site-inspection-ongoing': {
-      title: 'Site Inspection',
-      site: 'Site: Quezon City - North Fairview',
-      due: 'Due: Nov 02, 2025',
-      priority: 'MEDIUM',
-      ticketNumber: 'TKT-1001',
-      dateTime: '2025-21-11 14:30',
-      priorityText: 'Medium',
-      type: 'Site Inspection',
-      location: 'Quezon City - North Fairview',
-      description: 'Site Malfunction',
-      remarks: 'Coordinate with site manager before arrival.',
-      status: 'ongoing'
-    },
-    'installation-completed': {
-      title: 'Installation',
-      site: 'Site: Makati - Ayala',
-      due: 'Completed: Oct 11, 2025',
-      priority: 'MEDIUM',
-      ticketNumber: 'TKT-1002',
-      dateTime: '2025-11-10 09:00',
-      priorityText: 'Medium',
-      type: 'Installation',
-      location: 'Makati - Ayala',
-      description: 'Network Equipment Installation',
-      remarks: 'Bring necessary installation tools.',
-      status: 'completed'
+    const container = document.getElementById('desktopDetailView');
+    container.innerHTML = `
+        <div class="assignment-detail-header">
+            <h1 class="assignment-detail-title">${item.type_of_appointment}</h1>
+            <span class="assignment-detail-priority priority-${(item.priority_level||'low').toLowerCase()}">${item.priority_level || 'Medium'}</span>
+        </div>
+        <div class="assignment-detail-meta">
+            <p class="assignment-detail-site">Site: ${item.site}</p>
+            <p class="assignment-detail-due">Due: ${new Date(item.date).toLocaleDateString()}</p>
+        </div>
+        <div class="details-grid">
+            <div class="detail-card"><div class="detail-label">TICKET</div><div class="detail-value">${item.ticket_code}</div></div>
+            <div class="detail-card"><div class="detail-label">STATUS</div><div class="detail-value">${item.status}</div></div>
+            <div class="detail-card"><div class="detail-label">DESCRIPTION</div><div class="detail-value">${item.task_description}</div></div>
+            <div class="detail-card"><div class="detail-label">PM REMARKS</div><div class="detail-value">${item.pm_remarks || 'None'}</div></div>
+        </div>
+    `;
+
+    const status = (item.status||'').toLowerCase();
+    const pendingActions = document.getElementById('desktopPendingActions');
+    const ongoingActions = document.getElementById('desktopAssignmentActions');
+
+    pendingActions.style.display = 'none';
+    ongoingActions.style.display = 'none';
+
+    if(['pending', 'assigned'].includes(status)) {
+        pendingActions.style.display = 'block';
+    } else if(['in progress', 'ongoing'].includes(status)) {
+        ongoingActions.style.display = 'flex';
     }
-  };
 }
 
-function updateAssignmentDetails(assignmentType) {
-  const assignments = getAssignments();
+// --- ACTION HANDLERS ---
 
-  const assignment = assignments[assignmentType] || assignments['site-inspection'];
-
-  // Update main content
-  document.querySelector('.assignment-detail-title').textContent = assignment.title;
-  document.querySelector('.assignment-detail-site').textContent = assignment.site;
-  document.querySelector('.assignment-detail-due').textContent = assignment.due;
-  document.querySelector('.assignment-detail-priority').textContent = assignment.priority;
-
-  // Update detail values
-  const detailValues = document.querySelectorAll('.detail-value');
-  if (detailValues.length >= 7) {
-    detailValues[0].textContent = assignment.ticketNumber;
-    detailValues[1].textContent = assignment.dateTime;
-    detailValues[2].textContent = assignment.priorityText;
-    detailValues[3].textContent = assignment.type;
-    detailValues[4].textContent = assignment.location;
-    detailValues[5].textContent = assignment.description;
-    detailValues[6].textContent = assignment.remarks;
-  }
-
-  // Toggle desktop action buttons / acknowledge based on status
-  toggleDesktopActions(assignment.status);
-}
-
-// Function for back navigation
-function goBack() {
-  if (window.history.length > 1) {
-    window.history.back();
-  } else {
-    window.location.href = './dashboard.html';
-  }
-}
-
-// Function to acknowledge assignment
-function acknowledgeAssignment() {
-  showAcknowledgeModal();
-}
-
-// Function to close all modals
-function closeAllModals() {
-  const modals = document.querySelectorAll('.modal');
-  modals.forEach(modal => {
-    modal.classList.remove('show');
-    modal.style.visibility = 'hidden';
-    modal.style.opacity = '0';
-    modal.style.pointerEvents = 'none';
-    document.body.classList.remove('modal-open');
-  });
-}
-
-// Modal functions
-function showAcknowledgeModal() {
-  closeAllModals(); // Ensure no other modals are open
-  const modal = document.getElementById('acknowledgeModal');
-  modal.classList.add('show');
-  modal.style.visibility = 'visible';
-  modal.style.opacity = '1';
-  modal.style.pointerEvents = 'auto';
-  document.body.classList.add('modal-open');
+async function acknowledgeAssignment() {
+    document.getElementById('acknowledgeModal').classList.add('show');
 }
 
 function closeAcknowledgeModal() {
-  const modal = document.getElementById('acknowledgeModal');
-  modal.classList.remove('show');
-  modal.style.visibility = 'hidden';
-  modal.style.opacity = '0';
-  modal.style.pointerEvents = 'none';
-  // Clear the textarea
-  document.getElementById('acknowledgeRemarks').value = '';
-  document.body.classList.remove('modal-open');
+    document.getElementById('acknowledgeModal').classList.remove('show');
 }
 
-function confirmAcknowledge() {
-  const remarks = document.getElementById('acknowledgeRemarks').value;
-  
-  // Close acknowledge modal first
-  closeAcknowledgeModal();
-  
-  // Wait for modal to close completely, then show toast and next modal
-  setTimeout(() => {
-    showToast('Assignment acknowledged');
-    
-    // Show request vehicle modal after a longer delay
-    setTimeout(() => {
-      showRequestVehicleModal();
-    }, 1500);
-  }, 400);
-}
-
-// Function to update acknowledge button to request vehicle
-function updateAcknowledgeButton() {
-  // Update desktop acknowledge button
-  const desktopBtn = document.querySelector('.acknowledge-btn');
-  if (desktopBtn) {
-    desktopBtn.innerHTML = '<span class="acknowledge-icon">🚗</span><span>REQUEST VEHICLE</span>';
-    desktopBtn.onclick = function() { showRequestVehicleModal(); };
-  }
-  
-  // Update mobile acknowledge button
-  const mobileBtn = document.querySelector('.mobile-acknowledge-btn');
-  if (mobileBtn) {
-    mobileBtn.innerHTML = '<span class="mobile-acknowledge-icon">🚗</span><span>REQUEST VEHICLE</span>';
-    mobileBtn.onclick = function() { showRequestVehicleModal(); };
-  }
-}
-
-function showRequestVehicleModal() {
-  closeAllModals(); // Ensure no other modals are open
-  const modal = document.getElementById('requestVehicleModal');
-  modal.classList.add('show');
-  modal.style.visibility = 'visible';
-  modal.style.opacity = '1';
-  modal.style.pointerEvents = 'auto';
-  document.body.classList.add('modal-open');
-}
-
-function closeRequestVehicleModal() {
-  const modal = document.getElementById('requestVehicleModal');
-  modal.classList.remove('show');
-  modal.style.visibility = 'hidden';
-  modal.style.opacity = '0';
-  modal.style.pointerEvents = 'none';
-  // Clear the textarea
-  document.getElementById('vehicleRemarks').value = '';
-  document.body.classList.remove('modal-open');
-}
-
-function confirmRequestVehicle() {
-  const remarks = document.getElementById('vehicleRemarks').value;
-  
-  // Close modal
-  closeRequestVehicleModal();
-  
-  // Wait for modal to close, then show request forwarded modal
-  setTimeout(() => {
-    showRequestForwardedModal();
-  }, 400);
-  
-  console.log('Vehicle requested with remarks:', remarks);
-}
-
-function showRequestForwardedModal() {
-  closeAllModals(); // Ensure no other modals are open
-  const modal = document.getElementById('requestForwardedModal');
-  modal.classList.add('show');
-  modal.style.visibility = 'visible';
-  modal.style.opacity = '1';
-  modal.style.pointerEvents = 'auto';
-  document.body.classList.add('modal-open');
-}
-
-function closeRequestForwardedModal() {
-  const modal = document.getElementById('requestForwardedModal');
-  modal.classList.remove('show');
-  modal.style.visibility = 'hidden';
-  modal.style.opacity = '0';
-  modal.style.pointerEvents = 'none';
-  
-  // Update button to FORWARDED state
-  updateButtonToForwarded();
-  document.body.classList.remove('modal-open');
-}
-
-function updateButtonToForwarded() {
-  // Update desktop acknowledge button
-  const desktopBtn = document.querySelector('.acknowledge-btn');
-  if (desktopBtn) {
-    desktopBtn.innerHTML = '<span>FORWARDED</span>';
-    desktopBtn.className = 'acknowledge-btn forwarded';
-    desktopBtn.onclick = null;
-  }
-  
-  // Update mobile action button
-  const mobileBtn = document.getElementById('mobileActionBtn');
-  if (mobileBtn) {
-    mobileBtn.textContent = 'FORWARDED';
-    mobileBtn.className = 'mobile-action-btn forwarded';
-    mobileBtn.onclick = null;
-  }
-}
-
-function showToast(message) {
-  const toast = document.getElementById('successToast');
-  const toastText = toast.querySelector('.toast-text');
-  
-  toastText.textContent = message;
-  toast.classList.add('show');
-  
-  // Hide toast after 3 seconds
-  setTimeout(() => {
-    toast.classList.remove('show');
-  }, 3000);
-}
-
-// Close modals when clicking outside
-document.addEventListener('click', (e) => {
-  if (e.target.classList.contains('modal')) {
-    e.target.classList.remove('show');
-    document.body.classList.remove('modal-open');
-  }
-});
-
-// ==============================
-// Mobile Notification: Vehicle Ticket
-// ==============================
-function openVehicleTicket(kind) {
-  // Sample data; in real usage, fetch from API or dataset
-  const presets = {
-    approved: {
-      ticket: '#001', pickup: 'Oct 11, 2025 - 2:30PM', location: 'Makati - Ayala North',
-      status: 'Approved', priority: 'High', driver: 'John Smith', contact: '09171234567', vehicle: 'Van - ABC 123', remarks: 'Driver en route to pickup.'
-    },
-    onhold: {
-      ticket: '#009', pickup: 'Oct 23, 2025 - 9:10AM', location: 'Makati - Ayala North',
-      status: 'On Hold', priority: 'Medium', driver: '—', contact: '—', vehicle: '—', remarks: 'Please wait for vehicle availability.'
-    }
-  };
-  const data = presets[kind] || presets.approved;
-
-  // Populate fields
-  const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
-  setVal('vtTicket', data.ticket);
-  setVal('vtPickup', data.pickup);
-  setVal('vtLocation', data.location);
-  setVal('vtStatus', data.status);
-  setVal('vtPriority', data.priority);
-  setVal('vtDriver', data.driver || '');
-  setVal('vtContact', data.contact || '');
-  setVal('vtVehicle', data.vehicle || '');
-  setVal('vtRemarks', data.remarks || '');
-
-  const toggleField = (fieldId, hasValue) => {
-    const field = document.getElementById(fieldId);
-    if (field) {
-      field.style.display = hasValue ? '' : 'none';
-    }
-  };
-
-  const hasDriver = Boolean(data.driver && data.driver !== '—');
-  const hasContact = Boolean(data.contact && data.contact !== '—');
-  const hasVehicle = Boolean(data.vehicle && data.vehicle !== '—');
-
-  toggleField('vtDriverField', hasDriver);
-  toggleField('vtContactField', hasContact);
-  toggleField('vtVehicleField', hasVehicle);
-
-  closeAllModals();
-  const modal = document.getElementById('vehicleTicketModal');
-  if (modal) {
-    modal.classList.add('show');
-    modal.style.visibility = 'visible';
-    modal.style.opacity = '1';
-    modal.style.pointerEvents = 'auto';
-    document.body.classList.add('modal-open');
-  }
-}
-
-function closeVehicleTicketModal() {
-  const modal = document.getElementById('vehicleTicketModal');
-  if (modal) {
-    modal.classList.remove('show');
-    modal.style.visibility = 'hidden';
-    modal.style.opacity = '0';
-    modal.style.pointerEvents = 'none';
-    document.body.classList.remove('modal-open');
-  }
-}
-
-function openMaterialTicket(kind) {
-  const presets = {
-    approved: {
-      ticket: 'G-1001',
-      job: 'Installation',
-      site: 'Makati - Ayala North',
-      datetime: '2025-10-11 14:30',
-      items: 'Network Switch 3 pcs',
-      remarks: 'Materials ready for pickup'
-    }
-  };
-  const data = presets[kind] || presets.approved;
-
-  const setVal = (id, value) => {
-    const el = document.getElementById(id);
-    if (el) el.value = value;
-  };
-
-  setVal('mtTicket', data.ticket);
-  setVal('mtJob', data.job);
-  setVal('mtSite', data.site);
-  setVal('mtDatetime', data.datetime);
-  setVal('mtItems', data.items);
-  setVal('mtRemarks', data.remarks);
-
-  closeAllModals();
-  const modal = document.getElementById('materialTicketModal');
-  if (modal) {
-    modal.classList.add('show');
-    modal.style.visibility = 'visible';
-    modal.style.opacity = '1';
-    modal.style.pointerEvents = 'auto';
-    document.body.classList.add('modal-open');
-  }
-}
-
-function closeMaterialTicketModal() {
-  const modal = document.getElementById('materialTicketModal');
-  if (modal) {
-    modal.classList.remove('show');
-    modal.style.visibility = 'hidden';
-    modal.style.opacity = '0';
-    modal.style.pointerEvents = 'none';
-    document.body.classList.remove('modal-open');
-  }
-}
-
-// ==============================
-// Actions: Request Material / Mark as Completed
-// ==============================
-function toggleDesktopActions(status) {
-  const actions = document.getElementById('desktopAssignmentActions');
-  const ackBtn = document.querySelector('.acknowledge-btn');
-  if (!actions || !ackBtn) return;
-
-  if (status === 'ongoing') {
-    actions.style.display = 'flex';
-    ackBtn.style.display = 'none';
-  } else if (status === 'pending') {
-    actions.style.display = 'none';
-    ackBtn.style.display = '';
-  } else {
-    // completed or other statuses
-    actions.style.display = 'none';
-    ackBtn.style.display = 'none';
-  }
-}
-
-function toggleMobileActions(assignmentId) {
-  const requestBtn = document.getElementById('mobileRequestMaterialBtn');
-  const completeBtn = document.getElementById('mobileMarkCompletedBtn');
-  const ackBtn = document.getElementById('mobileActionBtn');
-  if (!requestBtn || !completeBtn || !ackBtn) return;
-
-  const assignments = getAssignments();
-  const status = (assignments[assignmentId] && assignments[assignmentId].status) || 'pending';
-  if (status === 'ongoing') {
-    requestBtn.style.display = 'block';
-    completeBtn.style.display = 'block';
-    ackBtn.style.display = 'none';
-  } else if (status === 'pending') {
-    requestBtn.style.display = 'none';
-    completeBtn.style.display = 'none';
-    ackBtn.style.display = 'block';
-  } else {
-    // completed
-    requestBtn.style.display = 'none';
-    completeBtn.style.display = 'none';
-    ackBtn.style.display = 'none';
-  }
+async function confirmAcknowledge() {
+    const remarks = document.getElementById('acknowledgeRemarks').value;
+    try {
+        await fetch('http://localhost:3000/api/engineer/acknowledge', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ appointment_id: currentAssignmentId, remarks })
+        });
+        closeAcknowledgeModal();
+        closeMobileAssignmentDetails();
+        fetchAssignments();
+        alert('Acknowledged!');
+    } catch (e) { alert('Error'); }
 }
 
 function requestMaterial() {
-  closeAllModals();
-  const modal = document.getElementById('materialRequestModal');
-  if (modal) {
-    modal.classList.add('show');
-    modal.style.visibility = 'visible';
-    modal.style.opacity = '1';
-    modal.style.pointerEvents = 'auto';
-    document.body.classList.add('modal-open');
-    
-    // Clear previous entries and add one initial row
-    const list = document.getElementById('mrList');
-    if (list) {
-      list.innerHTML = '';
-      addMaterialRow();
-    }
-    
-    // Clear remarks
-    const remarks = document.getElementById('mrRemarks');
-    if (remarks) remarks.value = '';
-  }
-}
-
-// Add a new material row
-function addMaterialRow() {
-  const list = document.getElementById('mrList');
-  if (!list) return;
-  
-  const row = document.createElement('div');
-  row.className = 'mr-row';
-  row.innerHTML = `
-    <input class="modal-input mr-type" type="text" placeholder="Material type" />
-    <div class="qty-container">
-      <input class="modal-input mr-qty" type="text" placeholder="Quantity" />
-      <button type="button" class="remove-material-btn" onclick="removeMaterialRow(this)" title="Remove material">×</button>
-    </div>
-  `;
-  list.appendChild(row);
-}
-
-// Remove a material row
-function removeMaterialRow(button) {
-  const row = button.parentElement.parentElement; // button -> qty-container -> mr-row
-  const list = document.getElementById('mrList');
-  
-  // Don't remove if it's the only row
-  if (list && list.children.length > 1) {
-    row.remove();
-  } else {
-    // Clear the inputs instead of removing the last row
-    const typeInput = row.querySelector('.mr-type');
-    const qtyInput = row.querySelector('.mr-qty');
-    if (typeInput) typeInput.value = '';
-    if (qtyInput) qtyInput.value = '';
-  }
-}
-
-function markAsCompleted() {
-  closeAllModals();
-  const modal = document.getElementById('markCompletedModal');
-  if (modal) {
-    modal.classList.add('show');
-    modal.style.visibility = 'visible';
-    modal.style.opacity = '1';
-    modal.style.pointerEvents = 'auto';
-    document.body.classList.add('modal-open');
-    const remarks = document.getElementById('markCompletedRemarks');
-    if (remarks) remarks.value = '';
-  }
-}
-
-function closeMarkCompletedModal() {
-  const modal = document.getElementById('markCompletedModal');
-  if (modal) {
-    modal.classList.remove('show');
-    modal.style.visibility = 'hidden';
-    modal.style.opacity = '0';
-    modal.style.pointerEvents = 'none';
-  }
-}
-
-function confirmMarkCompleted() {
-  const remarks = document.getElementById('markCompletedRemarks')?.value?.trim() || '';
-  closeMarkCompletedModal();
-  finalizeCompletionUI();
-  showToast('Assignment marked as completed');
-  console.log('Assignment marked completed with remarks:', remarks);
-}
-
-function finalizeCompletionUI() {
-  toggleDesktopActions('completed');
-
-  const desktopBtn = document.getElementById('desktopMarkCompletedBtn');
-  if (desktopBtn) {
-    desktopBtn.textContent = 'Completed';
-    desktopBtn.disabled = true;
-    desktopBtn.classList.add('action-secondary');
-  }
-
-  const requestBtn = document.getElementById('mobileRequestMaterialBtn');
-  const completeBtn = document.getElementById('mobileMarkCompletedBtn');
-  const ackBtn = document.getElementById('mobileActionBtn');
-  if (requestBtn) requestBtn.style.display = 'none';
-  if (completeBtn) {
-    completeBtn.textContent = 'COMPLETED';
-    completeBtn.disabled = true;
-  }
-  if (ackBtn) ackBtn.style.display = 'none';
+    document.getElementById('materialRequestModal').classList.add('show');
+    document.getElementById('mrList').innerHTML = '';
+    addMaterialRow();
 }
 
 function closeMaterialRequestModal() {
-  const modal = document.getElementById('materialRequestModal');
-  if (modal) {
-    modal.classList.remove('show');
-    modal.style.visibility = 'hidden';
-    modal.style.opacity = '0';
-    modal.style.pointerEvents = 'none';
-  }
+    document.getElementById('materialRequestModal').classList.remove('show');
 }
 
-function confirmMaterialRequest() {
-  // Collect materials and remarks
-  const materials = [];
-  const list = document.getElementById('mrList');
-  if (list) {
-    list.querySelectorAll('.mr-row').forEach(row => {
-      const type = row.querySelector('.mr-type')?.value?.trim();
-      const qty = row.querySelector('.mr-qty')?.value?.trim();
-      if (type && qty) materials.push({ type, qty });
+function addMaterialRow() {
+    const div = document.createElement('div');
+    div.className = 'mr-row';
+    div.innerHTML = `<input class="modal-input mr-type" placeholder="Item"><input class="modal-input mr-qty" placeholder="Qty" type="number"><button class="remove-material-btn" onclick="this.parentElement.parentElement.remove()">x</button>`;
+    document.getElementById('mrList').appendChild(div);
+}
+
+async function confirmMaterialRequest() {
+    const items = [];
+    document.querySelectorAll('.mr-row').forEach(r => {
+        const type = r.querySelector('.mr-type').value;
+        const qty = r.querySelector('.mr-qty').value;
+        if(type) items.push({type, qty});
     });
-  }
-  
-  const remarks = document.getElementById('mrRemarks')?.value?.trim() || '';
-  
-  // Basic validation
-  if (materials.length === 0) {
-    alert('Please add at least one material with both type and quantity.');
-    return;
-  }
-  
-  closeMaterialRequestModal();
-  showToast('Material request submitted');
 
-  // Change buttons to MATERIAL REQUESTED (orange)
-  const desktopBtn = document.getElementById('desktopRequestMaterialBtn');
-  if (desktopBtn) {
-    desktopBtn.textContent = 'Material Requested';
-    desktopBtn.classList.remove('action-secondary');
-    desktopBtn.classList.add('action-primary');
-    desktopBtn.style.background = 'var(--brand-orange)';
-    desktopBtn.onclick = null;
-  }
+    if(items.length===0) return alert('Add item');
+    const item = getAssignment(currentAssignmentId);
 
-  const mobileBtn = document.getElementById('mobileRequestMaterialBtn');
-  if (mobileBtn) {
-    mobileBtn.textContent = 'MATERIAL REQUESTED';
-    mobileBtn.classList.add('request-vehicle');
-    mobileBtn.onclick = null;
-  }
-  
-  console.log('Materials requested:', materials, 'Remarks:', remarks);
+    try {
+        await fetch('http://localhost:3000/api/engineer/request-material', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({
+                appointment_id: currentAssignmentId,
+                ticket_code: item.ticket_code,
+                site: item.site,
+                materials: items,
+                remarks: document.getElementById('mrRemarks').value
+            })
+        });
+        closeMaterialRequestModal();
+        alert('Request Sent');
+    } catch (e) { alert('Error'); }
 }
 
-// Function to logout
+function markAsCompleted() {
+    document.getElementById('markCompletedModal').classList.add('show');
+}
+
+function closeMarkCompletedModal() {
+    document.getElementById('markCompletedModal').classList.remove('show');
+}
+
+async function confirmMarkCompleted() {
+    try {
+        await fetch('http://localhost:3000/api/engineer/complete', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({
+                appointment_id: currentAssignmentId,
+                remarks: document.getElementById('markCompletedRemarks').value
+            })
+        });
+        closeMarkCompletedModal();
+        closeMobileAssignmentDetails();
+        fetchAssignments();
+        alert('Completed!');
+    } catch (e) { alert('Error'); }
+}
+
 function logout() {
-  if (confirm('Are you sure you want to logout?')) {
-    // Redirect to login page
+    supabase.auth.signOut();
     window.location.href = '../login/login.html';
-  }
+}
+
+function goBack() {
+    // For desktop back logic if needed, otherwise just reload or handle state
+    location.reload();
 }
