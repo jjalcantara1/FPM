@@ -761,8 +761,8 @@ body.modal-open {
   }
 
   .main-section-active {
-    display: flex;
-  }
+    display: flex !important; 
+    flex-direction: row;  }
 
   /* Activity Sidebar - Teams Style */
   .activity-sidebar {

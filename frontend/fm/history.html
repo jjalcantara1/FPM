@@ -73,11 +73,9 @@
         const { data: { session } } = await sb.auth.getSession();
         if (!session) return window.location.href = 'loginfleet.html';
 
-        // Load Profile
         const { data: profile } = await sb.from('fleet_manager_records').select('first_name').eq('user_id', session.user.id).single();
         if(profile) document.getElementById('welcomeMsg').textContent = `Welcome, ${profile.first_name}!`;
 
-        // Load Completed History
         const { data, error } = await sb.from('vehicle_requests').select('*').eq('status', 'Completed').order('created_at', { ascending: false });
         
         const tbody = document.querySelector('#historyTable tbody');

@@ -517,92 +517,6 @@ app.post('/api/pm/archive-facility-owner/:id', async (req, res) => {
     }
 });
 
-app.get('/api/engineer/assignments', async (req, res) => {
-    const authHeader = req.headers.authorization;
-    if (!authHeader) return res.status(401).json({ error: 'No token provided' });
-    const token = authHeader.split(' ')[1];
-
-    try {
-        const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-        if (authError || !user) throw new Error('Invalid token');
-
-        const { data, error } = await supabase
-            .from('appointment_records')
-            .select('*')
-            .eq('engineer_user_id', user.id)
-            .order('date', { ascending: true });
-
-        if (error) throw error;
-
-        res.status(200).json(data);
-    } catch (error) {
-        console.error('Error fetching assignments:', error.message);
-        res.status(400).json({ error: error.message });
-    }
-});
-
-// 2. Acknowledge Assignment
-app.post('/api/engineer/acknowledge', async (req, res) => {
-    const { appointment_id, remarks } = req.body;
-    try {
-        const { error } = await supabase
-            .from('appointment_records')
-            .update({ 
-                status: 'In Progress',
-                engineerStatus: 'accepted',
-                engineer_remarks: remarks 
-            })
-            .eq('id', appointment_id);
-
-        if (error) throw error;
-        res.status(200).json({ message: 'Success' });
-    } catch (error) {
-        res.status(400).json({ error: error.message });
-    }
-});
-
-// 3. Complete Assignment
-app.post('/api/engineer/complete', async (req, res) => {
-    const { appointment_id, remarks } = req.body;
-    try {
-        const { error } = await supabase
-            .from('appointment_records')
-            .update({ 
-                status: 'Completed',
-                engineer_remarks: remarks,
-                completed_at: new Date()
-            })
-            .eq('id', appointment_id);
-
-        if (error) throw error;
-        res.status(200).json({ message: 'Success' });
-    } catch (error) {
-        res.status(400).json({ error: error.message });
-    }
-});
-
-// 4. Request Material
-app.post('/api/engineer/request-material', async (req, res) => {
-    const { appointment_id, materials, remarks, ticket_code, site } = req.body;
-    try {
-        const { error } = await supabase
-            .from('material_requests')
-            .insert([{
-                ticket_id: ticket_code,
-                site: site,
-                task_description: remarks || 'Material Request',
-                status: 'Pending',
-                request_date: new Date(),
-                remarks: `Requested: ${JSON.stringify(materials)}`
-            }]);
-
-        if (error) throw error;
-        res.status(200).json({ message: 'Request submitted' });
-    } catch (error) {
-        res.status(400).json({ error: error.message });
-    }
-});
-
 app.get('/api/engineer/dashboard-data', async (req, res) => {
     const authHeader = req.headers.authorization;
     if (!authHeader) return res.status(401).json({ error: 'No token provided' });
@@ -612,7 +526,6 @@ app.get('/api/engineer/dashboard-data', async (req, res) => {
         const { data: { user }, error: authError } = await supabase.auth.getUser(token);
         if (authError || !user) throw new Error('Invalid token');
 
-        // A. Get Assignments
         const { data: assignments, error: assignError } = await supabase
             .from('appointment_records')
             .select('*')
@@ -621,26 +534,23 @@ app.get('/api/engineer/dashboard-data', async (req, res) => {
 
         if (assignError) throw assignError;
 
-        // B. Get Related Ticket IDs
-        const ticketIds = assignments.map(a => a.ticket_code || a.ticket_id).filter(Boolean);
+        const ticketCodes = assignments.map(a => a.ticket_code).filter(Boolean);
 
         let materials = [];
         let vehicles = [];
 
-        if (ticketIds.length > 0) {
-            // C. Get Material Requests for these tickets
+        if (ticketCodes.length > 0) {
             const { data: matData } = await supabase
                 .from('material_requests')
                 .select('*')
-                .in('ticket_id', ticketIds)
+                .in('ticket_id', ticketCodes)
                 .order('created_at', { ascending: false });
             materials = matData || [];
 
-            // D. Get Vehicle Requests for these tickets
             const { data: vehData } = await supabase
                 .from('vehicle_requests')
                 .select('*')
-                .in('ticket_id', ticketIds)
+                .in('ticket_id', ticketCodes)
                 .order('created_at', { ascending: false });
             vehicles = vehData || [];
         }
@@ -659,7 +569,6 @@ app.get('/api/engineer/dashboard-data', async (req, res) => {
     }
 });
 
-// 2. Acknowledge Assignment
 app.post('/api/engineer/acknowledge', async (req, res) => {
     const { appointment_id, remarks } = req.body;
     try {
@@ -672,7 +581,6 @@ app.post('/api/engineer/acknowledge', async (req, res) => {
     } catch (error) { res.status(400).json({ error: error.message }); }
 });
 
-// 3. Complete Assignment
 app.post('/api/engineer/complete', async (req, res) => {
     const { appointment_id, remarks } = req.body;
     try {
@@ -685,7 +593,6 @@ app.post('/api/engineer/complete', async (req, res) => {
     } catch (error) { res.status(400).json({ error: error.message }); }
 });
 
-// 4. Request Material
 app.post('/api/engineer/request-material', async (req, res) => {
     const { ticket_code, site, materials, remarks } = req.body;
     try {
@@ -704,7 +611,6 @@ app.post('/api/engineer/request-material', async (req, res) => {
     } catch (error) { res.status(400).json({ error: error.message }); }
 });
 
-// 5. Request Vehicle
 app.post('/api/engineer/request-vehicle', async (req, res) => {
     const { ticket_code, location, remarks, requested_by } = req.body;
     try {

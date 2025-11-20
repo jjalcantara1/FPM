@@ -1,5 +1,4 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // Mobile tab functionality
   const tabs = document.querySelectorAll(".assignment-tabs .tab");
   const containers = document.querySelectorAll(".assignment-list .task-container");
 
@@ -31,7 +30,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Desktop navigation functionality
   const navLinks = document.querySelectorAll(".sidebar-nav .nav-link");
   const contentSections = document.querySelectorAll(".content-section");
 

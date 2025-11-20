@@ -33,15 +33,9 @@
               <button class="tab" type="button" data-tab="completed">Completed</button>
             </div>
             <div class="assignment-list">
-              <div class="task-container task-container-active" data-container="pending">
-                <p style="text-align:center; padding:20px; color:#888;">Loading Pending Tasks...</p>
-              </div>
-              <div class="task-container" data-container="ongoing">
-                 <p style="text-align:center; padding:20px; color:#888;">Loading Ongoing Tasks...</p>
-              </div>
-              <div class="task-container" data-container="completed">
-                 <p style="text-align:center; padding:20px; color:#888;">Loading Completed Tasks...</p>
-              </div>
+              <div class="task-container task-container-active" data-container="pending"></div>
+              <div class="task-container" data-container="ongoing"></div>
+              <div class="task-container" data-container="completed"></div>
             </div>
           </div>
         </section>
@@ -55,7 +49,7 @@
 
         <section class="mobile-content-section" data-mobile-content="notification">
           <div class="notif-page">
-            <div class="notif-header"><h2 class="notif-title">Notifications</h2></div>
+            <div class="notif-header"><h2 class="notif-title">Notification</h2></div>
             <div class="notification-list"></div>
           </div>
         </section>
@@ -71,9 +65,9 @@
                 <div class="mobile-profile-email">...</div>
               </div>
               <div class="mobile-profile-stats">
-                <div class="mobile-profile-stat"><div class="mobile-profile-stat-number mobile-stat-number">0</div><div class="mobile-profile-stat-label">Total</div></div>
-                <div class="mobile-profile-stat"><div class="mobile-profile-stat-number mobile-stat-number">0</div><div class="mobile-profile-stat-label">Completed</div></div>
-                <div class="mobile-profile-stat"><div class="mobile-profile-stat-number mobile-stat-number">0%</div><div class="mobile-profile-stat-label">Success</div></div>
+                <div class="mobile-profile-stat"><div class="mobile-profile-stat-number mobile-stat-number stat-total">0</div><div class="mobile-profile-stat-label">Total</div></div>
+                <div class="mobile-profile-stat"><div class="mobile-profile-stat-number mobile-stat-number stat-completed">0</div><div class="mobile-profile-stat-label">Completed</div></div>
+                <div class="mobile-profile-stat"><div class="mobile-profile-stat-number mobile-stat-number stat-rate">0%</div><div class="mobile-profile-stat-label">Success</div></div>
               </div>
             </div>
           </div>
@@ -102,6 +96,7 @@
           <div class="mobile-details-footer">
             <button class="mobile-action-btn" id="mobileActionBtn" onclick="acknowledgeAssignment()">ACKNOWLEDGE</button>
             <button class="mobile-action-btn request-vehicle" id="mobileRequestMaterialBtn" onclick="requestMaterial()">REQUEST MATERIAL</button>
+            <button class="mobile-action-btn request-vehicle" id="mobileRequestVehicleBtn" onclick="requestVehicle()">REQUEST VEHICLE</button>
             <button class="mobile-action-btn" id="mobileMarkCompletedBtn" onclick="markAsCompleted()">MARK AS COMPLETED</button>
           </div>
         </section>
@@ -142,7 +137,7 @@
       </aside>
 
       <div class="content-container">
-        <div class="main-section content-section content-section-active" data-content="assignment">
+        <div class="main-section content-section content-section-active main-section-active" data-content="assignment">
           <aside class="activity-sidebar">
             <div class="activity-header"><div class="activity-icon">📋</div><h2 class="activity-title">Assignments</h2></div>
             <div class="activity-filters">
@@ -178,6 +173,7 @@
             
             <div class="assignment-actions" id="desktopAssignmentActions" style="display: none; padding: 0 24px 24px;">
                 <button class="action-btn action-secondary" onclick="requestMaterial()">Request Material</button>
+                <button class="action-btn action-secondary" onclick="requestVehicle()">Request Vehicle</button>
                 <button class="action-btn action-primary" onclick="markAsCompleted()">Mark as Completed</button>
             </div>
           </main>
@@ -192,7 +188,7 @@
 
         <div class="main-section content-section" data-content="notification">
           <div class="section-wrapper">
-            <header class="section-header"><h1 class="section-title">Notifications</h1></header>
+            <header class="section-header"><h1 class="section-title">Notification</h1></header>
             <div class="section-content-area notification-list"></div>
           </div>
         </div>
@@ -211,9 +207,9 @@
                   </div>
                 </div>
                 <div class="profile-stats profile-stats-grid profile-stat-card">
-                  <div class="profile-stat"><div class="stat-number">0</div><div class="stat-label">Total</div></div>
-                  <div class="profile-stat"><div class="stat-number">0</div><div class="stat-label">Completed</div></div>
-                  <div class="profile-stat"><div class="stat-number">0%</div><div class="stat-label">Success Rate</div></div>
+                  <div class="profile-stat"><div class="stat-number stat-total">0</div><div class="stat-label">Total</div></div>
+                  <div class="profile-stat"><div class="stat-number stat-completed">0</div><div class="stat-label">Completed</div></div>
+                  <div class="profile-stat"><div class="stat-number stat-rate">0%</div><div class="stat-label">Success Rate</div></div>
                 </div>
               </div>
             </div>
@@ -226,6 +222,7 @@
       <div class="modal-content">
         <h2 class="modal-title">Acknowledge Assignment</h2>
         <div class="modal-body">
+          <label for="acknowledgeRemarks" class="modal-label">Remarks</label>
           <textarea id="acknowledgeRemarks" class="modal-textarea" placeholder="Add remarks (optional)..."></textarea>
         </div>
         <div class="modal-actions">
@@ -234,6 +231,31 @@
         </div>
       </div>
     </div>
+    
+    <div id="requestVehicleModal" class="modal">
+        <div class="modal-content">
+            <h2 class="modal-title">Request Vehicle</h2>
+            <div class="modal-body">
+                <p class="modal-text">Request a vehicle for this assignment?</p>
+                <div class="modal-field">
+                    <label class="modal-label">Assignment Site:</label>
+                    <p class="modal-location" id="vehReqSite">Loading...</p>
+                </div>
+                <label for="vehicleRemarks" class="modal-label">Remarks / Purpose</label>
+                <textarea 
+                    id="vehicleRemarks" 
+                    class="modal-textarea" 
+                    placeholder="Enter remarks (e.g., date/time needed, tools to transport)"
+                    rows="3"
+                ></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-cancel" onclick="closeRequestVehicleModal()">Cancel</button>
+                <button class="modal-btn modal-btn-confirm" onclick="confirmRequestVehicle()">Confirm Request</button>
+            </div>
+        </div>
+    </div>
+
 
     <div id="materialRequestModal" class="modal">
       <div class="modal-content material-request">
@@ -260,6 +282,47 @@
         <div class="modal-actions">
           <button class="modal-btn modal-btn-cancel" onclick="closeMarkCompletedModal()">Cancel</button>
           <button class="modal-btn modal-btn-confirm" onclick="confirmMarkCompleted()">Complete</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="vehicleTicketModal" class="modal">
+      <div class="modal-content vehicle-ticket">
+        <h2 class="modal-title">Vehicle Ticket</h2>
+        <div class="modal-body">
+          <div class="vt-grid">
+            <div class="vt-field"><label class="modal-label">Ticket Number</label><input id="vtTicket" class="modal-input" type="text" readonly /></div>
+            <div class="vt-field"><label class="modal-label">Pick up - Time</label><input id="vtPickup" class="modal-input" type="text" readonly /></div>
+            <div class="vt-field vt-span-2"><label class="modal-label">Location</label><input id="vtLocation" class="modal-input" type="text" readonly /></div>
+            <div class="vt-field"><label class="modal-label">Status</label><input id="vtStatus" class="modal-input" type="text" readonly /></div>
+            <div class="vt-field"><label class="modal-label">Priority</label><input id="vtPriority" class="modal-input" type="text" readonly /></div>
+            <div class="vt-field" id="vtDriverField"><label class="modal-label">Driver</label><input id="vtDriver" class="modal-input" type="text" readonly /></div>
+            <div class="vt-field" id="vtContactField"><label class="modal-label">Driver Contact</label><input id="vtContact" class="modal-input" type="text" readonly /></div>
+            <div class="vt-field vt-span-2" id="vtVehicleField"><label class="modal-label">Vehicle Type</label><input id="vtVehicle" class="modal-input" type="text" readonly /></div>
+            <div class="vt-field vt-span-2"><label class="modal-label">Remarks</label><input id="vtRemarks" class="modal-input" type="text" readonly /></div>
+          </div>
+        </div>
+        <div class="modal-actions modal-actions-end">
+          <button class="modal-btn modal-btn-confirm" onclick="closeVehicleTicketModal()">OK</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="materialTicketModal" class="modal">
+      <div class="modal-content material-ticket">
+        <h2 class="modal-title">Material Request</h2>
+        <div class="modal-body">
+          <div class="material-grid">
+            <div class="material-field"><label class="modal-label">Ticket</label><input id="mtTicket" class="modal-input" type="text" readonly /></div>
+            <div class="material-field"><label class="modal-label">Status</label><input id="mtStatus" class="modal-input" type="text" readonly /></div>
+            <div class="material-field"><label class="modal-label">Site</label><input id="mtSite" class="modal-input" type="text" readonly /></div>
+            <div class="material-field"><label class="modal-label">Date &amp; Time</label><input id="mtDatetime" class="modal-input" type="text" readonly /></div>
+            <div class="material-field vt-span-2"><label class="modal-label">Items Fulfilled</label><input id="mtItems" class="modal-input" type="text" readonly /></div>
+            <div class="material-field vt-span-2"><label class="modal-label">Notes/Remarks</label><input id="mtRemarks" class="modal-input" type="text" readonly /></div>
+          </div>
+        </div>
+        <div class="modal-actions modal-actions-end">
+          <button class="modal-btn modal-btn-confirm" onclick="closeMaterialTicketModal()">OK</button>
         </div>
       </div>
     </div>

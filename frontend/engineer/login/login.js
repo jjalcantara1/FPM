@@ -4,7 +4,6 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 document.addEventListener('DOMContentLoaded', () => {
     let supabase;
 
-    // 1. Check if Supabase loaded
     if (window.supabase) {
         supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     } else {
@@ -12,12 +11,10 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    // 2. Get Elements
     const loginBtn = document.getElementById('loginBtn');
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
 
-    // 3. Handle Click
     if (loginBtn) {
         loginBtn.addEventListener('click', async () => {
             const email = emailInput.value.trim();
@@ -28,13 +25,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // UI Feedback
             const originalText = loginBtn.textContent;
             loginBtn.textContent = "Logging in...";
             loginBtn.disabled = true;
 
             try {
-                // A. Authenticate
                 const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
                     email: email,
                     password: password
@@ -42,7 +37,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (authError) throw authError;
 
-                // B. Verify Engineer Role
                 const { data: engineerData, error: roleError } = await supabase
                     .from('engineer_records')
                     .select('user_id')
@@ -54,7 +48,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     throw new Error("Access Denied: Account is not an Engineer.");
                 }
 
-                // C. Success
                 window.location.href = '../dashboard/dashboard.html';
 
             } catch (err) {
@@ -65,7 +58,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Allow pressing "Enter" to submit
         passwordInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') loginBtn.click();
         });
