@@ -8,10 +8,8 @@
     <link rel="stylesheet" href="./dashboard.css" />
     <link rel="stylesheet" href="./dashboard.mobile.css" media="(max-width: 1023px)" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
   </head>
   <body>
-    <!-- Mobile Layout: Assignments Screen -->
     <div class="mobile-layout">
       <header class="status-bar" aria-hidden="true">
         <div class="status-icons"></div>
@@ -21,802 +19,201 @@
         <div class="hero-shape"></div>
         <div class="hero-content">
           <p class="hero-greeting">Good Afternoon</p>
-          <p class="hero-subtitle">Welcome back John!</p>
+          <p class="hero-subtitle">Welcome back!</p>
         </div>
-
       </header>
 
       <main class="main-content">
-        <!-- Mobile Assignment Section -->
         <section class="mobile-content-section mobile-content-section-active" data-mobile-content="assignment">
           <div class="assignments-card">
             <div class="assignments-header">Assignments</div>
-
             <div class="assignment-tabs" role="tablist">
-              <button class="tab tab-active" type="button" data-tab="pending">
-                Pending
-              </button>
+              <button class="tab tab-active" type="button" data-tab="pending">Pending</button>
               <button class="tab" type="button" data-tab="ongoing">Ongoing</button>
-              <button class="tab" type="button" data-tab="completed">
-                Completed
-              </button>
+              <button class="tab" type="button" data-tab="completed">Completed</button>
             </div>
-
             <div class="assignment-list">
               <div class="task-container task-container-active" data-container="pending">
-                <article class="assignment-card" onclick="openAssignmentDetails('site-inspection')">
-                  <div class="assignment-card-header">
-                    <div class="assignment-title">Site Inspection</div>
-                    <div class="assignment-priority priority-high">High</div>
-                  </div>
-                  <div class="assignment-location">
-                    Site: Quezon City - North Fairview
-                  </div>
-                  <div class="assignment-due-label">Due: Oct 21, 2025</div>
-                  <div class="assignment-progress assignment-progress-high"></div>
-                </article>
-
-                <article class="assignment-card" onclick="openAssignmentDetails('installation')">
-                  <div class="assignment-card-header">
-                    <div class="assignment-title">Installation</div>
-                    <div class="assignment-priority priority-medium">Medium</div>
-                  </div>
-                  <div class="assignment-location">Site: Makati - Ayala</div>
-                  <div class="assignment-due-label">Due: Oct 11, 2025</div>
-                  <div class="assignment-progress assignment-progress-medium"></div>
-                </article>
+                <p style="text-align:center; padding:20px; color:#888;">Loading Pending Tasks...</p>
               </div>
-
               <div class="task-container" data-container="ongoing">
-                <article class="assignment-card" onclick="openAssignmentDetails('network-upgrade')">
-                  <div class="assignment-card-header">
-                    <div class="assignment-title">Installation</div>
-                    <div class="assignment-priority priority-medium">Medium</div>
-                  </div>
-                  <div class="assignment-location">Site: BGC - Taguig</div>
-                  <div class="assignment-due-label">Due: Nov 05, 2025</div>
-                  <div class="assignment-progress assignment-progress-medium"></div>
-                </article>
-                <article class="assignment-card" onclick="openAssignmentDetails('site-inspection-ongoing')">
-                  <div class="assignment-card-header">
-                    <div class="assignment-title">Site Inspection</div>
-                    <div class="assignment-priority priority-medium">Medium</div>
-                  </div>
-                  <div class="assignment-location">Site: Quezon City - North Fairview</div>
-                  <div class="assignment-due-label">Due: Nov 02, 2025</div>
-                  <div class="assignment-progress assignment-progress-medium"></div>
-                </article>
+                 <p style="text-align:center; padding:20px; color:#888;">Loading Ongoing Tasks...</p>
               </div>
-
               <div class="task-container" data-container="completed">
-                <article class="assignment-card" onclick="openAssignmentDetails('system-check')">
-                  <div class="assignment-card-header">
-                    <div class="assignment-title">Site Inspection</div>
-                    <div class="assignment-priority priority-high">High</div>
-                  </div>
-                  <div class="assignment-location">Site: Quezon City - North Fairview</div>
-                  <div class="assignment-due-label">Completed: Sep 30, 2025</div>
-                  <div class="assignment-progress assignment-progress-high"></div>
-                </article>
-                <article class="assignment-card" onclick="openAssignmentDetails('installation-completed')">
-                  <div class="assignment-card-header">
-                    <div class="assignment-title">Installation</div>
-                    <div class="assignment-priority priority-medium">Medium</div>
-                  </div>
-                  <div class="assignment-location">Site: Makati - Ayala</div>
-                  <div class="assignment-due-label">Completed: Oct 11, 2025</div>
-                  <div class="assignment-progress assignment-progress-medium"></div>
-                </article>
+                 <p style="text-align:center; padding:20px; color:#888;">Loading Completed Tasks...</p>
               </div>
             </div>
           </div>
         </section>
 
-        <!-- Mobile History Section -->
         <section class="mobile-content-section" data-mobile-content="history">
           <div class="mobile-section-card">
             <div class="mobile-section-header">Assignment History</div>
-            <div class="mobile-history-filter">
-              <label for="mobileHistoryDate" class="mobile-history-filter-label">Date</label>
-              <select id="mobileHistoryDate" class="mobile-history-select">
-                <option value="all" selected>All</option>
-                <option value="today">Today</option>
-                <option value="yesterday">Yesterday</option>
-                <option value="older">Older</option>
-              </select>
-            </div>
-            <div class="mobile-history-group">
-              <div class="mobile-history-group-title">Today</div>
-              <div class="mobile-history-card">
-                <div class="mobile-history-icon">🔧</div>
-                <div class="mobile-history-info">
-                  <h3>Installation - BGC</h3>
-                  <p class="history-sub">Tap to view completion details</p>
-                  <p class="history-meta">Completed · Oct 25, 2025 · Ticket #A023</p>
-                </div>
-              </div>
-              <div class="mobile-history-card">
-                <div class="mobile-history-icon">📍</div>
-                <div class="mobile-history-info">
-                  <h3>Site Inspection - Pasig</h3>
-                  <p class="history-sub">Tap to view completion details</p>
-                  <p class="history-meta">Completed · Oct 25, 2025 · Ticket #A017</p>
-                </div>
-              </div>
-            </div>
-
-            <div class="mobile-history-group">
-              <div class="mobile-history-group-title">Yesterday</div>
-              <div class="mobile-history-card">
-                <div class="mobile-history-icon">🏗️</div>
-                <div class="mobile-history-info">
-                  <h3>Installation - Makati</h3>
-                  <p class="history-sub">Tap to view completion details</p>
-                  <p class="history-meta">Completed · Oct 24, 2025 · Ticket #A011</p>
-                </div>
-              </div>
-            </div>
-
-            <div class="mobile-history-group">
-              <div class="mobile-history-group-title">Others</div>
-              <div class="mobile-history-card">
-                <div class="mobile-history-icon">🌐</div>
-                <div class="mobile-history-info">
-                  <h3>System Maintenance - BGC</h3>
-                  <p class="history-sub">Tap to view completion details</p>
-                  <p class="history-meta">Completed · Sep 10, 2025 · Ticket #A005</p>
-                </div>
-              </div>
-              <div class="mobile-history-card">
-                <div class="mobile-history-icon">📋</div>
-                <div class="mobile-history-info">
-                  <h3>Site Inspection - Quezon City</h3>
-                  <p class="history-sub">Tap to view completion details</p>
-                  <p class="history-meta">Completed · Sep 05, 2025 · Ticket #A002</p>
-                </div>
-              </div>
-            </div>
+            <div class="mobile-history-list mobile-history-group"></div>
           </div>
         </section>
 
-        <!-- Mobile Notification Section -->
         <section class="mobile-content-section" data-mobile-content="notification">
           <div class="notif-page">
-            <div class="notif-header">
-              <h2 class="notif-title">Notification</h2>
-              <div class="notif-filter">
-                <label class="notif-filter-label" for="notifDateFilter">Date</label>
-                <select id="notifDateFilter" class="notif-select">
-                  <option value="all" selected>All</option>
-                  <option value="today">Today</option>
-                  <option value="yesterday">Yesterday</option>
-                  <option value="older">Older</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="notif-section">
-              <div class="notif-section-title">Today</div>
-              <button class="notif-card" type="button" onclick="openVehicleTicket('approved')">
-                <span class="notif-icon">🔔</span>
-                <div class="notif-body">
-                  <div class="notif-card-title">Vehicle request approved</div>
-                  <div class="notif-sub">Tap to view vehicle details</div>
-                  <div class="notif-time">Just now</div>
-                </div>
-              </button>
-              <button class="notif-card" type="button" onclick="openVehicleTicket('onhold')">
-                <span class="notif-icon">🔔</span>
-                <div class="notif-body">
-                  <div class="notif-card-title">Vehicle request On hold</div>
-                  <div class="notif-sub">Tap to view rejection details</div>
-                  <div class="notif-time">10 min ago</div>
-                </div>
-              </button>
-              <button class="notif-card" type="button" onclick="openMaterialTicket('approved')">
-                <span class="notif-icon">🔔</span>
-                <div class="notif-body">
-                  <div class="notif-card-title">Material request approved</div>
-                  <div class="notif-sub">Tap to view material details</div>
-                  <div class="notif-time">1 hr ago</div>
-                </div>
-              </button>
-            </div>
-
-            <div class="notif-section">
-              <div class="notif-section-title">Yesterday</div>
-              <button class="notif-card" type="button" onclick="openVehicleTicket('approved')">
-                <span class="notif-icon">🔔</span>
-                <div class="notif-body">
-                  <div class="notif-card-title">Vehicle request approved</div>
-                  <div class="notif-sub">Tap to view vehicle details.</div>
-                  <div class="notif-time">Yesterday</div>
-                </div>
-              </button>
-            </div>
-
-            <div class="notif-section">
-              <div class="notif-section-title">Others</div>
-              <button class="notif-card" type="button">
-                <span class="notif-icon">🔔</span>
-                <div class="notif-body">
-                  <div class="notif-card-title">Material request On Hold</div>
-                  <div class="notif-sub">Tap to view rejection details</div>
-                  <div class="notif-time">Sep 01</div>
-                </div>
-              </button>
-            </div>
+            <div class="notif-header"><h2 class="notif-title">Notifications</h2></div>
+            <div class="notification-list"></div>
           </div>
         </section>
 
-        <!-- Mobile Profile Section -->
         <section class="mobile-content-section" data-mobile-content="profile">
           <div class="mobile-section-card">
             <div class="mobile-section-header">Profile</div>
             <div class="mobile-profile-content">
-              <div class="mobile-profile-avatar">
-                <span class="mobile-profile-initials">MJ</span>
-              </div>
+              <div class="mobile-profile-avatar"><span class="mobile-profile-initials">--</span></div>
               <div class="mobile-profile-info">
-                <div class="mobile-profile-name">Michael Jerson</div>
+                <div class="mobile-profile-name">Loading...</div>
                 <div class="mobile-profile-role">Field Engineer</div>
-                <div class="mobile-profile-email">michael.jerson@finsi.com</div>
+                <div class="mobile-profile-email">...</div>
               </div>
               <div class="mobile-profile-stats">
-                <div class="mobile-stat">
-                  <div class="mobile-stat-number">8</div>
-                  <div class="mobile-stat-label">Total Assignments</div>
-                </div>
-                <div class="mobile-stat">
-                  <div class="mobile-stat-number">5</div>
-                  <div class="mobile-stat-label">Completed</div>
-                </div>
-                <div class="mobile-stat">
-                  <div class="mobile-stat-number">95%</div>
-                  <div class="mobile-stat-label">Success Rate</div>
-                </div>
+                <div class="mobile-profile-stat"><div class="mobile-profile-stat-number mobile-stat-number">0</div><div class="mobile-profile-stat-label">Total</div></div>
+                <div class="mobile-profile-stat"><div class="mobile-profile-stat-number mobile-stat-number">0</div><div class="mobile-profile-stat-label">Completed</div></div>
+                <div class="mobile-profile-stat"><div class="mobile-profile-stat-number mobile-stat-number">0%</div><div class="mobile-profile-stat-label">Success</div></div>
               </div>
             </div>
           </div>
         </section>
 
-        <!-- Mobile Assignment Details Section -->
         <section class="mobile-assignment-details" id="mobileAssignmentDetails">
           <div class="mobile-details-header">
             <button class="mobile-back-btn" onclick="closeMobileAssignmentDetails()">
-              <span class="mobile-back-icon">←</span>
-              <span>Back</span>
+              <span class="mobile-back-icon">←</span><span>Back</span>
             </button>
           </div>
-          
           <div class="mobile-details-content">
             <div class="mobile-details-card">
-              <div class="mobile-details-title-section">
-                <h1 class="mobile-details-title" id="mTitle">Site Inspection</h1>
-              </div>
-              
+              <div class="mobile-details-title-section"><h1 class="mobile-details-title" id="mTitle"></h1></div>
               <div class="mobile-details-meta">
-                <p class="mobile-details-site" id="mSite">Site: Quezon City - North Fairview</p>
-                <p class="mobile-details-due" id="mDue">Due: Oct 21, 2025</p>
+                <p class="mobile-details-site" id="mSite"></p>
+                <p class="mobile-details-due" id="mDue"></p>
               </div>
-
               <div class="mobile-details-info">
-                <div class="mobile-detail-item">
-                  <strong>Ticket Number</strong><br>
-                  <span id="mTicket">TKT-1001</span>
-                </div>
-                
-                <div class="mobile-detail-item">
-                  <strong>Date & Time</strong><br>
-                  <span id="mDateTime">2025-21-11 14:30</span>
-                </div>
-                
-                <div class="mobile-detail-item">
-                  <strong>Priority</strong><br>
-                  <span id="mPriority">Medium</span>
-                </div>
-                
-                <div class="mobile-detail-item">
-                  <strong>Type of Appointment</strong><br>
-                  <span id="mType">Site Inspection</span>
-                </div>
-                
-                <div class="mobile-detail-item">
-                  <strong>Site Location</strong><br>
-                  <span id="mLocation">Quezon City - North Fairview</span>
-                </div>
-                
-                <div class="mobile-detail-item">
-                  <strong>Task Description / Issue</strong><br>
-                  <span id="mDescription">Site Malfunction</span>
-                </div>
-                
-                <div class="mobile-detail-item">
-                  <strong>Remarks</strong><br>
-                  <span id="mRemarks">Coordinate with site manager before arrival.</span>
-                </div>
+                <div class="mobile-detail-item"><strong>Ticket Number</strong><br><span id="mTicket"></span></div>
+                <div class="mobile-detail-item"><strong>Task Description</strong><br><span id="mDescription"></span></div>
+                <div class="mobile-detail-item"><strong>Remarks</strong><br><span id="mRemarks"></span></div>
               </div>
             </div>
           </div>
-
           <div class="mobile-details-footer">
-          <!-- Pending default -->
-          <button class="mobile-action-btn" id="mobileActionBtn" onclick="acknowledgeAssignment()">ACKNOWLEDGE</button>
-          <!-- Ongoing actions -->
-          <button class="mobile-action-btn request-vehicle" id="mobileRequestMaterialBtn" style="display:none;" onclick="requestMaterial()">REQUEST MATERIAL</button>
-          <button class="mobile-action-btn" id="mobileMarkCompletedBtn" style="display:none;" onclick="markAsCompleted()">MARK AS COMPLETED</button>
-        </div>
-
-        <!-- Mobile Inline Request Material UI (fallback if modal not shown) -->
-        <div class="material-panel" id="mobileMaterialPanel" style="display:none;margin:16px;">
-          <div class="material-panel-header">Request</div>
-          <div class="material-panel-sub">Add materials needed</div>
-          <div class="material-list" id="mrListMobile"></div>
-          <div class="material-panel-actions">
-            <button type="button" class="add-material-btn" onclick="addMaterialRowInline('mrListMobile')">ADD MATERIAL</button>
+            <button class="mobile-action-btn" id="mobileActionBtn" onclick="acknowledgeAssignment()">ACKNOWLEDGE</button>
+            <button class="mobile-action-btn request-vehicle" id="mobileRequestMaterialBtn" onclick="requestMaterial()">REQUEST MATERIAL</button>
+            <button class="mobile-action-btn" id="mobileMarkCompletedBtn" onclick="markAsCompleted()">MARK AS COMPLETED</button>
           </div>
-          <div class="material-panel-footer">
-            <button class="action-btn action-secondary" type="button" onclick="hideMaterialPanels()">Cancel</button>
-            <button class="action-btn action-primary" type="button" onclick="confirmMaterialRequestInline()">Confirm</button>
-          </div>
-        </div>
         </section>
       </main>
 
-      <nav class="bottom-nav" aria-label="Bottom navigation">
-        <button class="nav-item nav-item-active" type="button" data-mobile-page="assignment">
-          <span class="nav-icon nav-icon-assignment" aria-hidden="true">📋</span>
-          <span class="nav-label">Assignment</span>
+      <nav class="bottom-nav">
+        <button class="nav-item nav-item-active" data-mobile-page="assignment">
+          <span class="nav-icon nav-icon-assignment">📋</span><span class="nav-label">Assignment</span>
         </button>
-        <button class="nav-item" type="button" data-mobile-page="history">
-          <span class="nav-icon nav-icon-history" aria-hidden="true">📚</span>
-          <span class="nav-label">History</span>
+        <button class="nav-item" data-mobile-page="history">
+          <span class="nav-icon nav-icon-history">📚</span><span class="nav-label">History</span>
         </button>
-        <button class="nav-item" type="button" data-mobile-page="notification">
-          <span class="nav-icon nav-icon-notification" aria-hidden="true">🔔</span>
-          <span class="nav-label">Notification</span>
+        <button class="nav-item" data-mobile-page="notification">
+          <span class="nav-icon nav-icon-notification">🔔</span><span class="nav-label">Notification</span>
         </button>
-        <button class="nav-item" type="button" data-mobile-page="profile">
-          <span class="nav-icon nav-icon-profile" aria-hidden="true">👤</span>
-          <span class="nav-label">Profile</span>
+        <button class="nav-item" data-mobile-page="profile">
+          <span class="nav-icon nav-icon-profile">👤</span><span class="nav-label">Profile</span>
         </button>
       </nav>
-
-      <div class="gesture-bar" aria-hidden="true"></div>
     </div>
 
-    <!-- Desktop Layout: Teams-style Website Layout -->
     <div class="desktop-layout">
-      <!-- Main Navigation Sidebar -->
       <aside class="main-nav-sidebar">
-        <div class="nav-header">
-          <img src="finsi_logo.png" alt="FINSI Logo" class="brand-logo" />
-        </div>
-
+        <div class="nav-header"><img src="finsi_logo.png" alt="FINSI Logo" class="brand-logo" /></div>
         <div class="user-profile">
-          <div class="user-avatar">
-            <img src="aiface.jpg" alt="Profile" />
-          </div>
-          <div class="user-name">Michael Jerson</div>
+          <div class="user-avatar"><img src="aiface.jpg" alt="Profile" /></div>
+          <div class="user-name profile-name">Loading...</div>
         </div>
-
         <nav class="main-navigation">
-          <a href="#" class="nav-item nav-item-active" data-main-page="assignment">Assignment</a>
-          <a href="#" class="nav-item" data-main-page="history">History</a>
-          <a href="#" class="nav-item" data-main-page="notification">Notification</a>
-          <a href="#" class="nav-item" data-main-page="profile">Profile</a>
+          <a href="#" class="nav-item nav-item-active" data-page="assignment">Assignment</a>
+          <a href="#" class="nav-item" data-page="history">History</a>
+          <a href="#" class="nav-item" data-page="notification">Notification</a>
+          <a href="#" class="nav-item" data-page="profile">Profile</a>
         </nav>
-
         <div class="nav-footer">
-          <button class="logout-button" onclick="logout()">
-            <span class="logout-text">Logout</span>
-          </button>
+          <button class="logout-button" onclick="logout()">Logout</button>
         </div>
       </aside>
 
-      <!-- Content Area Container -->
       <div class="content-container">
-        <!-- Assignment Section -->
-        <div class="main-section main-section-active" data-main-section="assignment">
-          <!-- Left Activity Sidebar -->
+        <div class="main-section content-section content-section-active" data-content="assignment">
           <aside class="activity-sidebar">
-            <div class="activity-header">
-              <div class="activity-icon">📋</div>
-              <h2 class="activity-title">Assignments</h2>
+            <div class="activity-header"><div class="activity-icon">📋</div><h2 class="activity-title">Assignments</h2></div>
+            <div class="activity-filters">
+              <button class="filter-btn filter-btn-active" data-filter="pending">
+                <span class="filter-icon">⏳</span><span class="filter-text">Pending</span><span class="filter-count">0</span>
+              </button>
+              <button class="filter-btn" data-filter="ongoing">
+                <span class="filter-icon">🔄</span><span class="filter-text">Ongoing</span><span class="filter-count">0</span>
+              </button>
+              <button class="filter-btn" data-filter="completed">
+                <span class="filter-icon">✅</span><span class="filter-text">Completed</span><span class="filter-count">0</span>
+              </button>
             </div>
-        
-        <div class="activity-filters">
-          <button class="filter-btn filter-btn-active" data-filter="pending">
-            <span class="filter-icon">⏳</span>
-            <span class="filter-text">Pending</span>
-            <span class="filter-count">2</span>
-          </button>
-          <button class="filter-btn" data-filter="ongoing">
-            <span class="filter-icon">🔄</span>
-            <span class="filter-text">Ongoing</span>
-            <span class="filter-count">1</span>
-          </button>
-          <button class="filter-btn" data-filter="completed">
-            <span class="filter-icon">✅</span>
-            <span class="filter-text">Completed</span>
-            <span class="filter-count">5</span>
-          </button>
-        </div>
+            <div class="assignment-feed">
+              <div class="feed-section feed-section-active" data-feed="pending"></div>
+              <div class="feed-section" data-feed="ongoing"></div>
+              <div class="feed-section" data-feed="completed"></div>
+            </div>
+          </aside>
 
-        <div class="assignment-feed">
-          <div class="feed-section feed-section-active" data-feed="pending">
-            <div class="assignment-item" onclick="selectAssignment('site-inspection')">
-              <div class="assignment-avatar">
-                <span class="assignment-icon">🏗️</span>
+          <main class="main-content-area">
+            <header class="main-header">
+              <div class="header-nav"></div>
+              <div class="header-actions" id="desktopPendingActions" style="display:none;">
+                <button class="acknowledge-btn" onclick="acknowledgeAssignment()">
+                  <span class="acknowledge-icon">✓</span><span>Acknowledge</span>
+                </button>
               </div>
-              <div class="assignment-info">
-                <div class="assignment-name">Site Inspection</div>
-                <div class="assignment-location">Quezon City - North Fairview</div>
-                <div class="assignment-time">Due: Oct 21, 2025</div>
-              </div>
+            </header>
+            <div class="assignment-detail-view" id="desktopDetailView">
+              <div style="text-align:center;color:#666;padding-top:40px;">Select an assignment to view details</div>
             </div>
             
-            <div class="assignment-item" onclick="selectAssignment('installation')">
-              <div class="assignment-avatar">
-                <span class="assignment-icon">🔧</span>
-              </div>
-              <div class="assignment-info">
-                <div class="assignment-name">Installation</div>
-                <div class="assignment-location">Makati - Ayala</div>
-                <div class="assignment-time">Due: Oct 11, 2025</div>
-              </div>
+            <div class="assignment-actions" id="desktopAssignmentActions" style="display: none; padding: 0 24px 24px;">
+                <button class="action-btn action-secondary" onclick="requestMaterial()">Request Material</button>
+                <button class="action-btn action-primary" onclick="markAsCompleted()">Mark as Completed</button>
             </div>
-          </div>
-
-          <div class="feed-section" data-feed="ongoing">
-            <div class="assignment-item" onclick="selectAssignment('network-upgrade')">
-              <div class="assignment-avatar">
-                <span class="assignment-icon">🌐</span>
-              </div>
-              <div class="assignment-info">
-                <div class="assignment-name">Installation</div>
-                <div class="assignment-location">BGC - Taguig</div>
-                <div class="assignment-time">Due: Nov 05, 2025</div>
-              </div>
-            </div>
-            <div class="assignment-item" onclick="selectAssignment('site-inspection-ongoing')">
-              <div class="assignment-avatar">
-                <span class="assignment-icon">🏗️</span>
-              </div>
-              <div class="assignment-info">
-                <div class="assignment-name">Site Inspection</div>
-                <div class="assignment-location">Quezon City - North Fairview</div>
-                <div class="assignment-time">Due: Nov 02, 2025</div>
-              </div>
-            </div>
-          </div>
-
-          <div class="feed-section" data-feed="completed">
-            <div class="assignment-item" onclick="selectAssignment('system-check')">
-              <div class="assignment-avatar">
-                <span class="assignment-icon">🔍</span>
-              </div>
-              <div class="assignment-info">
-                <div class="assignment-name">Site Inspection</div>
-                <div class="assignment-location">Pasig - Ortigas</div>
-                <div class="assignment-time">Completed: Sep 30, 2025</div>
-              </div>
-            </div>
-            <div class="assignment-item" onclick="selectAssignment('installation-completed')">
-              <div class="assignment-avatar">
-                <span class="assignment-icon">🔧</span>
-              </div>
-              <div class="assignment-info">
-                <div class="assignment-name">Installation</div>
-                <div class="assignment-location">Makati - Ayala</div>
-                <div class="assignment-time">Completed: Oct 11, 2025</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </aside>
-
-      <!-- Main Content Area -->
-      <main class="main-content-area">
-        <header class="main-header">
-          <div class="header-nav">
-            <button class="back-btn" onclick="goBack()">
-              <span class="back-icon">←</span>
-              <span>Back</span>
-            </button>
-          </div>
-          <div class="header-actions">
-            <button class="acknowledge-btn" onclick="acknowledgeAssignment()">
-              <span class="acknowledge-icon">✓</span>
-              <span>Acknowledge</span>
-            </button>
-          </div>
-        </header>
-
-        <div class="assignment-detail-view">
-          <div class="assignment-detail-header">
-            <h1 class="assignment-detail-title">Site Inspection</h1>
-            <span class="assignment-detail-priority priority-medium">MEDIUM</span>
-          </div>
-          
-          <div class="assignment-detail-meta">
-            <p class="assignment-detail-site">Site: Quezon City - North Fairview</p>
-            <p class="assignment-detail-due">Due: Oct 21, 2025</p>
-          </div>
-
-          <div class="assignment-sections">
-            <div class="section-content">
-              <div class="details-grid">
-                <div class="detail-card">
-                  <div class="detail-label">TICKET NUMBER</div>
-                  <div class="detail-value">TKT-1001</div>
-                </div>
-                
-                <div class="detail-card">
-                  <div class="detail-label">DATE & TIME</div>
-                  <div class="detail-value">2025-21-11 14:30</div>
-                </div>
-                
-                <div class="detail-card">
-                  <div class="detail-label">PRIORITY</div>
-                  <div class="detail-value">Medium</div>
-                </div>
-                
-                <div class="detail-card">
-                  <div class="detail-label">TYPE OF APPOINTMENT</div>
-                  <div class="detail-value">Site Inspection</div>
-                </div>
-                
-                <div class="detail-card">
-                  <div class="detail-label">SITE LOCATION</div>
-                  <div class="detail-value">Quezon City - North Fairview</div>
-                </div>
-                
-                <div class="detail-card">
-                  <div class="detail-label">TASK DESCRIPTION / ISSUE</div>
-                  <div class="detail-value">Site Malfunction</div>
-                </div>
-                
-                <div class="detail-card detail-card-full">
-                  <div class="detail-label">REMARKS</div>
-                  <div class="detail-value">Coordinate with site manager before arrival.</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Desktop Actions (shown for Ongoing) -->
-          <div class="assignment-actions" id="desktopAssignmentActions" style="display: none;">
-            <button id="desktopRequestMaterialBtn" class="action-btn action-secondary" type="button" onclick="requestMaterial()">Request Material</button>
-            <button id="desktopMarkCompletedBtn" class="action-btn action-primary" type="button" onclick="markAsCompleted()">Mark as Completed</button>
-          </div>
-
-          <!-- Desktop Inline Request Material UI (fallback if modal not shown) -->
-          <div class="material-panel" id="desktopMaterialPanel" style="display:none;">
-            <div class="material-panel-header">Request</div>
-            <div class="material-panel-sub">Add materials needed</div>
-            <div class="material-list" id="mrListDesktop"></div>
-            <div class="material-panel-actions">
-              <button type="button" class="add-material-btn" onclick="addMaterialRowInline('mrListDesktop')">ADD MATERIAL</button>
-            </div>
-            <div class="material-panel-footer">
-              <button class="action-btn action-secondary" type="button" onclick="hideMaterialPanels()">Cancel</button>
-              <button class="action-btn action-primary" type="button" onclick="confirmMaterialRequestInline()">Confirm</button>
-            </div>
-          </div>
-        </div>
-      </main>
+          </main>
         </div>
 
-        <!-- History Section -->
-        <div class="main-section" data-main-section="history">
+        <div class="main-section content-section" data-content="history">
           <div class="section-wrapper">
-            <header class="section-header">
-              <h1 class="section-title">Assignment History</h1>
-              <div class="history-filter">
-                <label class="history-filter-label" for="historyDateFilter">Date</label>
-                <select id="historyDateFilter" class="history-select">
-                  <option value="all" selected>All</option>
-                  <option value="today">Today</option>
-                  <option value="yesterday">Yesterday</option>
-                  <option value="older">Older</option>
-                </select>
-              </div>
-            </header>
-            <div class="section-content-area history-groups">
-              <div class="history-group">
-                <div class="history-group-title">Today</div>
-                <div class="history-list">
-                  <div class="history-list-item">
-                    <div class="history-item-icon">🔧</div>
-                    <div class="history-item-body">
-                      <h3 class="history-title">Installation - BGC</h3>
-                      <p class="history-sub">Tap to view completion details</p>
-                      <p class="history-meta">Completed · Oct 25, 2025 · Ticket #A023</p>
-                    </div>
-                    <span class="history-chip chip-completed">Completed</span>
-                  </div>
-                  <div class="history-list-item">
-                    <div class="history-item-icon">📍</div>
-                    <div class="history-item-body">
-                      <h3 class="history-title">Site Inspection - Pasig</h3>
-                      <p class="history-sub">Tap to view completion details</p>
-                      <p class="history-meta">Completed · Oct 25, 2025 · Ticket #A017</p>
-                    </div>
-                    <span class="history-chip chip-completed">Completed</span>
-                  </div>
-                </div>
-              </div>
-
-              <div class="history-group">
-                <div class="history-group-title">Yesterday</div>
-                <div class="history-list">
-                  <div class="history-list-item">
-                    <div class="history-item-icon">🏗️</div>
-                    <div class="history-item-body">
-                      <h3 class="history-title">Installation - Makati</h3>
-                      <p class="history-sub">Tap to view completion details</p>
-                      <p class="history-meta">Completed · Oct 24, 2025 · Ticket #A011</p>
-                    </div>
-                    <span class="history-chip chip-completed">Completed</span>
-                  </div>
-                </div>
-              </div>
-
-              <div class="history-group">
-                <div class="history-group-title">Others</div>
-                <div class="history-list">
-                  <div class="history-list-item">
-                    <div class="history-item-icon">🌐</div>
-                    <div class="history-item-body">
-                      <h3 class="history-title">System Maintenance - BGC</h3>
-                      <p class="history-sub">Tap to view completion details</p>
-                      <p class="history-meta">Completed · Sep 10, 2025 · Ticket #A005</p>
-                    </div>
-                    <span class="history-chip chip-completed">Completed</span>
-                  </div>
-                  <div class="history-list-item">
-                    <div class="history-item-icon">📋</div>
-                    <div class="history-item-body">
-                      <h3 class="history-title">Site Inspection - Quezon City</h3>
-                      <p class="history-sub">Tap to view completion details</p>
-                      <p class="history-meta">Completed · Sep 05, 2025 · Ticket #A002</p>
-                    </div>
-                    <span class="history-chip chip-completed">Completed</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <header class="section-header"><h1 class="section-title">Assignment History</h1></header>
+            <div class="section-content-area history-list"></div>
           </div>
         </div>
 
-        <!-- Notification Section -->
-        <div class="main-section" data-main-section="notification">
+        <div class="main-section content-section" data-content="notification">
           <div class="section-wrapper">
-            <header class="section-header">
-              <h1 class="section-title">Notification</h1>
-              <div class="notif-filter notif-filter-desktop">
-                <label class="notif-filter-label" for="notifDateFilterDesktop">Date</label>
-                <select id="notifDateFilterDesktop" class="notif-select">
-                  <option value="all" selected>All</option>
-                  <option value="today">Today</option>
-                  <option value="yesterday">Yesterday</option>
-                  <option value="older">Older</option>
-                </select>
-              </div>
-            </header>
-            <div class="section-content-area">
-              <div class="notification-group">
-                <div class="notif-desktop-title">Today</div>
-                <div class="notification-grid">
-                  <div class="notification-card notification-card-vehicle" onclick="openVehicleTicket('approved')">
-                    <div class="notification-card-header">
-                      <div class="notification-icon">
-                        <span class="notification-icon-symbol">🔔</span>
-                      </div>
-                      <div class="notification-info">
-                        <h3 class="notification-title">Vehicle request approved</h3>
-                        <p class="notification-message">Tap to view vehicle details</p>
-                        <p class="notification-time">Just now</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="notification-card notification-card-onhold" onclick="openVehicleTicket('onhold')">
-                    <div class="notification-card-header">
-                      <div class="notification-icon">
-                        <span class="notification-icon-symbol">🔔</span>
-                      </div>
-                      <div class="notification-info">
-                        <h3 class="notification-title">Vehicle request On hold</h3>
-                        <p class="notification-message">Tap to view rejection details</p>
-                        <p class="notification-time">10 min ago</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="notification-card notification-card-material" onclick="openMaterialTicket('approved')">
-                    <div class="notification-card-header">
-                      <div class="notification-icon">
-                        <span class="notification-icon-symbol">🔔</span>
-                      </div>
-                      <div class="notification-info">
-                        <h3 class="notification-title">Material request approved</h3>
-                        <p class="notification-message">Tap to view material details</p>
-                        <p class="notification-time">1 hr ago</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="notification-group">
-                <div class="notif-desktop-title">Yesterday</div>
-                <div class="notification-grid">
-                  <div class="notification-card" onclick="openVehicleTicket('approved')">
-                    <div class="notification-card-header">
-                      <div class="notification-icon">🔔</div>
-                      <div class="notification-info">
-                        <h3 class="notification-title">Vehicle request approved</h3>
-                        <p class="notification-message">Tap to view vehicle details.</p>
-                        <p class="notification-time">Yesterday</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="notification-group">
-                <div class="notif-desktop-title">Others</div>
-                <div class="notification-grid">
-                  <div class="notification-card">
-                    <div class="notification-card-header">
-                      <div class="notification-icon">🔔</div>
-                      <div class="notification-info">
-                        <h3 class="notification-title">Material request On Hold</h3>
-                        <p class="notification-message">Tap to view rejection details</p>
-                        <p class="notification-time">Sep 01</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <header class="section-header"><h1 class="section-title">Notifications</h1></header>
+            <div class="section-content-area notification-list"></div>
           </div>
         </div>
 
-        <!-- Profile Section -->
-        <div class="main-section" data-main-section="profile">
+        <div class="main-section content-section" data-content="profile">
           <div class="section-wrapper">
-            <header class="section-header">
-              <h1 class="section-title">Profile</h1>
-            </header>
-            <div class="section-content-area">
-              <div class="profile-container">
-                <div class="profile-main-card">
-                  <div class="profile-card-header">
-                    <div class="profile-avatar-large">
-                      <span class="profile-initials-large">MJ</span>
-                    </div>
-                    <div class="profile-details">
-                      <h2 class="profile-name-large">Michael Jerson</h2>
-                      <p class="profile-role-large">Field Engineer</p>
-                      <p class="profile-email-large">michael.jerson@finsi.com</p>
-                    </div>
+            <header class="section-header"><h1 class="section-title">Profile</h1></header>
+            <div class="section-content-area profile-content">
+              <div class="profile-card">
+                <div class="profile-header">
+                  <div class="profile-avatar-large"><span class="profile-initials-large">--</span></div>
+                  <div class="profile-details">
+                    <h2 class="profile-name-large">Loading...</h2>
+                    <p class="profile-role">Field Engineer</p>
+                    <p class="profile-email profile-email-large">...</p>
                   </div>
-                  
-                  <div class="profile-stats-grid">
-                    <div class="profile-stat-card">
-                      <div class="stat-number">8</div>
-                      <div class="stat-label">Total Assignments</div>
-                    </div>
-                    <div class="profile-stat-card">
-                      <div class="stat-number">5</div>
-                      <div class="stat-label">Completed</div>
-                    </div>
-                    <div class="profile-stat-card">
-                      <div class="stat-number">95%</div>
-                      <div class="stat-label">Success Rate</div>
-                    </div>
-                  </div>
+                </div>
+                <div class="profile-stats profile-stats-grid profile-stat-card">
+                  <div class="profile-stat"><div class="stat-number">0</div><div class="stat-label">Total</div></div>
+                  <div class="profile-stat"><div class="stat-number">0</div><div class="stat-label">Completed</div></div>
+                  <div class="profile-stat"><div class="stat-number">0%</div><div class="stat-label">Success Rate</div></div>
                 </div>
               </div>
             </div>
@@ -825,192 +222,44 @@
       </div>
     </div>
 
-    <!-- Acknowledge Modal -->
     <div id="acknowledgeModal" class="modal">
       <div class="modal-content">
-        <h2 class="modal-title">Acknowledge</h2>
+        <h2 class="modal-title">Acknowledge Assignment</h2>
         <div class="modal-body">
-          <label for="acknowledgeRemarks" class="modal-label">Remarks</label>
-          <textarea 
-            id="acknowledgeRemarks" 
-            class="modal-textarea" 
-            placeholder="Enter remarks (optional)"
-            rows="3"
-          ></textarea>
+          <textarea id="acknowledgeRemarks" class="modal-textarea" placeholder="Add remarks (optional)..."></textarea>
         </div>
         <div class="modal-actions">
           <button class="modal-btn modal-btn-cancel" onclick="closeAcknowledgeModal()">Cancel</button>
-          <button class="modal-btn modal-btn-confirm" onclick="confirmAcknowledge()">Acknowledge</button>
+          <button class="modal-btn modal-btn-confirm" onclick="confirmAcknowledge()">Confirm</button>
         </div>
       </div>
     </div>
 
-    <!-- Request Vehicle Modal -->
-    <div id="requestVehicleModal" class="modal">
-      <div class="modal-content">
-        <h2 class="modal-title">Request Vehicle</h2>
-        <div class="modal-body">
-          <p class="modal-text">Request a vehicle to this location?</p>
-          <div class="modal-field">
-            <label class="modal-label">Location:</label>
-            <p class="modal-location">Quezon City - North Fairview</p>
-          </div>
-          <label for="vehicleRemarks" class="modal-label">Remarks</label>
-          <textarea 
-            id="vehicleRemarks" 
-            class="modal-textarea" 
-            placeholder="Enter remarks (optional)"
-            rows="3"
-          ></textarea>
-        </div>
-        <div class="modal-actions">
-          <button class="modal-btn modal-btn-cancel" onclick="closeRequestVehicleModal()">Cancel</button>
-          <button class="modal-btn modal-btn-confirm" onclick="confirmRequestVehicle()">Confirm</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Request Forwarded Modal -->
-    <div id="requestForwardedModal" class="modal">
-      <div class="modal-content">
-        <h2 class="modal-title">Request forwarded</h2>
-        <div class="modal-body">
-          <p class="modal-text">Your vehicle request has been forwarded.</p>
-        </div>
-        <div class="modal-actions">
-          <button class="modal-btn modal-btn-confirm" onclick="closeRequestForwardedModal()">OK</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Mark as Completed Modal -->
-    <div id="markCompletedModal" class="modal">
-      <div class="modal-content material-request">
-        <h2 class="modal-title">Mark as Completed</h2>
-        <div class="modal-body">
-          <p class="modal-text" style="text-align:left;margin-top:-8px;margin-bottom:12px;">Add remarks before completing this assignment</p>
-          <div class="modal-field">
-            <label class="modal-label" for="markCompletedRemarks">Remarks</label>
-            <textarea id="markCompletedRemarks" class="modal-textarea" placeholder="Enter completion remarks..."></textarea>
-          </div>
-        </div>
-        <div class="modal-actions">
-          <button class="modal-btn modal-btn-cancel" onclick="closeMarkCompletedModal()">Cancel</button>
-          <button class="modal-btn modal-btn-confirm" onclick="confirmMarkCompleted()">Confirm</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Request Material Modal -->
     <div id="materialRequestModal" class="modal">
       <div class="modal-content material-request">
-        <h2 class="modal-title">Request</h2>
+        <h2 class="modal-title">Request Material</h2>
         <div class="modal-body">
-          <p class="modal-text" style="text-align:left;margin-top:-8px;margin-bottom:12px;">Add materials needed</p>
-          <div class="material-list" id="mrList"></div>
-          <div style="display:flex;justify-content:flex-end;margin:8px 0;">
-            <button type="button" class="add-material-btn" onclick="addMaterialRow()">ADD MATERIAL</button>
-          </div>
-          <div class="modal-field">
-            <label class="modal-label">Remarks (Optional)</label>
-            <textarea id="mrRemarks" class="modal-textarea" placeholder="Enter any additional remarks..."></textarea>
-          </div>
+          <div id="mrList" class="material-list"></div>
+          <button type="button" class="add-material-btn" onclick="addMaterialRow()">+ Add Item</button>
+          <textarea id="mrRemarks" class="modal-textarea" style="margin-top:10px;" placeholder="Additional remarks..."></textarea>
         </div>
         <div class="modal-actions">
           <button class="modal-btn modal-btn-cancel" onclick="closeMaterialRequestModal()">Cancel</button>
-          <button class="modal-btn modal-btn-confirm" onclick="confirmMaterialRequest()">Confirm</button>
+          <button class="modal-btn modal-btn-confirm" onclick="confirmMaterialRequest()">Submit Request</button>
         </div>
       </div>
     </div>
 
-    <!-- Success Toast -->
-    <div id="successToast" class="toast">
-      <span class="toast-text">Assignment acknowledged</span>
-    </div>
-
-    <!-- Vehicle Ticket Modal (Mobile Notification) -->
-    <div id="vehicleTicketModal" class="modal">
-      <div class="modal-content vehicle-ticket">
-        <h2 class="modal-title">Vehicle Ticket</h2>
+    <div id="markCompletedModal" class="modal">
+      <div class="modal-content">
+        <h2 class="modal-title">Complete Assignment</h2>
         <div class="modal-body">
-          <div class="vt-grid">
-            <div class="vt-field">
-              <label class="modal-label">Ticket Number</label>
-              <input id="vtTicket" class="modal-input" type="text" readonly />
-            </div>
-            <div class="vt-field">
-              <label class="modal-label">Pick up - Time</label>
-              <input id="vtPickup" class="modal-input" type="text" readonly />
-            </div>
-            <div class="vt-field vt-span-2">
-              <label class="modal-label">Location</label>
-              <input id="vtLocation" class="modal-input" type="text" readonly />
-            </div>
-            <div class="vt-field">
-              <label class="modal-label">Status</label>
-              <input id="vtStatus" class="modal-input" type="text" readonly />
-            </div>
-            <div class="vt-field">
-              <label class="modal-label">Priority</label>
-              <input id="vtPriority" class="modal-input" type="text" readonly />
-            </div>
-            <div class="vt-field" id="vtDriverField">
-              <label class="modal-label">Driver</label>
-              <input id="vtDriver" class="modal-input" type="text" readonly />
-            </div>
-            <div class="vt-field" id="vtContactField">
-              <label class="modal-label">Driver Contact</label>
-              <input id="vtContact" class="modal-input" type="text" readonly />
-            </div>
-            <div class="vt-field vt-span-2" id="vtVehicleField">
-              <label class="modal-label">Vehicle Type</label>
-              <input id="vtVehicle" class="modal-input" type="text" readonly />
-            </div>
-            <div class="vt-field vt-span-2">
-              <label class="modal-label">Remarks</label>
-              <input id="vtRemarks" class="modal-input" type="text" readonly />
-            </div>
-          </div>
+          <p class="modal-text">Please provide final remarks to complete this task.</p>
+          <textarea id="markCompletedRemarks" class="modal-textarea" placeholder="Completion remarks..."></textarea>
         </div>
-        <div class="modal-actions modal-actions-end">
-          <button class="modal-btn modal-btn-confirm" onclick="closeVehicleTicketModal()">OK</button>
-        </div>
-      </div>
-    </div>
-
-    <div id="materialTicketModal" class="modal">
-      <div class="modal-content material-ticket">
-        <h2 class="modal-title">Material Request Approved</h2>
-        <div class="modal-body">
-          <div class="material-grid">
-            <div class="material-field">
-              <label class="modal-label">Ticket</label>
-              <input id="mtTicket" class="modal-input" type="text" readonly />
-            </div>
-            <div class="material-field">
-              <label class="modal-label">Job</label>
-              <input id="mtJob" class="modal-input" type="text" readonly />
-            </div>
-            <div class="material-field">
-              <label class="modal-label">Site</label>
-              <input id="mtSite" class="modal-input" type="text" readonly />
-            </div>
-            <div class="material-field">
-              <label class="modal-label">Date &amp; Time</label>
-              <input id="mtDatetime" class="modal-input" type="text" readonly />
-            </div>
-            <div class="material-field">
-              <label class="modal-label">Items</label>
-              <input id="mtItems" class="modal-input" type="text" readonly />
-            </div>
-            <div class="material-field">
-              <label class="modal-label">Remarks</label>
-              <input id="mtRemarks" class="modal-input" type="text" readonly />
-            </div>
-          </div>
-        </div>
-        <div class="modal-actions modal-actions-end">
-          <button class="modal-btn modal-btn-confirm" onclick="closeMaterialTicketModal()">OK</button>
+        <div class="modal-actions">
+          <button class="modal-btn modal-btn-cancel" onclick="closeMarkCompletedModal()">Cancel</button>
+          <button class="modal-btn modal-btn-confirm" onclick="confirmMarkCompleted()">Complete</button>
         </div>
       </div>
     </div>

@@ -6,17 +6,12 @@ let currentUser = null;
 let assignmentsData = [];
 let currentAssignmentId = null;
 
-// Initialize Supabase
 if (window.supabase) {
     supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
-    // 1. Auth Check
-    if (!supabase) {
-        console.error("Supabase not loaded");
-        return;
-    }
+    if (!supabase) { console.error("Supabase not loaded"); return; }
 
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
@@ -25,37 +20,32 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
     currentUser = session.user;
 
-    // 2. Initialize Navigation (Desktop & Mobile)
     initSidebarNavigation();
     initMobileNavigation();
     initTabs();
     
-    // 3. Load Data
     loadUserProfile();
     fetchAssignments();
 });
 
-// --- NAVIGATION LOGIC ---
-
+// --- NAVIGATION ---
 function initSidebarNavigation() {
-    // Desktop Sidebar Links
-    const navLinks = document.querySelectorAll(".sidebar-nav .nav-link");
+    const navLinks = document.querySelectorAll(".main-navigation .nav-item");
     const contentSections = document.querySelectorAll(".content-section");
 
     navLinks.forEach((link) => {
         link.addEventListener("click", (e) => {
             e.preventDefault();
             const targetPage = link.getAttribute("data-page");
+            navLinks.forEach(l => l.classList.remove("nav-item-active"));
+            link.classList.add("nav-item-active");
 
-            // Update Active State
-            navLinks.forEach(l => l.classList.remove("nav-link-active"));
-            link.classList.add("nav-link-active");
-
-            // Switch View
             contentSections.forEach(s => {
                 s.classList.remove("content-section-active");
+                s.classList.remove("main-section-active");
                 if (s.getAttribute("data-content") === targetPage) {
                     s.classList.add("content-section-active");
+                    s.classList.add("main-section-active");
                 }
             });
         });
@@ -63,14 +53,12 @@ function initSidebarNavigation() {
 }
 
 function initMobileNavigation() {
-    // Mobile Bottom Nav
     const mobileNavButtons = document.querySelectorAll(".bottom-nav .nav-item");
     const mobileSections = document.querySelectorAll(".mobile-content-section");
 
     mobileNavButtons.forEach((btn) => {
         btn.addEventListener("click", () => {
             const targetPage = btn.getAttribute("data-mobile-page");
-            
             mobileNavButtons.forEach(b => b.classList.remove("nav-item-active"));
             btn.classList.add("nav-item-active");
 
@@ -85,13 +73,11 @@ function initMobileNavigation() {
 }
 
 function initTabs() {
-    // Assignment Status Tabs (Pending/Ongoing/Completed)
     const tabs = document.querySelectorAll(".tab");
     tabs.forEach(t => {
         t.addEventListener("click", () => {
             tabs.forEach(x => x.classList.remove("tab-active"));
             t.classList.add("tab-active");
-            
             const target = t.getAttribute("data-tab");
             document.querySelectorAll(".task-container").forEach(c => {
                 c.classList.remove("task-container-active");
@@ -102,13 +88,11 @@ function initTabs() {
         });
     });
 
-    // Desktop Filter Buttons
     const filterBtns = document.querySelectorAll(".filter-btn");
     filterBtns.forEach(btn => {
         btn.addEventListener("click", () => {
             filterBtns.forEach(b => b.classList.remove("filter-btn-active"));
             btn.classList.add("filter-btn-active");
-            
             const target = btn.getAttribute("data-filter");
             document.querySelectorAll(".feed-section").forEach(s => {
                 s.classList.remove("feed-section-active");
@@ -120,8 +104,7 @@ function initTabs() {
     });
 }
 
-// --- DATA & RENDERING ---
-
+// --- DATA ---
 async function loadUserProfile() {
     const { data } = await supabase
         .from('engineer_records')
@@ -133,17 +116,12 @@ async function loadUserProfile() {
         const fullName = `${data.firstName} ${data.lastName}`;
         const initials = (data.firstName[0] + data.lastName[0]).toUpperCase();
         
-        // Update all name fields
         document.querySelectorAll('.user-name, .profile-name, .hero-subtitle, .profile-name-large, .mobile-profile-name').forEach(el => {
             el.textContent = fullName;
         });
-        
-        // Update emails
         document.querySelectorAll('.profile-email, .profile-email-large, .mobile-profile-email').forEach(el => {
             el.textContent = data.email;
         });
-
-        // Update avatars
         document.querySelectorAll('.profile-initials, .profile-initials-large, .mobile-profile-initials').forEach(el => {
             el.textContent = initials;
         });
@@ -152,28 +130,21 @@ async function loadUserProfile() {
 
 async function fetchAssignments() {
     const { data: { session } } = await supabase.auth.getSession();
-    
     try {
         const response = await fetch('http://localhost:3000/api/engineer/assignments', {
             headers: { 'Authorization': `Bearer ${session.access_token}` }
         });
-        
         if (!response.ok) throw new Error('Failed to fetch assignments');
         
         assignmentsData = await response.json();
-        
         renderAssignments(assignmentsData);
         renderHistory(assignmentsData);
         renderNotifications(assignmentsData);
         updateStats(assignmentsData);
-        
-    } catch (error) {
-        console.error("Error:", error);
-    }
+    } catch (error) { console.error("Error:", error); }
 }
 
 function renderAssignments(data) {
-    // Prepare containers
     const sections = ['pending', 'ongoing', 'completed'];
     const containers = {};
     
@@ -182,16 +153,13 @@ function renderAssignments(data) {
             mobile: document.querySelector(`.task-container[data-container="${key}"]`),
             desktop: document.querySelector(`.feed-section[data-feed="${key}"]`)
         };
-        // Clear loading/static content
         if(containers[key].mobile) containers[key].mobile.innerHTML = '';
         if(containers[key].desktop) containers[key].desktop.innerHTML = '';
     });
 
-    // Sort items
     data.forEach(item => {
         const status = (item.status || '').toLowerCase();
         let category = 'pending';
-        
         if (['in progress', 'ongoing', 'in_progress', 'accepted'].includes(status)) category = 'ongoing';
         else if (['completed', 'done'].includes(status)) category = 'completed';
         else if (['pending', 'assigned'].includes(status)) category = 'pending';
@@ -201,7 +169,6 @@ function renderAssignments(data) {
         const priority = (item.priority_level || 'Low').toLowerCase();
         const priorityClass = priority === 'high' ? 'priority-high' : 'priority-medium';
 
-        // Render Mobile Card
         if (containers[category].mobile) {
             const card = document.createElement('article');
             card.className = 'assignment-card';
@@ -218,7 +185,6 @@ function renderAssignments(data) {
             containers[category].mobile.appendChild(card);
         }
 
-        // Render Desktop List Item
         if (containers[category].desktop) {
             const div = document.createElement('div');
             div.className = 'assignment-item';
@@ -251,10 +217,9 @@ function renderAssignments(data) {
 function renderHistory(data) {
     const completedItems = data.filter(a => (a.status || '').toLowerCase() === 'completed');
     
-    // Mobile History
-    const mobHistGroup = document.querySelector('.mobile-history-group');
-    if(mobHistGroup) {
-        mobHistGroup.innerHTML = '<div class="mobile-history-group-title">Recent</div>';
+    const mobHistList = document.querySelector('.mobile-history-list');
+    if(mobHistList) {
+        mobHistList.innerHTML = '';
         completedItems.forEach(item => {
             const div = document.createElement('div');
             div.className = 'mobile-history-card';
@@ -263,53 +228,62 @@ function renderHistory(data) {
                 <div class="mobile-history-info">
                     <h3>${item.type_of_appointment}</h3>
                     <p class="history-sub">${item.site}</p>
-                    <p class="history-meta">Completed · ${new Date(item.completed_at || Date.now()).toLocaleDateString()}</p>
-                </div>
-            `;
-            mobHistGroup.appendChild(div);
+                    <p class="history-meta">Completed: ${new Date(item.completed_at || Date.now()).toLocaleDateString()}</p>
+                </div>`;
+            mobHistList.appendChild(div);
         });
     }
 
-    // Desktop History
-    const deskHistList = document.querySelector('.history-list');
+    const deskHistList = document.querySelector('.section-content-area.history-list');
     if(deskHistList) {
         deskHistList.innerHTML = '';
         completedItems.forEach(item => {
             const div = document.createElement('div');
-            div.className = 'history-item';
+            div.className = 'history-card';
             div.innerHTML = `
-                <div class="history-title">${item.type_of_appointment} - ${item.site}</div>
-                <div class="history-meta">Completed on ${new Date(item.completed_at || Date.now()).toDateString()}</div>
-            `;
+                <div class="history-card-header">
+                    <div class="history-icon">✅</div>
+                    <div class="history-info">
+                        <div class="history-title">${item.type_of_appointment}</div>
+                        <p class="history-meta">${item.site} - Completed on ${new Date(item.completed_at || Date.now()).toDateString()}</p>
+                    </div>
+                </div>
+                <span class="history-status completed">Completed</span>`;
             deskHistList.appendChild(div);
         });
     }
 }
 
 function renderNotifications(data) {
-    const notifs = [];
-    data.forEach(item => {
-        if((item.status||'').toLowerCase() === 'pending') {
-            notifs.push({ title: 'New Assignment', msg: `You have a new task at ${item.site}`, time: item.created_at });
-        }
-    });
+    const notifs = data.filter(item => (item.status||'').toLowerCase() === 'pending').map(item => ({ 
+        title: 'New Assignment', 
+        msg: `You have a new task at ${item.site}`, 
+        time: item.created_at 
+    }));
 
-    // Desktop Notifications
-    const notifList = document.querySelector('.notification-list');
+    const notifList = document.querySelector('.section-content-area.notification-list');
     if(notifList) {
         notifList.innerHTML = '';
         if(notifs.length === 0) notifList.innerHTML = '<div style="padding:20px;color:#666">No new notifications</div>';
-        
-        notifs.forEach(n => {
-            const div = document.createElement('div');
-            div.className = 'notification-item';
-            div.innerHTML = `
-                <div class="notification-title">${n.title}</div>
-                <div class="notification-message">${n.msg}</div>
-                <div class="notification-time">${new Date(n.time).toLocaleTimeString()}</div>
-            `;
-            notifList.appendChild(div);
-        });
+        else {
+            const grid = document.createElement('div');
+            grid.className = 'notification-grid';
+            notifs.forEach(n => {
+                const card = document.createElement('div');
+                card.className = 'notification-card';
+                card.innerHTML = `
+                    <div class="notification-card-header">
+                        <div class="notification-icon">🔔</div>
+                        <div class="notification-info">
+                            <div class="notification-title">${n.title}</div>
+                            <div class="notification-message">${n.msg}</div>
+                            <div class="notification-time">${new Date(n.time).toLocaleTimeString()}</div>
+                        </div>
+                    </div>`;
+                grid.appendChild(card);
+            });
+            notifList.appendChild(grid);
+        }
     }
 }
 
@@ -318,15 +292,12 @@ function updateStats(data) {
     const completed = data.filter(i => (i.status||'').toLowerCase() === 'completed').length;
     const rate = total > 0 ? Math.round((completed/total)*100) + '%' : '0%';
 
-    // Update Desktop Profile Stats
     const statCards = document.querySelectorAll('.profile-stat-card .stat-number');
     if(statCards.length >= 3) {
         statCards[0].textContent = total;
         statCards[1].textContent = completed;
         statCards[2].textContent = rate;
     }
-
-    // Update Mobile Profile Stats
     const mobStats = document.querySelectorAll('.mobile-stat-number');
     if(mobStats.length >= 3) {
         mobStats[0].textContent = total;
@@ -336,24 +307,20 @@ function updateStats(data) {
 }
 
 // --- DETAILS & ACTIONS ---
-
 function getAssignment(id) { return assignmentsData.find(a => a.id == id); }
 
-// Mobile Details Open
 function openAssignmentDetails(id) {
     currentAssignmentId = id;
     const item = getAssignment(id);
     if(!item) return;
 
     document.getElementById('mTitle').textContent = item.type_of_appointment;
-    document.getElementById('mSite').textContent = item.site;
-    document.getElementById('mDue').textContent = new Date(item.date).toLocaleDateString();
-    
+    document.getElementById('mSite').textContent = `Site: ${item.site}`;
+    document.getElementById('mDue').textContent = `Due: ${new Date(item.date).toLocaleDateString()}`;
     document.getElementById('mTicket').textContent = item.ticket_code;
     document.getElementById('mDescription').textContent = item.task_description;
     document.getElementById('mRemarks').textContent = item.pm_remarks || 'None';
 
-    // Toggle Buttons
     const status = (item.status||'').toLowerCase();
     const btnAck = document.getElementById('mobileActionBtn');
     const btnReq = document.getElementById('mobileRequestMaterialBtn');
@@ -365,19 +332,17 @@ function openAssignmentDetails(id) {
 
     if(['pending', 'assigned'].includes(status)) {
         btnAck.style.display = 'block';
-    } else if(['in progress', 'ongoing'].includes(status)) {
+    } else if(['in progress', 'ongoing', 'in_progress', 'accepted'].includes(status)) {
         btnReq.style.display = 'block';
         btnComp.style.display = 'block';
     }
 
     document.getElementById('mobileAssignmentDetails').classList.add('show');
 }
-
 function closeMobileAssignmentDetails() {
     document.getElementById('mobileAssignmentDetails').classList.remove('show');
 }
 
-// Desktop Details Select
 function selectDesktopAssignment(id) {
     currentAssignmentId = id;
     const item = getAssignment(id);
@@ -387,7 +352,7 @@ function selectDesktopAssignment(id) {
     container.innerHTML = `
         <div class="assignment-detail-header">
             <h1 class="assignment-detail-title">${item.type_of_appointment}</h1>
-            <span class="assignment-detail-priority priority-${(item.priority_level||'low').toLowerCase()}">${item.priority_level || 'Medium'}</span>
+            <span class="assignment-detail-priority priority-medium">${item.priority_level || 'Medium'}</span>
         </div>
         <div class="assignment-detail-meta">
             <p class="assignment-detail-site">Site: ${item.site}</p>
@@ -396,8 +361,8 @@ function selectDesktopAssignment(id) {
         <div class="details-grid">
             <div class="detail-card"><div class="detail-label">TICKET</div><div class="detail-value">${item.ticket_code}</div></div>
             <div class="detail-card"><div class="detail-label">STATUS</div><div class="detail-value">${item.status}</div></div>
-            <div class="detail-card"><div class="detail-label">DESCRIPTION</div><div class="detail-value">${item.task_description}</div></div>
-            <div class="detail-card"><div class="detail-label">PM REMARKS</div><div class="detail-value">${item.pm_remarks || 'None'}</div></div>
+            <div class="detail-card detail-card-full"><div class="detail-label">DESCRIPTION</div><div class="detail-value">${item.task_description}</div></div>
+            <div class="detail-card detail-card-full"><div class="detail-label">PM REMARKS</div><div class="detail-value">${item.pm_remarks || 'None'}</div></div>
         </div>
     `;
 
@@ -405,58 +370,62 @@ function selectDesktopAssignment(id) {
     const pendingActions = document.getElementById('desktopPendingActions');
     const ongoingActions = document.getElementById('desktopAssignmentActions');
 
-    pendingActions.style.display = 'none';
-    ongoingActions.style.display = 'none';
+    if(pendingActions) pendingActions.style.display = 'none';
+    if(ongoingActions) ongoingActions.style.display = 'none';
 
     if(['pending', 'assigned'].includes(status)) {
-        pendingActions.style.display = 'block';
-    } else if(['in progress', 'ongoing'].includes(status)) {
-        ongoingActions.style.display = 'flex';
+        if(pendingActions) pendingActions.style.display = 'block';
+    } else if(['in progress', 'ongoing', 'in_progress', 'accepted'].includes(status)) {
+        if(ongoingActions) ongoingActions.style.display = 'flex';
     }
 }
 
-// --- ACTION HANDLERS ---
-
-async function acknowledgeAssignment() {
+// --- ACTIONS ---
+function acknowledgeAssignment() {
     document.getElementById('acknowledgeModal').classList.add('show');
 }
-
 function closeAcknowledgeModal() {
     document.getElementById('acknowledgeModal').classList.remove('show');
 }
-
 async function confirmAcknowledge() {
     const remarks = document.getElementById('acknowledgeRemarks').value;
     try {
-        await fetch('http://localhost:3000/api/engineer/acknowledge', {
+        const response = await fetch('http://localhost:3000/api/engineer/acknowledge', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ appointment_id: currentAssignmentId, remarks })
         });
+        if (!response.ok) {
+            const err = await response.json();
+            throw new Error(err.error || 'Failed to acknowledge');
+        }
         closeAcknowledgeModal();
         closeMobileAssignmentDetails();
         fetchAssignments();
-        alert('Acknowledged!');
-    } catch (e) { alert('Error'); }
+        alert('Assignment Acknowledged');
+    } catch (e) { console.error(e); alert('Error: ' + e.message); }
 }
 
 function requestMaterial() {
     document.getElementById('materialRequestModal').classList.add('show');
-    document.getElementById('mrList').innerHTML = '';
-    addMaterialRow();
+    const list = document.getElementById('mrList');
+    list.innerHTML = '';
+    addMaterialRow(); 
 }
-
 function closeMaterialRequestModal() {
     document.getElementById('materialRequestModal').classList.remove('show');
 }
-
 function addMaterialRow() {
     const div = document.createElement('div');
     div.className = 'mr-row';
-    div.innerHTML = `<input class="modal-input mr-type" placeholder="Item"><input class="modal-input mr-qty" placeholder="Qty" type="number"><button class="remove-material-btn" onclick="this.parentElement.parentElement.remove()">x</button>`;
+    div.innerHTML = `
+        <input class="modal-input mr-type" placeholder="Item Name">
+        <div class="qty-container">
+            <input class="modal-input mr-qty" placeholder="Qty" type="number">
+            <button class="remove-material-btn" onclick="this.closest('.mr-row').remove()">x</button>
+        </div>`;
     document.getElementById('mrList').appendChild(div);
 }
-
 async function confirmMaterialRequest() {
     const items = [];
     document.querySelectorAll('.mr-row').forEach(r => {
@@ -465,11 +434,13 @@ async function confirmMaterialRequest() {
         if(type) items.push({type, qty});
     });
 
-    if(items.length===0) return alert('Add item');
+    if(items.length===0) return alert('Please add at least one item.');
+    if(!currentAssignmentId) return alert('No assignment selected');
+
     const item = getAssignment(currentAssignmentId);
 
     try {
-        await fetch('http://localhost:3000/api/engineer/request-material', {
+        const response = await fetch('http://localhost:3000/api/engineer/request-material', {
             method: 'POST',
             headers: {'Content-Type':'application/json'},
             body: JSON.stringify({
@@ -480,12 +451,20 @@ async function confirmMaterialRequest() {
                 remarks: document.getElementById('mrRemarks').value
             })
         });
+        if (!response.ok) {
+            const err = await response.json();
+            throw new Error(err.error || 'Failed to request');
+        }
         closeMaterialRequestModal();
-        alert('Request Sent');
-    } catch (e) { alert('Error'); }
+        alert('Request Submitted');
+    } catch (e) { console.error(e); alert('Error: ' + e.message); }
 }
 
 function markAsCompleted() {
+    if (!currentAssignmentId) {
+        alert("Please select an assignment first.");
+        return;
+    }
     document.getElementById('markCompletedModal').classList.add('show');
 }
 
@@ -494,28 +473,38 @@ function closeMarkCompletedModal() {
 }
 
 async function confirmMarkCompleted() {
+    if (!currentAssignmentId) {
+        alert("Error: No assignment ID selected.");
+        return;
+    }
+
     try {
-        await fetch('http://localhost:3000/api/engineer/complete', {
+        const response = await fetch('http://localhost:3000/api/engineer/complete', {
             method: 'POST',
             headers: {'Content-Type':'application/json'},
             body: JSON.stringify({
                 appointment_id: currentAssignmentId,
-                remarks: document.getElementById('markCompletedRemarks').value
+                remarks: document.getElementById('markCompletedRemarks').value || ''
             })
         });
+        
+        if (!response.ok) {
+            const errData = await response.json();
+            throw new Error(errData.error || 'Failed to complete assignment');
+        }
+
         closeMarkCompletedModal();
         closeMobileAssignmentDetails();
         fetchAssignments();
-        alert('Completed!');
-    } catch (e) { alert('Error'); }
+        alert('Marked as Completed');
+    } catch (e) { 
+        console.error(e); 
+        alert('Error: ' + e.message); 
+    }
 }
 
 function logout() {
     supabase.auth.signOut();
     window.location.href = '../login/login.html';
 }
-
-function goBack() {
-    // For desktop back logic if needed, otherwise just reload or handle state
-    location.reload();
-}
+function goBack() { location.reload(); }

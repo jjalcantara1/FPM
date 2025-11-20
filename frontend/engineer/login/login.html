@@ -6,7 +6,6 @@
     <title>FINSI Login</title>
     <link rel="stylesheet" href="./login.css" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
   </head>
   <body>
     <div class="page-wrapper">
@@ -28,6 +27,7 @@
           <div class="input-group">
             <span class="input-icon" aria-hidden="true">&#128100;</span>
             <input
+              id="email"
               type="text"
               class="input-field"
               placeholder="Username"
@@ -38,6 +38,7 @@
           <div class="input-group">
             <span class="input-icon" aria-hidden="true">&#128274;</span>
             <input
+              id="password"
               type="password"
               class="input-field"
               placeholder="Password"
@@ -45,7 +46,7 @@
             />
           </div>
 
-          <button type="button" class="login-button">Login</button>
+          <button type="button" id="loginBtn" class="login-button">Login</button>
         </main>
       </div>
     </div>
@@ -53,5 +54,4 @@
     <div class="bottom-indicator" aria-hidden="true"></div>
     <script src="./login.js"></script>
   </body>
-  
 </html>
