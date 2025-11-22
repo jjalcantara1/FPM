@@ -44,9 +44,9 @@ async function checkUserSession() {
 
     const label = document.getElementById('welcomeLabel');
     if (label && userProfile) {
-        label.textContent = userProfile.company_name ?
-            ('Welcome, ' + userProfile.company_name) :
-            ('Welcome, ' + userProfile.email);
+        // Consistent "Welcome, Name" format
+        const name = `${userProfile.firstName || ''} ${userProfile.surname || ''}`.trim() || userProfile.email;
+        label.textContent = 'Welcome, ' + name;
     }
 
     var badge = document.querySelector('.profile-btn .badge');

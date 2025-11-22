@@ -141,7 +141,7 @@
                         <input type="text" class="otp-input" maxlength="1" id="otp6" oninput="moveToNext(this, null)" onkeydown="handleBackspace(event, this, 'otp5')">
                     </div>
                     <p class="otp-message">Didn't receive the code?</p>
-                    <a class="resend-link" onclick="resendOTP()">Resend OTP</a>
+                    <a class="resend-link" id="resendLink" onclick="resendOTP()">Resend OTP</a>
                 </div>
             </div>
             <div class="modal-footer">

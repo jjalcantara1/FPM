@@ -8,6 +8,55 @@ window.toggleMenu = toggleMenu;
 
 let registrationData = {};
 
+// ---------------- Constants ----------------
+const RESEND_COOLDOWN_MS = 60 * 1000;      // 1 minute
+const OTP_EXPIRATION_MS = 3 * 60 * 1000;   // 3 minutes (Changed from 3 hours)
+// -----------------------------------------
+
+// Initialize timer on load
+document.addEventListener('DOMContentLoaded', () => {
+    startResendTimer();
+});
+
+// ---------------- Timer Logic ----------------
+function startResendTimer() {
+    const resendLink = document.getElementById('resendLink');
+    if (!resendLink) return;
+
+    function updateLink() {
+        const cooldownEnd = localStorage.getItem('otpResendCooldown');
+        
+        if (!cooldownEnd) {
+            resendLink.style.pointerEvents = 'auto';
+            resendLink.style.opacity = '1';
+            resendLink.style.color = 'var(--orange-600)';
+            resendLink.textContent = 'Resend OTP';
+            return;
+        }
+
+        const now = Date.now();
+        const remaining = Math.ceil((parseInt(cooldownEnd) - now) / 1000);
+
+        if (remaining <= 0) {
+            localStorage.removeItem('otpResendCooldown');
+            resendLink.style.pointerEvents = 'auto';
+            resendLink.style.opacity = '1';
+            resendLink.style.color = 'var(--orange-600)';
+            resendLink.textContent = 'Resend OTP';
+        } else {
+            resendLink.style.pointerEvents = 'none';
+            resendLink.style.opacity = '0.5';
+            resendLink.style.color = 'var(--text-500)';
+            resendLink.textContent = `Resend available in ${remaining}s`;
+        }
+    }
+
+    updateLink();
+    if (window.resendInterval) clearInterval(window.resendInterval);
+    window.resendInterval = setInterval(updateLink, 1000);
+}
+// ---------------------------------------------
+
 document.getElementById('registrationForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
@@ -97,6 +146,13 @@ function showValidationModal() {
 function closeValidationModal() {
     document.getElementById('validationModal').classList.remove('show');
     document.getElementById('registrationForm').reset();
+    
+    // Cleanup storage
+    localStorage.removeItem('registrationOTP');
+    localStorage.removeItem('registrationEmail');
+    localStorage.removeItem('otpResendCooldown');
+    localStorage.removeItem('otpExpiresAt');
+    
     window.location.href = '../login/login.html';
 }
 
@@ -125,8 +181,13 @@ async function sendOTP() {
     try {
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
+        // Set storage items
         localStorage.setItem('registrationOTP', otp);
         localStorage.setItem('registrationEmail', registrationData.companyEmail);
+        
+        // Set timers based on new constants
+        localStorage.setItem('otpResendCooldown', Date.now() + RESEND_COOLDOWN_MS);
+        localStorage.setItem('otpExpiresAt', Date.now() + OTP_EXPIRATION_MS);
 
         const templateParams = {
             to_email: registrationData.companyEmail,
@@ -140,6 +201,9 @@ async function sendOTP() {
 
         document.getElementById('otpEmailDisplay').textContent = registrationData.companyEmail;
         document.getElementById('otpModal').classList.add('show');
+        
+        startResendTimer();
+        
         setTimeout(() => {
             document.getElementById('otp1').focus();
         }, 300);
@@ -157,6 +221,15 @@ async function verifyOTP() {
     const btn = document.getElementById('verify-btn');
     btn.disabled = true;
     btn.textContent = 'Verifying...';
+
+    // Check for expiration
+    const expiresAt = localStorage.getItem('otpExpiresAt');
+    if (expiresAt && Date.now() > parseInt(expiresAt)) {
+        showToast('OTP has expired (valid for 3 minutes). Please resend.', 'error');
+        btn.disabled = false;
+        btn.textContent = 'Verify & Register';
+        return;
+    }
 
     let otp = '';
     for (let i = 1; i <= 6; i++) {
@@ -199,9 +272,6 @@ async function verifyOTP() {
         
         showToast('Account created successfully!', 'success');
         
-        localStorage.removeItem('registrationOTP');
-        localStorage.removeItem('registrationEmail');
-
         document.getElementById('validationModal').querySelector('.modal-title').textContent = 'Registration Successful!';
         document.getElementById('validationModal').querySelector('h3').textContent = 'Your account has been created.';
         document.getElementById('validationModal').querySelector('p').textContent = 'You can now log in with your new credentials.';
@@ -221,11 +291,18 @@ async function verifyOTP() {
 }
 
 async function resendOTP() {
+    const cooldownEnd = localStorage.getItem('otpResendCooldown');
+    if (cooldownEnd && Date.now() < parseInt(cooldownEnd)) {
+        return; 
+    }
+
     showToast('Resending code...', 'success');
     try {
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
         localStorage.setItem('registrationOTP', otp);
+        localStorage.setItem('otpResendCooldown', Date.now() + RESEND_COOLDOWN_MS);
+        localStorage.setItem('otpExpiresAt', Date.now() + OTP_EXPIRATION_MS);
 
         const templateParams = {
             to_email: registrationData.companyEmail,
@@ -236,6 +313,9 @@ async function resendOTP() {
         await emailjs.send('service_qj1yc6w', 'template_fbiv2i9', templateParams);
 
         showToast('OTP resent to ' + registrationData.companyEmail, 'success');
+        
+        startResendTimer();
+        
         for (let i = 1; i <= 6; i++) {
             document.getElementById('otp' + i).value = '';
         }

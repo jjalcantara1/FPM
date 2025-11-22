@@ -56,7 +56,9 @@ async function checkUserSession() {
 function updateHeaderUI() {
     const label = document.getElementById('welcomeLabel');
     if (label && userProfile) {
-        label.textContent = userProfile.company_name || userProfile.email;
+        // Consistent "Welcome, Name" format
+        const name = `${userProfile.firstName || ''} ${userProfile.surname || ''}`.trim() || userProfile.email;
+        label.textContent = 'Welcome, ' + name;
     }
     
     var badge = document.querySelector('.profile-btn .badge');
@@ -122,6 +124,9 @@ function renderTable(appointments) {
             day: 'numeric'
         });
 
+        // Display "On Going" for "In Progress"
+        const displayStatus = (appt.status === 'In Progress') ? 'Ongoing' : (appt.status || 'Pending');
+
         row.innerHTML = `
             <td>${count++}</td>
             <td>${appt.ticket_code || 'N/A'}</td>
@@ -129,7 +134,7 @@ function renderTable(appointments) {
             <td>${appt.site || 'N/A'}</td>
             <td>${appt.type_of_appointment || 'N/A'}</td>
             <td>${appt.task_description || 'N/A'}</td>
-            <td><span class="status-pill ${statusClass(appt.status)}">${appt.status || 'Pending'}</span></td>
+            <td><span class="status-pill ${statusClass(appt.status)}">${displayStatus}</span></td>
             <td>${appt.priority_level || 'N/A'}</td>
             <td><button class="btn-view" onclick="viewDetails(${appt.id})">View</button></td>
         `;
@@ -152,12 +157,15 @@ window.viewDetails = function(appointmentId) {
         engineerName = `${task.engineer_records.firstName || ''} ${task.engineer_records.lastName || ''}`.trim();
     }
 
+    // Display "On Going" if status is "In Progress"
+    const displayStatus = (task.status === 'In Progress') ? 'Ongoing' : (task.status || 'Pending');
+
     document.getElementById('modalTicketNumber').textContent = task.ticket_code || 'N/A';
     document.getElementById('modalDate').textContent = date;
     document.getElementById('modalSite').textContent = task.site || 'N/A';
     document.getElementById('modalType').textContent = task.type_of_appointment || 'N/A';
     document.getElementById('modalDescription').textContent = task.task_description || 'N/A';
-    document.getElementById('modalStatus').textContent = task.status || 'Pending';
+    document.getElementById('modalStatus').textContent = displayStatus;
     document.getElementById('modalPriority').textContent = task.priority_level || 'N/A';
     
     document.getElementById('modalRemarks').textContent = task.pm_remarks || 'Waiting for Project Manager review.';

@@ -114,16 +114,23 @@ app.post('/api/pm/engineer', async (req, res) => {
 
     try {
         if (id) {
+            // --- UPDATE LOGIC ---
+            const updateData = { // Create dynamic update object
+                firstName: givenName,
+                middleName: middleName,
+                lastName: lastName,
+                phone_number: phone,
+                email: email,
+                location: location
+            };
+
+            if (password) { // Only update password in profile table if provided
+                updateData.password = password;
+            }
+
             const { data: profile, error: profileError } = await supabase
                 .from('engineer_records')
-                .update({
-                    firstName: givenName,
-                    middleName: middleName,
-                    lastName: lastName,
-                    phone_number: phone,
-                    email: email,
-                    location: location
-                })
+                .update(updateData) // Use dynamic update object
                 .eq('user_id', id)
                 .select();
 
@@ -140,7 +147,7 @@ app.post('/api/pm/engineer', async (req, res) => {
 
             res.status(200).json({ message: 'Engineer updated successfully!', data: profile });
         } else {
-            // This is a CREATE
+            // --- CREATE LOGIC ---
             if (!email || !password) {
                 return res.status(400).json({ error: 'Email and password are required for new engineer.' });
             }
@@ -167,7 +174,8 @@ app.post('/api/pm/engineer', async (req, res) => {
                         email: email,
                         phone_number: phone,
                         location: location,
-                        status: 'active'
+                        status: 'active',
+                        password: password // ADDED PASSWORD HERE
                     }
                 ])
                 .select();

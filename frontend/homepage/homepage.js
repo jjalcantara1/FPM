@@ -7,9 +7,9 @@ let currentUser = null;
 let userProfile = null;
 
 async function logout() {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-        console.error('Error logging out:', error.message);
+    if (typeof supabaseClient !== 'undefined') {
+        const { error } = await supabaseClient.auth.signOut();
+        if (error) console.error('Error logging out:', error.message);
     }
     window.location.href = '../landingpage/landingpage.html#home';
 }
@@ -18,9 +18,9 @@ window.logout = logout;
 function updateUI(profile) {
     const label = document.getElementById('welcomeLabel');
     if (label && profile) {
-        label.textContent = profile.company_name ?
-            ('Welcome, ' + profile.company_name) :
-            ('Welcome, ' + profile.email);
+        // Standardized: "Welcome, [User Name]"
+        const name = `${profile.firstName || ''} ${profile.surname || ''}`.trim() || profile.email;
+        label.textContent = 'Welcome, ' + name;
     }
 
     var badge = document.querySelector('.profile-btn .badge');
@@ -45,7 +45,13 @@ function updateUI(profile) {
 }
 
 async function checkUserSession() {
-    const { data, error } = await supabase.auth.getSession();
+    // FIX: Check for supabaseClient instead of supabase
+    if (typeof supabaseClient === 'undefined') {
+        console.error('Supabase client not ready');
+        return;
+    }
+
+    const { data, error } = await supabaseClient.auth.getSession();
     if (error) {
         console.error('Error getting session:', error.message);
         window.location.href = '../login/login.html';
@@ -60,7 +66,8 @@ async function checkUserSession() {
 
     currentUser = data.session.user;
 
-    const { data: profile, error: profileError } = await supabase
+    // FIX: Use supabaseClient for database query
+    const { data: profile, error: profileError } = await supabaseClient
         .from('facility_owner_records')
         .select('*')
         .eq('user_id', currentUser.id)
