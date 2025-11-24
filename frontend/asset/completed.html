@@ -3,33 +3,157 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Completed Requests</title>
+  <title>Completed Requests - Asset Management</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    :root { --brand-orange: #f47621; --brand-dark: #33383f; --muted: #70757d; --card-border: #e3e6ea; --bg-light: #f5f7fa; --success: #16a34a; }
+    :root {
+      --brand-orange: #f47621;
+      --brand-dark: #33383f;
+      --muted: #70757d;
+      --card-border: #e3e6ea;
+      --bg-light: #f5f7fa;
+      --success: #16a34a;
+    }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: "Inter", sans-serif; color: var(--brand-dark); background: var(--bg-light); min-height: 100vh; display: flex; }
-    .sidebar { width: 240px; background: #fff; border-right: 1px solid #e9edf1; display: flex; flex-direction: column; justify-content: space-between; padding: 20px 16px; }
-    .brand { text-align: center; margin-bottom: 24px; } .brand img { height: 40px; }
+    body {
+      font-family: "Inter", sans-serif;
+      color: var(--brand-dark);
+      background: var(--bg-light);
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 240px;
+      background: #fff;
+      border-right: 1px solid #e9edf1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 20px 16px;
+    }
+    .brand { text-align: center; margin-bottom: 24px; }
+    .brand img { height: 40px; }
     .menu { display: flex; flex-direction: column; gap: 4px; }
-    .menu a, .menu button { padding: 10px 12px; border-radius: 8px; text-decoration: none; color: var(--brand-dark); font-weight: 600; text-align: left; background: none; border: none; cursor: pointer; transition: background 0.2s, color 0.2s; }
-    .menu a.active, .menu a:hover, .menu button:hover { background: var(--brand-orange); color: #fff; }
-    .submenu { display: none; flex-direction: column; margin-left: 16px; gap: 4px; }
-    .submenu a { font-weight: 500; font-size: 14px; color: var(--brand-dark); }
-    .submenu a.active, .submenu a:hover { background: var(--brand-orange); color: #fff; }
+    .menu a, .menu button {
+      padding: 10px 12px;
+      border-radius: 8px;
+      text-decoration: none;
+      color: var(--brand-dark);
+      font-weight: 600;
+      text-align: left;
+      background: none;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .menu a.active,
+    .menu a:hover,
+    .menu button:hover {
+      background: var(--brand-orange);
+      color: #fff;
+    }
+
+    /* Dropdown submenu */
+    .submenu {
+      display: none;
+      flex-direction: column;
+      margin-left: 16px;
+      gap: 4px;
+    }
+    .submenu a {
+      font-weight: 500;
+      font-size: 14px;
+      color: var(--brand-dark);
+    }
+    .submenu a.active,
+    .submenu a:hover {
+      background: var(--brand-orange);
+      color: #fff;
+    }
     .submenu.show { display: flex; }
-    .logout a { display: block; padding: 12px; border-radius: 10px; background: #fbe9dd; text-align: center; font-weight: 600; text-decoration: none; color: var(--brand-dark); cursor: pointer; }
+
+    .logout a {
+      display: block;
+      padding: 12px;
+      border-radius: 10px;
+      background: #fbe9dd;
+      text-align: center;
+      font-weight: 600;
+      text-decoration: none;
+      color: var(--brand-dark);
+    }
+
+    /* Main */
     .main { flex: 1; display: flex; flex-direction: column; }
-    .topbar { height: 64px; background: #fff; border-bottom: 1px solid #e9edf1; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; }
+    .topbar {
+      height: 64px;
+      background: #fff;
+      border-bottom: 1px solid #e9edf1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+    }
     .welcome { font-weight: 700; font-size: 16px; }
     .content { flex: 1; padding: 24px; overflow-y: auto; }
     .h1 { font-size: 28px; font-weight: 800; margin-bottom: 20px; color: var(--brand-orange); }
-    .card { background: #fff; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); overflow: hidden; }
+
+    /* Card */
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--card-border);
+      background: #f9fefb;
+      font-weight: 700;
+    }
+    .pill {
+      background: var(--success);
+      color: #fff;
+      font-weight: 700;
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 13px;
+    }
+
+    /* Table */
     table { width: 100%; border-collapse: collapse; }
-    thead th { text-align: left; font-size: 13px; color: var(--muted); font-weight: 700; padding: 10px 14px; border-bottom: 1px solid var(--card-border); }
-    tbody td { padding: 12px 14px; border-bottom: 1px solid var(--card-border); font-size: 14px; }
-    .badge { display: inline-block; padding: 4px 10px; border-radius: 999px; font-weight: 700; font-size: 12px; }
-    .badge.completed { background: #dcfce7; color: #166534; }
+    thead th {
+      text-align: left;
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 700;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--card-border);
+    }
+    tbody td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--card-border);
+      font-size: 14px;
+    }
+    tbody tr:hover { background: #f7fff9; }
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 12px;
+    }
+    .badge.completed {
+      background: #dcfce7;
+      color: #166534;
+    }
   </style>
 </head>
 <body>
@@ -38,11 +162,12 @@
       <div class="brand"><img src="flogo.png" alt="Company logo" /></div>
       <div class="profile" style="text-align:center;margin:12px 0 18px 0;">
         <img src="aiface.jpg" alt="Profile" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid #e9edf1;" />
-        <div id="profileName" style="font-weight:700;margin-top:8px;color:#33383f;">Loading...</div>
+        <div style="font-weight:700;margin-top:8px;color:#33383f;" id="userProfileName">Loading...</div>
       </div>
       <nav class="menu">
         <a href="dashboard.html">Dashboard</a>
         <a href="materials.html">Materials</a>
+
         <button id="requestsBtn">Requests ▾</button>
         <div class="submenu show" id="requestsMenu">
           <a href="requestpending.html">Pending</a>
@@ -52,45 +177,170 @@
         </div>
       </nav>
     </div>
-    <div class="logout"><a href="#" id="logoutLink">Logout</a></div>
+    <div class="logout"><a href="#" onclick="logout()">Logout</a></div>
   </aside>
 
   <main class="main">
     <div class="topbar">
-      <div class="welcome">Welcome, User!</div>
+      <div class="welcome" id="welcomeMessage">Welcome, User!</div>
       <div class="date-display" id="currentDate"></div>
     </div>
+
     <div class="content">
       <div class="h1">Completed Requests</div>
+
       <div class="card">
-        <table id="completedTable">
-          <thead><tr><th>ID</th><th>Ticket</th><th>Date</th><th>Site</th><th>Status</th><th>Assigned To</th></tr></thead>
-          <tbody></tbody>
-        </table>
+        <div class="card-header">
+          <span class="pill">Material Request Done</span>
+          <span style="color:#475569; font-weight:600;">Ticketing Overview</span>
+        </div>
+        <div style="overflow:auto;">
+          <table id="completedTable">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Ticket</th>
+                <th>Date</th>
+                <th>Site</th>
+                <th>Task Description</th>
+                <th>Status</th>
+                <th>Priority Level</th>
+                <th>Requested Materials</th>
+                <th>Requested By</th>
+                <th>Approved By</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody">
+              <tr><td colspan="10" style="text-align:center; padding:20px;">Loading history...</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </main>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="../static/supabaseClient.js"></script>
-  <script src="dashboard.js"></script>
   <script>
-    const checkClient = setInterval(() => {
-      if (window.sbClient) { clearInterval(checkClient); fetchCompleted(); }
-    }, 100);
+    // --- SUPABASE CONFIGURATION ---
+    const SUPABASE_URL = 'https://bicvcqolkaokimtwimhn.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJpY3ZjcW9sa2Fva2ltdHdpbWhuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MjUzMDIwMCwiZXhwIjoyMDc4MTA2MjAwfQ.eAYHk5c53gz5y2r85Rkz_-48taKCZWii-5cR2glCMP0';
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    async function fetchCompleted() {
-      const { data } = await window.sbClient.from('material_requests').select('*').eq('status', 'Completed').order('created_at', { ascending: false });
-      const tbody = document.querySelector('#completedTable tbody');
-      tbody.innerHTML = '';
-      if (data) {
-        data.forEach(r => {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `<td>${r.id}</td><td>${r.ticket_id}</td><td>${r.request_date}</td><td>${r.site}</td><td><span class="badge completed">Completed</span></td><td>${r.assigned_to_name || '-'}</td>`;
-          tbody.appendChild(tr);
-        });
-      }
+    // --- AUTH CHECK & INIT ---
+    document.addEventListener('DOMContentLoaded', async () => {
+        // Check Session
+        const { data: { session } } = await sb.auth.getSession();
+        if (!session) {
+            window.location.href = 'finsilogin.html';
+            return;
+        }
+
+        // Load Profile Name
+        const { data: profile } = await sb.from('asset_manager_records').select('firstName').eq('user_id', session.user.id).single();
+        if (profile) {
+            const profileNameEl = document.getElementById('userProfileName');
+            if (profileNameEl) profileNameEl.textContent = profile.firstName;
+
+            const welcomeEl = document.getElementById('welcomeMessage');
+            if (welcomeEl) welcomeEl.textContent = `Welcome, ${profile.firstName}!`;
+        }
+
+        // Fetch Data
+        fetchCompletedRequests();
+    });
+
+    async function logout() {
+        await sb.auth.signOut();
+        window.location.href = 'finsilogin.html';
     }
+
+    // --- DATA FETCHING ---
+    async function fetchCompletedRequests() {
+        const { data: requests, error } = await sb
+            .from('material_requests')
+            .select('*')
+            .eq('status', 'Completed')
+            .order('created_at', {ascending: false});
+
+        if (error) {
+            console.error(error);
+            return;
+        }
+
+        // Fetch items for these requests to correctly display materials
+        const { data: allItems } = await sb
+            .from('material_request_items')
+            .select('*');
+
+        renderTable(requests || [], allItems || []);
+    }
+
+    function renderTable(requests, allItems) {
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = '';
+
+        if (requests.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding:20px;">No completed requests found.</td></tr>';
+            return;
+        }
+
+        requests.forEach((r) => {
+            // Look for items in the child table first
+            const requestItems = allItems.filter(i => i.request_id === r.id);
+            let materialsDisplay = '';
+
+            if (requestItems && requestItems.length > 0) {
+                // Map items from database table
+                materialsDisplay = requestItems.map(m => `${m.quantity_fulfilled || m.quantity_requested}x ${m.material_name_cache}`).join(', ');
+            } else if (r.remarks && r.remarks.includes('Requested:')) {
+                // Fallback: Try parsing the remarks JSON if child items are missing (legacy records)
+                try {
+                    const jsonStr = r.remarks.replace('Requested: ', '');
+                    const jsonEndIndex = jsonStr.indexOf(']') + 1;
+                    const cleanJson = jsonStr.substring(0, jsonEndIndex);
+                    
+                    const mats = JSON.parse(cleanJson);
+                    materialsDisplay = mats.map(m => `${m.qty}x ${m.type}`).join(', ');
+                } catch(e) {
+                    // If parsing fails, just show "View Details" or empty
+                    materialsDisplay = 'No specific materials';
+                }
+            } else {
+                materialsDisplay = 'No specific materials';
+            }
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${r.id}</td>
+                <td>${r.ticket_id || 'N/A'}</td>
+                <td>${new Date(r.request_date).toLocaleDateString()}</td>
+                <td>${r.site || 'N/A'}</td>
+                <td>${r.task_description || '-'}</td>
+                <td><span class="badge completed">Completed</span></td>
+                <td>${r.priority || 'Medium'}</td>
+                <td><strong>${materialsDisplay}</strong></td>
+                <td>${r.requested_by || 'Engineer'}</td>
+                <td>Asset Team</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // --- UTILS ---
+    function updateDate() {
+      const now = new Date();
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      const el = document.getElementById('currentDate');
+      if (el) el.textContent = now.toLocaleDateString('en-US', options);
+    }
+    updateDate();
+    setInterval(updateDate, 60000);
+
+    // Dropdown toggle
+    const requestsBtn = document.getElementById('requestsBtn');
+    const requestsMenu = document.getElementById('requestsMenu');
+    requestsBtn.addEventListener('click', () => {
+      requestsMenu.classList.toggle('show');
+    });
   </script>
 </body>
 </html>

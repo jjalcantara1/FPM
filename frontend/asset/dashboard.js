@@ -31,7 +31,12 @@ async function checkSession() {
 
 async function loadUserProfile(userId) {
     const nameEl = document.getElementById('profileName');
-    if (!nameEl) return;
+    const welcomeEl = document.getElementById('welcomeMessage');
+    
+    // Ideally we check for nameEl to update the sidebar, but even if sidebar is missing
+    // we might still want to update the header welcome message on other pages.
+    // However, the original logic returns if nameEl is missing. We can keep it or make it robust.
+    // For now, we proceed to fetch data if we need to update either element.
     
     const { data } = await window.sbClient
         .from('asset_manager_records')
@@ -39,7 +44,13 @@ async function loadUserProfile(userId) {
         .eq('user_id', userId)
         .single();
         
-    if (data && data.firstName) nameEl.textContent = data.firstName;
+    if (data && data.firstName) {
+        // Update Sidebar Name
+        if (nameEl) nameEl.textContent = data.firstName;
+        
+        // Update Header Welcome Message
+        if (welcomeEl) welcomeEl.textContent = `Welcome, ${data.firstName}!`; 
+    }
 }
 
 function updateDateDisplay() {

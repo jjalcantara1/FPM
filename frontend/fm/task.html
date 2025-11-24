@@ -4,197 +4,709 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Task Assign - Fleet Management</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../static/supabaseClient.js"></script>
   <style>
-    :root { --brand-orange: #f47621; --brand-dark: #33383f; --bg-light: #f5f7fa; --muted: #70757d; }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: "Inter", sans-serif; color: var(--brand-dark); background: var(--bg-light); display: flex; min-height: 100vh; margin: 0; }
-    .sidebar { width: 240px; background: #fff; border-right: 1px solid #e9edf1; display: flex; flex-direction: column; justify-content: space-between; padding: 20px 16px; }
-    .menu a { padding: 10px 12px; border-radius: 8px; text-decoration: none; color: var(--brand-dark); font-weight: 600; display: block; margin-bottom: 4px; transition: 0.2s; }
-    .menu a.active, .menu a:hover { background: var(--brand-orange); color: #fff; }
-    .logout a { display: block; padding: 12px; background: #fbe9dd; text-align: center; border-radius: 8px; text-decoration: none; color: var(--brand-dark); font-weight: 600; cursor: pointer; }
-    .main { flex: 1; padding: 24px; }
-    .card { background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-    /* Summary Cards */
-    .task-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
-    .summary-card { background: white; border: 1px solid #e3e6ea; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
-    .summary-card:nth-child(1) { border-left: 4px solid var(--brand-orange); }
-    .summary-card:nth-child(2) { border-left: 4px solid #ffc107; }
-    .summary-card:nth-child(3) { border-left: 4px solid #28a745; }
-    .summary-card:nth-child(4) { border-left: 4px solid #007bff; }
-    .summary-label { font-size: 14px; color: var(--brand-orange); font-weight: 600; }
-    .summary-count { font-size: 32px; font-weight: 800; color: var(--brand-dark); }
+    :root {
+      --brand-orange: #f47621;
+      --brand-dark: #33383f;
+      --sidebar-bg: #fff;
+      --sidebar-text: #33383f;
+      --muted: #70757d;
+      --card-bg: #f5f6f8;
+      --card-border: #e3e6ea;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--brand-dark);
+      background: #f3f5f7;
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 240px;
+      background: var(--sidebar-bg);
+      border-right: 1px solid #e9edf1;
+      color: var(--sidebar-text);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 20px 16px;
+    }
+
+    .brand {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .brand img {
+      height: 40px;
+    }
+
+    .menu {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .menu a {
+      padding: 10px 12px;
+      border-radius: 8px;
+      text-decoration: none;
+      color: var(--brand-dark);
+      font-weight: 600;
+      transition: background 0.2s, color 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .menu a.active,
+    .menu a:hover {
+      background: var(--brand-orange);
+      color: #fff;
+    }
+
+    .logout a {
+      display: block;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: #fbe9dd;
+      text-align: center;
+      color: var(--brand-dark);
+      font-weight: 600;
+      text-decoration: none;
+      transition: background 0.2s;
+      cursor: pointer;
+    }
+
+    .logout a:hover {
+      background: #f8d8c1;
+    }
+
+    /* Main */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Topbar */
+    .topbar {
+      height: 64px;
+      background: #fff;
+      border-bottom: 1px solid #e9edf1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+    }
+
+    .welcome {
+      font-weight: 700;
+      font-size: 16px;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .date-display {
+      font-size: 14px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    /* Content */
+    .content {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
+    }
+
+    .page-title {
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 24px;
+    }
+
+    /* Task Summary Cards */
+    .task-summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .summary-card {
+      background: white;
+      border: 1px solid #e3e6ea;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: transform 0.2s, box-shadow 0.2s;
+      cursor: pointer;
+    }
+
+    .summary-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    .summary-card:nth-child(1) {
+      border-left: 4px solid var(--brand-orange);
+    }
+
+    .summary-card:nth-child(2) {
+      border-left: 4px solid #ffc107;
+    }
+
+    .summary-card:nth-child(3) {
+      border-left: 4px solid #28a745;
+    }
+
+    .summary-card:nth-child(4) {
+      border-left: 4px solid #007bff;
+    }
+
+    .summary-label {
+      font-size: 14px;
+      color: var(--brand-orange);
+      font-weight: 600;
+    }
+
+    .summary-count {
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--brand-dark);
+    }
+
+    /* Task Controls */
+    .task-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding: 20px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .filter-section {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .filter-select, .filter-date {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      background: white;
+      min-width: 120px;
+    }
+
+    .filter-select:focus, .filter-date:focus {
+      outline: none;
+      border-color: var(--brand-orange);
+      box-shadow: 0 0 0 2px rgba(244, 118, 33, 0.2);
+    }
+
+    /* Task Table */
+    .task-table-container {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+    }
+
+    .task-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .task-table thead {
+      background: #6c757d;
+      color: white;
+    }
+
+    .task-table th {
+      padding: 16px 12px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .task-table td {
+      padding: 16px 12px;
+      border-bottom: 1px solid #e9ecef;
+      font-size: 14px;
+      vertical-align: top;
+    }
+
+    .task-table tbody tr:hover {
+      background: #f8f9fa;
+    }
+
+    .task-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* Status and Priority Styling */
+    .status-pending {
+      color: #ffc107;
+      font-weight: 600;
+    }
+
+    .status-progress {
+      color: #007bff;
+      font-weight: 600;
+    }
+
+    .status-completed {
+      color: #28a745;
+      font-weight: 600;
+    }
     
-    table { width: 100%; border-collapse: collapse; }
-    th { text-align: left; padding: 12px; background: #6c757d; color: #fff; }
-    td { padding: 12px; border-bottom: 1px solid #eee; }
-    .status-pending { color: #ffc107; font-weight: 700; }
-    .status-progress { color: #007bff; font-weight: 700; }
-    .status-completed { color: #28a745; font-weight: 700; }
-    .status-onhold { color: #ffc107; font-weight: 700; }
-    .btn-view { background: #007bff; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: 600; }
-    
-    /* Modal Overlay */
-    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; }
-    .modal-content { background: white; padding: 24px; border-radius: 12px; width: 640px; max-width: 95%; max-height: 85vh; overflow-y: auto; position: relative; }
-    .modal-close { position: absolute; top: 10px; right: 12px; background: transparent; border: none; font-size: 22px; cursor: pointer; }
-    .modal-title { margin: 6px 32px 16px 0; color: var(--brand-orange); }
-    .detail-row { display: flex; justify-content: space-between; padding: 10px; background: #f8f9fa; border-radius: 6px; margin-bottom: 12px; }
-    
-    /* Confirmation Modal */
-    .confirm-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 2000; }
-    .confirm-content { background: white; padding: 30px; border-radius: 12px; width: 500px; max-width: 90%; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
-    .confirm-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
-    .confirm-icon { width: 48px; height: 48px; background: #fff3cd; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #ffc107; }
-    .confirm-title { font-size: 20px; font-weight: 700; margin: 0; }
-    .confirm-buttons { display: flex; gap: 12px; justify-content: flex-end; margin-top: 20px; }
-    .confirm-btn { padding: 10px 24px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
-    .confirm-btn-cancel { background: #e9ecef; color: #333; }
-    .confirm-btn-confirm { background: #ffc107; color: white; }
-    .confirm-textarea { width: 100%; padding: 12px; border: 2px solid #e3e6ea; border-radius: 8px; min-height: 100px; margin-top: 8px; }
+    .status-onhold {
+      color: #ffc107;
+      font-weight: 600;
+    }
+
+    .priority-high {
+      color: #dc3545;
+      font-weight: 600;
+    }
+
+    .priority-medium {
+      color: #ffc107;
+      font-weight: 600;
+    }
+
+    .priority-low {
+      color: #28a745;
+      font-weight: 600;
+    }
+
+    .btn-view {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-view:hover {
+      background: #0056b3;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 24px;
+      border-radius: 12px;
+      width: 640px;
+      max-width: 95%;
+      max-height: 85vh;
+      overflow-y: auto;
+      position: relative;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      background: transparent;
+      border: none;
+      font-size: 22px;
+      cursor: pointer;
+    }
+
+    .modal-title {
+      margin: 6px 32px 16px 0;
+      color: var(--brand-orange);
+    }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px;
+      background: #f8f9fa;
+      border-radius: 6px;
+      margin-bottom: 12px;
+    }
+
+    /* Custom Confirmation Modal */
+    .confirm-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.6);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+    }
+
+    .confirm-content {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      width: 500px;
+      max-width: 90%;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+
+    .confirm-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .confirm-icon {
+      width: 48px;
+      height: 48px;
+      background: #fff3cd;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      color: #ffc107;
+    }
+
+    .confirm-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--brand-dark);
+      margin: 0;
+    }
+
+    .confirm-message {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .confirm-input-group {
+      margin-bottom: 24px;
+    }
+
+    .confirm-label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--brand-dark);
+      font-size: 14px;
+    }
+
+    .confirm-textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e3e6ea;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      resize: vertical;
+      min-height: 100px;
+      transition: border-color 0.2s;
+    }
+
+    .confirm-textarea:focus {
+      outline: none;
+      border-color: var(--brand-orange);
+      box-shadow: 0 0 0 3px rgba(244, 118, 33, 0.1);
+    }
+
+    .confirm-buttons {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+
+    .confirm-btn {
+      padding: 10px 24px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .confirm-btn-cancel {
+      background: #e9ecef;
+      color: var(--brand-dark);
+    }
+
+    .confirm-btn-cancel:hover {
+      background: #dee2e6;
+    }
+
+    .confirm-btn-confirm {
+      background: #ffc107;
+      color: white;
+    }
+
+    .confirm-btn-confirm:hover {
+      background: #e0a800;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 100%;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .menu {
+        flex-direction: row;
+        gap: 12px;
+      }
+
+      .logout {
+        display: none;
+      }
+    }
   </style>
 </head>
 <body>
   <aside class="sidebar">
     <div>
-      <div style="text-align:center; margin-bottom:24px;"><img src="flogo.png" height="40" alt="Logo"></div>
+      <div class="brand">
+        <img src="flogo.png" alt="Company logo" />
+      </div>
       <nav class="menu">
-        <a href="dashboardf.html">Dashboard</a>
-        <a href="users.html">Users</a>
-        <a href="task.html" class="active">Task Assign</a>
-        <a href="notifications.html">Notifications</a>
-        <a href="track.html">Tracking</a>
-        <a href="history.html">History Log</a>
+        <a href="dashboardf.html"><span>Dashboard</span></a>
+        <a href="users.html"><span>Users</span></a>
+        <a href="task.html" class="active"><span>Task Assign</span></a>
+        <a href="notifications.html"><span>Notifications</span></a>
+        <a href="track.html"><span>Tracking</span></a>
+        <a href="history.html"><span>History Log</span></a>
       </nav>
     </div>
-    <div class="logout"><a onclick="logout()">Logout</a></div>
+    <div class="logout">
+      <a onclick="logout()"><span>Logout</span></a>
+    </div>
   </aside>
 
   <main class="main">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-        <div>
-            <div class="welcome" id="welcomeMsg">Welcome!</div>
-            <h1>Task Assignment Dashboard</h1>
-        </div>
-        <div id="currentDate" style="color:#666;"></div>
+    <div class="topbar">
+      <div class="welcome" id="welcomeMsg">Welcome!</div>
+      <div class="topbar-right">
+        <div class="date-display" id="currentDate"></div>
+      </div>
     </div>
+
+    <div class="content">
+      <h1 class="page-title">Task Assignment Dashboard</h1>
       
-    <div class="task-summary">
-      <div class="summary-card" data-status="today">
-        <div class="summary-label">Task's Today</div>
-        <div class="summary-count" id="count-today">0</div>
+      <div class="task-summary">
+        <div class="summary-card" data-status="today">
+          <div class="summary-label">Task's Today</div>
+          <div class="summary-count" id="count-today">0</div>
+        </div>
+        <div class="summary-card" data-status="pending">
+          <div class="summary-label">Pending</div>
+          <div class="summary-count" id="count-pending">0</div>
+        </div>
+        <div class="summary-card" data-status="completed">
+          <div class="summary-label">Completed</div>
+          <div class="summary-count" id="count-completed">0</div>
+        </div>
+        <div class="summary-card" data-status="ongoing">
+          <div class="summary-label">Ongoing</div>
+          <div class="summary-count" id="count-ongoing">0</div>
+        </div>
       </div>
-      <div class="summary-card" data-status="pending">
-        <div class="summary-label">Pending</div>
-        <div class="summary-count" id="count-pending">0</div>
-      </div>
-      <div class="summary-card" data-status="completed">
-        <div class="summary-label">Completed</div>
-        <div class="summary-count" id="count-completed">0</div>
-      </div>
-      <div class="summary-card" data-status="ongoing">
-        <div class="summary-label">Ongoing</div>
-        <div class="summary-count" id="count-ongoing">0</div>
-      </div>
-    </div>
 
-    <div class="task-controls">
-      <div class="filter-section">
-         <select id="statusFilter" onchange="filterTasks()" style="padding: 8px; border-radius: 6px;">
-             <option value="">All Status</option>
-             <option value="Pending">Pending</option>
-             <option value="In Progress">In Progress</option>
-             <option value="Completed">Completed</option>
-         </select>
+      <div class="task-controls">
+        <div class="filter-section">
+          <select class="filter-select" id="statusFilter" onchange="filterTasks()">
+            <option value="">All Status</option>
+            <option value="Pending">Pending</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Completed">Completed</option>
+            <option value="On Hold">On Hold</option>
+          </select>
+          <select class="filter-select" id="priorityFilter" onchange="filterTasks()">
+            <option value="">All Priority</option>
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+          </select>
+          <input type="date" class="filter-date" id="dateFilter" onchange="filterTasks()">
+        </div>
       </div>
-    </div>
 
-    <div class="task-table-container card">
-      <table class="task-table">
-        <thead>
-          <tr>
-            <th>Ticket</th>
-            <th>Date</th>
-            <th>Location</th>
-            <th>Status</th>
-            <th>Assignee</th>
-            <th>View</th>
-          </tr>
-        </thead>
-        <tbody id="tasksBody"></tbody>
-      </table>
+      <div class="task-table-container">
+        <table class="task-table">
+          <thead>
+            <tr>
+              <th>Ticket</th>
+              <th>Date/Time</th>
+              <th>Location</th>
+              <th>Requested By</th>
+              <th>Status</th>
+              <th>Priority Level</th>
+              <th>View Details</th>
+            </tr>
+          </thead>
+          <tbody id="tasksBody">
+            <tr><td colspan="7" style="text-align:center; padding: 20px;">Loading tasks...</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </main>
 
   <script>
     const sb = window.supabaseClient;
-    let currentTask = null; // Store currently opened task for modal actions
+    let allTasks = [];
+    let currentTask = null;
 
+    // ----------------- AUTHENTICATION -----------------
     async function logout() {
         await sb.auth.signOut();
         window.location.href = 'loginfleet.html';
     }
 
-    async function initPage() {
+    async function checkSession() {
         const { data: { session } } = await sb.auth.getSession();
-        if (!session) return window.location.href = 'loginfleet.html';
-
-        // 1. Load Profile
+        if (!session) {
+            window.location.href = 'loginfleet.html';
+            return;
+        }
+        // Load Profile Name
         const { data: profile } = await sb.from('fleet_manager_records').select('first_name').eq('user_id', session.user.id).single();
-        if (profile) document.getElementById('welcomeMsg').textContent = `Welcome, ${profile.first_name}!`;
+        if(profile) document.getElementById('welcomeMsg').textContent = `Welcome, ${profile.first_name}!`;
         
-        // 2. Set Date
-        const now = new Date();
-        document.getElementById('currentDate').textContent = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-
-        // 3. Fetch Tasks & Drivers
-        fetchTasks();
+        loadTasks();
     }
 
-    async function fetchTasks() {
-        const filter = document.getElementById('statusFilter').value;
-        
-        let query = sb.from('vehicle_requests').select(`
-            *,
-            fleet_drivers (first_name, last_name),
-            fleet_vehicles (plate_number, type)
-        `).order('created_at', {ascending: false});
-
-        if (filter) query = query.eq('status', filter);
-
-        const { data, error } = await query;
-        if (error) return console.error(error);
-
-        renderTasks(data || []);
-        updateCounts(data || []);
+    // Display current date
+    function updateDate() {
+      const now = new Date();
+      const options = { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      };
+      const dateString = now.toLocaleDateString('en-US', options);
+      document.getElementById('currentDate').textContent = dateString;
     }
+    updateDate();
+    setInterval(updateDate, 60000);
 
-    function renderTasks(tasks) {
-        const tbody = document.getElementById('tasksBody');
-        tbody.innerHTML = '';
-        
-        if (tasks.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center">No tasks found.</td></tr>';
+    // ----------------- DATA LOADING -----------------
+    async function loadTasks() {
+        const { data, error } = await sb
+            .from('vehicle_requests')
+            .select(`
+                *,
+                fleet_drivers (first_name, last_name),
+                fleet_vehicles (plate_number, type)
+            `)
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error("Error loading tasks:", error);
             return;
         }
 
-        tasks.forEach(t => {
-            const driver = t.fleet_drivers ? `${t.fleet_drivers.first_name} ${t.fleet_drivers.last_name}` : 'Unassigned';
-            let statusClass = 'status-pending';
-            if(t.status === 'Completed') statusClass = 'status-completed';
-            if(t.status === 'In Progress' || t.status === 'On Going') statusClass = 'status-progress';
-            if(t.status === 'On Hold') statusClass = 'status-onhold';
+        allTasks = data;
+        renderTasks(allTasks);
+        updateCounts(allTasks);
+    }
 
+    // ----------------- RENDERING -----------------
+    function renderTasks(tasks) {
+        const tbody = document.getElementById('tasksBody');
+        tbody.innerHTML = '';
+
+        if (tasks.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 20px;">No tasks found.</td></tr>';
+            return;
+        }
+
+        tasks.forEach(task => {
             const tr = document.createElement('tr');
+            
+            // Status Styling
+            let statusClass = 'status-pending';
+            let displayStatus = task.status;
+            if (task.status === 'In Progress' || task.status === 'On Going') {
+                statusClass = 'status-progress';
+                displayStatus = 'Ongoing'; // UI consistency
+            } else if (task.status === 'Completed') {
+                statusClass = 'status-completed';
+            } else if (task.status === 'On Hold') {
+                statusClass = 'status-pending'; // Reusing pending color for On Hold or add specific css
+            }
+
+            // Priority Styling (assuming priority exists in DB, fallback to Low)
+            let priorityClass = 'priority-low';
+            const prio = task.priority || 'Low';
+            if (prio === 'High') priorityClass = 'priority-high';
+            if (prio === 'Medium') priorityClass = 'priority-medium';
+
+            const dateStr = new Date(task.request_date || task.created_at).toLocaleString('en-US', {
+                month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true
+            });
+
             tr.innerHTML = `
-                <td>${t.ticket_id || t.id}</td>
-                <td>${new Date(t.request_date).toLocaleDateString()}</td>
-                <td>${t.location}</td>
-                <td><span class="${statusClass}">${t.status}</span></td>
-                <td>${driver}</td>
-                <td><button class="btn-view" onclick='openTaskDetails(${JSON.stringify(t).replace(/'/g, "&#39;")})'>View</button></td>
+                <td>${task.ticket_id}</td>
+                <td>${dateStr}</td>
+                <td>${task.location}</td>
+                <td>${task.requested_by || 'N/A'}</td>
+                <td><span class="${statusClass}">${displayStatus}</span></td>
+                <td><span class="${priorityClass}">${prio}</span></td>
+                <td><button class="btn-view" onclick="openTaskDetails('${task.id}')">View</button></td>
             `;
             tbody.appendChild(tr);
         });
@@ -202,15 +714,17 @@
 
     function updateCounts(tasks) {
         let pending = 0, ongoing = 0, completed = 0, today = 0;
-        const todayStr = new Date().toISOString().split('T')[0];
+        const todayStr = new Date().toDateString();
 
         tasks.forEach(t => {
-            const s = (t.status || '').toLowerCase();
-            if(s === 'pending') pending++;
-            else if(s === 'in progress' || s === 'on going') ongoing++;
-            else if(s === 'completed') completed++;
-            
-            if(t.request_date && t.request_date.startsWith(todayStr)) today++;
+            const status = t.status.toLowerCase();
+            if (status === 'pending') pending++;
+            else if (status === 'in progress' || status === 'on going') ongoing++;
+            else if (status === 'completed') completed++;
+
+            // Check if task is from today
+            const tDate = new Date(t.request_date || t.created_at).toDateString();
+            if (tDate === todayStr) today++;
         });
 
         document.getElementById('count-pending').textContent = pending;
@@ -219,146 +733,281 @@
         document.getElementById('count-today').textContent = today;
     }
 
-    // --- Modal Logic ---
-    async function openTaskDetails(task) {
-        currentTask = task;
-        
-        // Fetch Drivers and Vehicles for dropdowns
-        const { data: drivers } = await sb.from('fleet_drivers').select('*').eq('status', 'Active');
-        const { data: vehicles } = await sb.from('fleet_vehicles').select('*').eq('status', 'Idle');
+    // ----------------- FILTERING -----------------
+    function filterTasks() {
+        const statusFilter = document.getElementById('statusFilter').value;
+        const priorityFilter = document.getElementById('priorityFilter').value;
+        const dateFilter = document.getElementById('dateFilter').value;
 
-        // Create Modal UI
+        let filtered = allTasks.filter(t => {
+            let matchStatus = true;
+            let matchPriority = true;
+            let matchDate = true;
+
+            if (statusFilter) {
+                let taskStatus = t.status;
+                if (statusFilter === 'Ongoing' && (taskStatus === 'In Progress' || taskStatus === 'On Going')) taskStatus = 'Ongoing';
+                if (taskStatus !== statusFilter) matchStatus = false;
+            }
+
+            if (priorityFilter && t.priority !== priorityFilter) matchPriority = false;
+
+            if (dateFilter) {
+                const tDate = new Date(t.request_date || t.created_at).toISOString().split('T')[0];
+                if (tDate !== dateFilter) matchDate = false;
+            }
+
+            return matchStatus && matchPriority && matchDate;
+        });
+
+        renderTasks(filtered);
+    }
+
+    // ----------------- TASK DETAILS & MODAL -----------------
+    async function openTaskDetails(taskId) {
+        currentTask = allTasks.find(t => t.id == taskId);
+        if (!currentTask) return;
+
+        // Determine UI colors
+        let statusColor = '#007bff';
+        let priorityColor = '#28a745'; // Low default
+        
+        if (currentTask.status === 'Pending' || currentTask.status === 'On Hold') statusColor = '#ffc107';
+        if (currentTask.status === 'Completed') statusColor = '#28a745';
+        
+        if (currentTask.priority === 'High') priorityColor = '#dc3545';
+        if (currentTask.priority === 'Medium') priorityColor = '#ffc107';
+
+        const dateStr = new Date(currentTask.request_date || currentTask.created_at).toLocaleString();
+
+        // Create Modal Base
         const modal = document.createElement('div');
         modal.className = 'modal-overlay';
-        
-        let actionSection = '';
-        
-        // Drivers Options
-        const driverOptions = drivers ? drivers.map(d => `<option value="${d.id}">${d.first_name} ${d.last_name}</option>`).join('') : '';
-        // Vehicle Options
-        const vehicleOptions = vehicles ? vehicles.map(v => `<option value="${v.id}">${v.type} - ${v.plate_number}</option>`).join('') : '';
 
-        if (task.status === 'Pending') {
-            actionSection = `
+        let assignmentSection = '';
+
+        // Logic for Assignment Section based on Status
+        if (currentTask.status === 'Pending') {
+            // Fetch available drivers/vehicles for assignment
+            const [driversRes, vehiclesRes] = await Promise.all([
+                sb.from('fleet_drivers').select('*').eq('status', 'Active'),
+                sb.from('fleet_vehicles').select('*').eq('status', 'Idle')
+            ]);
+
+            const drivers = driversRes.data || [];
+            const vehicles = vehiclesRes.data || [];
+
+            let driverOpts = '<option value="">Select driver</option>';
+            drivers.forEach(d => driverOpts += `<option value="${d.id}">${d.first_name} ${d.last_name}</option>`);
+
+            let vehicleOpts = '<option value="">Select vehicle</option>';
+            vehicles.forEach(v => vehicleOpts += `<option value="${v.id}">${v.type} - ${v.plate_number} (IDLE)</option>`);
+
+            assignmentSection = `
               <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e3e6ea;">
-                <label style="display:block; font-weight:600; margin-bottom:8px;">Assign Driver</label>
-                <select id="assignDriver" style="width:100%; padding:10px; border:1px solid #ddd; margin-bottom:16px; border-radius:6px;">
-                   <option value="">Select driver...</option>
-                   ${driverOptions}
-                </select>
-                
-                <label style="display:block; font-weight:600; margin-bottom:8px;">Assign Vehicle</label>
-                <select id="assignVehicle" style="width:100%; padding:10px; border:1px solid #ddd; margin-bottom:16px; border-radius:6px;">
-                   <option value="">Select vehicle...</option>
-                   ${vehicleOptions}
-                </select>
-                
-                <div style="display:flex; justify-content:flex-end; gap:12px;">
-                  <button onclick="putOnHold()" style="padding:10px 20px; border:none; background:#ffc107; color:white; border-radius:6px; cursor:pointer;">On Hold</button>
-                  <button onclick="approveTask()" style="padding:10px 20px; border:none; background:#28a745; color:white; border-radius:6px; cursor:pointer;">Approve & Assign</button>
+                <div style="margin-bottom: 16px;">
+                  <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #33383f;">Assign Driver</label>
+                  <select id="assignDriver" style="width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px;">
+                    ${driverOpts}
+                  </select>
                 </div>
-              </div>`;
-        } else if (['In Progress', 'On Going'].includes(task.status)) {
-            actionSection = `
-              <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
-                <button onclick="completeTask()" style="padding: 10px 24px; border: none; background: #007bff; color: white; border-radius: 6px; cursor: pointer;">Mark as Done</button>
-              </div>`;
-        }
+                
+                <div style="margin-bottom: 20px;">
+                  <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #33383f;">Assign Vehicle</label>
+                  <select id="assignVehicle" style="width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px;">
+                    ${vehicleOpts}
+                  </select>
+                </div>
+                
+                <div style="display: flex; justify-content: flex-end; gap: 12px;">
+                  <button onclick="putOnHold()" style="padding: 10px 24px; border: none; background: #ffc107; color: white; border-radius: 6px; cursor: pointer; font-weight: 600;">On Hold</button>
+                  <button onclick="approveTask()" style="padding: 10px 24px; border: none; background: #28a745; color: white; border-radius: 6px; cursor: pointer; font-weight: 600;">Approve</button>
+                </div>
+              </div>
+            `;
+        } else {
+            // Ongoing, Completed, On Hold - Show Assignment Info
+            const driverName = currentTask.fleet_drivers ? `${currentTask.fleet_drivers.first_name} ${currentTask.fleet_drivers.last_name}` : 'Not Assigned';
+            const vehicleInfo = currentTask.fleet_vehicles ? `${currentTask.fleet_vehicles.type} - ${currentTask.fleet_vehicles.plate_number}` : 'Not Assigned';
 
-        // Safe handling of linked data
-        const driverName = task.fleet_drivers ? `${task.fleet_drivers.first_name} ${task.fleet_drivers.last_name}` : 'N/A';
-        const vehicleInfo = task.fleet_vehicles ? `${task.fleet_vehicles.type} (${task.fleet_vehicles.plate_number})` : 'N/A';
+            assignmentSection = `
+              <div style="margin-top:20px; padding-top:20px; border-top:1px solid #eee;">
+                  <div class="detail-row"><strong>Assigned Driver:</strong> <span>${driverName}</span></div>
+                  <div class="detail-row"><strong>Assigned Vehicle:</strong> <span>${vehicleInfo}</span></div>
+            `;
+
+            // If On Hold, allow resuming or re-assignment? (Simplifying: just show info and option to resume/complete depending on logic)
+            // If In Progress, show Mark as Done
+            if (currentTask.status === 'In Progress' || currentTask.status === 'On Going') {
+                assignmentSection += `
+                  <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+                    <button onclick="completeTask()" style="padding: 10px 24px; border: none; background: #007bff; color: white; border-radius: 6px; cursor: pointer; font-weight: 600;">Mark as Done</button>
+                  </div>
+                </div>`;
+            } else if (currentTask.status === 'On Hold') {
+                 assignmentSection += `
+                  <div style="margin-top: 20px; color: #d9534f;">
+                    <strong>Reason:</strong> ${currentTask.remarks || 'No reason provided'}
+                  </div>
+                  </div>`;
+            } else {
+                assignmentSection += `</div>`;
+            }
+        }
 
         modal.innerHTML = `
             <div class="modal-content">
-              <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">×</button>
+              <button class="modal-close" onclick="closeModal()">×</button>
               <h3 class="modal-title">Task Details</h3>
-              <div class="detail-row"><strong>Ticket:</strong> <span>${task.ticket_id}</span></div>
-              <div class="detail-row"><strong>Location:</strong> <span>${task.location}</span></div>
-              <div class="detail-row"><strong>Status:</strong> <span>${task.status}</span></div>
-              <div class="detail-row"><strong>Current Driver:</strong> <span>${driverName}</span></div>
-              <div class="detail-row"><strong>Current Vehicle:</strong> <span>${vehicleInfo}</span></div>
-              <div class="detail-row"><strong>Remarks:</strong> <span>${task.remarks || 'None'}</span></div>
-              ${actionSection}
+              <div class="detail-row"><strong>Ticket Number:</strong> <span>${currentTask.ticket_id}</span></div>
+              <div class="detail-row"><strong>Date/Time:</strong> <span>${dateStr}</span></div>
+              <div class="detail-row"><strong>Location:</strong> <span>${currentTask.location}</span></div>
+              <div class="detail-row"><strong>Requested By:</strong> <span>${currentTask.requested_by || 'N/A'}</span></div>
+              <div class="detail-row"><strong>Status:</strong> <span style="color: ${statusColor}; font-weight: 600;">${currentTask.status}</span></div>
+              <div class="detail-row"><strong>Priority:</strong> <span style="color: ${priorityColor}; font-weight: 600;">${currentTask.priority || 'Medium'}</span></div>
+              <div class="detail-row"><strong>Remarks:</strong> <span>${currentTask.remarks || 'None'}</span></div>
+              ${assignmentSection}
             </div>
         `;
         document.body.appendChild(modal);
     }
 
-    // --- Actions ---
+    function closeModal() {
+      const overlay = document.querySelector('.modal-overlay');
+      if (overlay) overlay.remove();
+      const confirm = document.querySelector('.confirm-modal');
+      if (confirm) confirm.remove();
+    }
+
+    // ----------------- ACTIONS -----------------
+
+    // 1. Approve & Assign
     async function approveTask() {
         const driverId = document.getElementById('assignDriver').value;
         const vehicleId = document.getElementById('assignVehicle').value;
-        
-        if(!driverId || !vehicleId) return alert("Please select both Driver and Vehicle");
 
-        // 1. Update Request
-        await sb.from('vehicle_requests').update({ 
-            status: 'In Progress', 
-            driver_id: driverId, 
-            vehicle_id: vehicleId 
-        }).eq('id', currentTask.id);
-
-        // 2. Update Vehicle Status
-        await sb.from('fleet_vehicles').update({ status: 'Active' }).eq('id', vehicleId);
-        // 3. Update Driver Status
-        await sb.from('fleet_drivers').update({ status: 'On Trip' }).eq('id', driverId);
-
-        closeAllModals();
-        fetchTasks();
-        alert("Task Approved and Assigned!");
-    }
-
-    function putOnHold() {
-        const modal = document.createElement('div');
-        modal.className = 'confirm-modal';
-        modal.innerHTML = `
-            <div class="confirm-content">
-                <h3 class="confirm-title">Put On Hold</h3>
-                <textarea id="holdReason" class="confirm-textarea" placeholder="Reason..."></textarea>
-                <div class="confirm-buttons">
-                    <button class="confirm-btn confirm-btn-cancel" onclick="this.closest('.confirm-modal').remove()">Cancel</button>
-                    <button class="confirm-btn confirm-btn-confirm" onclick="confirmHold()">Confirm</button>
-                </div>
-            </div>`;
-        document.body.appendChild(modal);
-    }
-
-    async function confirmHold() {
-        const reason = document.getElementById('holdReason').value;
-        await sb.from('vehicle_requests').update({ status: 'On Hold', remarks: reason }).eq('id', currentTask.id);
-        closeAllModals();
-        fetchTasks();
-    }
-
-    function completeTask() {
-        if(confirm("Mark this task as completed? Vehicle will be set to Idle.")) {
-            finalizeCompletion();
+        if (!driverId || !vehicleId) {
+            alert("Please select both a driver and a vehicle.");
+            return;
         }
+
+        if(!confirm("Confirm assignment and start task?")) return;
+
+        // Update Request
+        const { error: reqError } = await sb.from('vehicle_requests')
+            .update({ 
+                status: 'In Progress', 
+                driver_id: driverId, 
+                vehicle_id: vehicleId 
+            })
+            .eq('id', currentTask.id);
+
+        if (reqError) return alert("Error updating request: " + reqError.message);
+
+        // Update Driver Status
+        await sb.from('fleet_drivers').update({ status: 'On Trip' }).eq('id', driverId);
+        // Update Vehicle Status
+        await sb.from('fleet_vehicles').update({ status: 'Active' }).eq('id', vehicleId);
+
+        alert("Task Approved and Started!");
+        closeModal();
+        loadTasks();
+    }
+
+    // 2. Put On Hold
+    function putOnHold() {
+        const ticketNumber = currentTask.ticket_id;
+        // Create custom confirmation modal for remarks
+        const confirmModal = document.createElement('div');
+        confirmModal.className = 'confirm-modal';
+        confirmModal.innerHTML = `
+            <div class="confirm-content">
+              <div class="confirm-header"><div class="confirm-icon">⚠️</div><h3 class="confirm-title">Put On Hold</h3></div>
+              <p class="confirm-message">Reason for holding ticket <strong>${ticketNumber}</strong>?</p>
+              <div class="confirm-input-group">
+                <textarea id="holdRemarks" class="confirm-textarea" placeholder="Enter reason..." required></textarea>
+              </div>
+              <div class="confirm-buttons">
+                <button class="confirm-btn confirm-btn-cancel" onclick="document.querySelector('.confirm-modal').remove()">Cancel</button>
+                <button class="confirm-btn confirm-btn-confirm" onclick="confirmPutOnHold()">Confirm</button>
+              </div>
+            </div>`;
+        document.body.appendChild(confirmModal);
+    }
+
+    async function confirmPutOnHold() {
+        const remarks = document.getElementById('holdRemarks').value.trim();
+        if (!remarks) return alert('Reason is required.');
+
+        const { error } = await sb.from('vehicle_requests')
+            .update({ status: 'On Hold', remarks: remarks })
+            .eq('id', currentTask.id);
+
+        if (error) return alert(error.message);
+
+        closeModal(); // Close both modals
+        loadTasks();
+    }
+
+    // 3. Complete Task
+    function completeTask() {
+        if(!confirm("Mark this task as completed? This will free up the driver and vehicle.")) return;
+        finalizeCompletion();
     }
 
     async function finalizeCompletion() {
-        // Update Task
-        await sb.from('vehicle_requests').update({ status: 'Completed' }).eq('id', currentTask.id);
-        // Free up vehicle if assigned
-        if(currentTask.vehicle_id) {
+        // Update Request
+        const { error } = await sb.from('vehicle_requests')
+            .update({ status: 'Completed' })
+            .eq('id', currentTask.id);
+
+        if(error) return alert("Error: " + error.message);
+
+        // Free resources if they exist on the task object (joined data might not have IDs directly attached in all views, so relying on currentTask object structure)
+        // IMPORTANT: ensure currentTask has vehicle_id and driver_id. If 'select *' was used, they should be there.
+        
+        if (currentTask.vehicle_id) {
             await sb.from('fleet_vehicles').update({ status: 'Idle' }).eq('id', currentTask.vehicle_id);
         }
-        // Free up driver
-        if(currentTask.driver_id) {
+        if (currentTask.driver_id) {
             await sb.from('fleet_drivers').update({ status: 'Active' }).eq('id', currentTask.driver_id);
         }
-        closeAllModals();
-        fetchTasks();
+
+        alert("Task Completed!");
+        closeModal();
+        loadTasks();
     }
 
-    function closeAllModals() {
-        document.querySelectorAll('.modal-overlay, .confirm-modal').forEach(el => el.remove());
-    }
-    
-    function filterTasks() { fetchTasks(); }
+    // Summary Card filters
+    document.querySelectorAll('.summary-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const status = card.getAttribute('data-status');
+        const statusSelect = document.getElementById('statusFilter');
+        
+        // Reset date filter
+        document.getElementById('dateFilter').value = '';
 
-    document.addEventListener('DOMContentLoaded', initPage);
+        if (status === 'today') {
+          // Set date filter to today
+          document.getElementById('dateFilter').value = new Date().toISOString().split('T')[0];
+          statusSelect.value = '';
+        } else if (status === 'pending') {
+          statusSelect.value = 'Pending';
+        } else if (status === 'ongoing') {
+          statusSelect.value = 'In Progress'; // Map to DB value or UI value depending on filter logic
+          // Since filter logic checks includes, 'Ongoing' might work if mapped, but let's be specific based on filter options
+          // The filter option is "Ongoing", logic maps "In Progress" to it.
+          statusSelect.value = 'Ongoing';
+        } else if (status === 'completed') {
+          statusSelect.value = 'Completed';
+        }
+        
+        filterTasks();
+      });
+    });
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', checkSession);
   </script>
 </body>
 </html>

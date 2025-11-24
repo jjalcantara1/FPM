@@ -2,109 +2,467 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Tracking - Fleet Management</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../static/supabaseClient.js"></script>
   <style>
-    :root { --brand-orange: #f47621; --brand-dark: #33383f; --bg-light: #f5f7fa; }
-    body { font-family: "Inter", sans-serif; color: var(--brand-dark); background: var(--bg-light); display: flex; min-height: 100vh; margin:0; }
-    .sidebar { width: 240px; background: #fff; border-right: 1px solid #e9edf1; display: flex; flex-direction: column; justify-content: space-between; padding: 20px 16px; }
-    .menu a { padding: 10px 12px; border-radius: 8px; text-decoration: none; color: var(--brand-dark); font-weight: 600; display: block; margin-bottom: 4px; transition: 0.2s; }
-    .menu a.active, .menu a:hover { background: var(--brand-orange); color: #fff; }
-    .logout a { display: block; padding: 12px; background: #fbe9dd; text-align: center; border-radius: 8px; text-decoration: none; color: var(--brand-dark); font-weight: 600; cursor: pointer; }
-    .main { flex: 1; padding: 24px; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
-    .card { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
-    .status { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 700; text-transform: uppercase; }
-    .active-status { background: #dcfce7; color: #166534; }
-    .idle-status { background: #fee2e2; color: #991b1b; }
-    .welcome { font-weight: 600; font-size: 16px; color: var(--brand-dark); }
+    :root {
+      --brand-orange: #f47621;
+      --brand-dark: #33383f;
+      --sidebar-bg: #fff;
+      --sidebar-text: #33383f;
+      --muted: #70757d;
+      --card-bg: #f5f6f8;
+      --card-border: #e3e6ea;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--brand-dark);
+      background: #f3f5f7;
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 240px;
+      background: var(--sidebar-bg);
+      border-right: 1px solid #e9edf1;
+      color: var(--sidebar-text);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 20px 16px;
+    }
+
+    .brand {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .brand img {
+      height: 40px;
+    }
+
+    .menu {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .menu a {
+      padding: 10px 12px;
+      border-radius: 8px;
+      text-decoration: none;
+      color: var(--brand-dark);
+      font-weight: 600;
+      transition: background 0.2s, color 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .menu a.active,
+    .menu a:hover {
+      background: var(--brand-orange);
+      color: #fff;
+    }
+
+    .logout a {
+      display: block;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: #fbe9dd;
+      text-align: center;
+      color: var(--brand-dark);
+      font-weight: 600;
+      text-decoration: none;
+      transition: background 0.2s;
+      cursor: pointer;
+    }
+
+    .logout a:hover {
+      background: #f8d8c1;
+    }
+
+    /* Main */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Topbar */
+    .topbar {
+      height: 64px;
+      background: #fff;
+      border-bottom: 1px solid #e9edf1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+    }
+
+    .welcome {
+      font-weight: 700;
+      font-size: 16px;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .date-display {
+      font-size: 14px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    /* Content */
+    .content {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
+    }
+
+    .page-title {
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 24px;
+    }
+
+    /* Cards */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+      margin-bottom: 32px;
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.05);
+      text-align: center;
+    }
+
+    .metric {
+      font-size: 36px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .label {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    /* Section */
+    .section-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--brand-orange);
+      text-align: left;
+      margin-bottom: 18px;
+    }
+
+    /* Tracking Grid */
+    .tracking-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .tracking-card {
+      background: #fff;
+      border: 1px solid #e3e6ea;
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .tracking-card h3 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--brand-dark);
+    }
+
+    .tracking-card p {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 8px;
+    }
+
+    .status {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .status.active {
+      background: #e8f5e8;
+      color: #2e7d32;
+    }
+
+    .status.idle {
+      background: #fff3e0;
+      color: #f57c00;
+    }
+
+    .status.offline {
+      background: #ffebee;
+      color: #d32f2f;
+    }
+
+    .map-placeholder {
+      width: 100%;
+      height: 200px;
+      background: #e9edf1;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .map-placeholder img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 10px;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 100%;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .menu {
+        flex-direction: row;
+        gap: 12px;
+      }
+
+      .logout {
+        display: none;
+      }
+    }
   </style>
 </head>
 <body>
   <aside class="sidebar">
     <div>
-      <div style="text-align:center; margin-bottom:24px;"><img src="flogo.png" height="40" alt="Logo"></div>
+      <div class="brand">
+        <img src="flogo.png" alt="Company logo" />
+      </div>
       <nav class="menu">
-        <a href="dashboardf.html">Dashboard</a>
-        <a href="users.html">Users</a>
-        <a href="task.html">Task Assign</a>
-        <a href="notifications.html">Notifications</a>
-        <a href="track.html" class="active">Tracking</a>
-        <a href="history.html">History Log</a>
+        <a href="dashboardf.html"><span>Dashboard</span></a>
+        <a href="users.html"><span>Users</span></a>
+        <a href="task.html"><span>Task Assign</span></a>
+        <a href="notifications.html"><span>Notifications</span></a>
+        <a href="track.html" class="active"><span>Tracking</span></a>
+        <a href="history.html"><span>History Log</span></a>
       </nav>
     </div>
-    <div class="logout"><a onclick="logout()">Logout</a></div>
+    <div class="logout">
+      <a onclick="logout()"><span>Logout</span></a>
+    </div>
   </aside>
 
   <main class="main">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-        <h1>Vehicle Tracking</h1>
-        <div class="welcome" id="welcomeMsg">Welcome!</div>
+    <div class="topbar">
+      <div class="welcome" id="welcomeMsg">Welcome!</div>
+      <div class="topbar-right">
+        <div class="date-display" id="currentDate"></div>
+      </div>
     </div>
-    <div class="grid" id="vehicleGrid">
-        <p>Loading vehicles...</p>
+
+    <div class="content">
+      <h1 class="page-title">Vehicle Tracking</h1>
+
+      <div class="cards">
+        <div class="card">
+          <div class="metric" id="countActive">0</div>
+          <div class="label">Active</div>
+        </div>
+        <div class="card">
+          <div class="metric" id="countIdle">0</div>
+          <div class="label">Idle</div>
+        </div>
+        <div class="card">
+          <div class="metric" id="countOffline">0</div>
+          <div class="label">Offline</div>
+        </div>
+      </div>
+
+      <div class="section-title">Live Vehicle Locations</div>
+
+      <div class="tracking-grid" id="trackingGrid">
+        <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #70757d;">
+          Loading vehicle data...
+        </div>
+      </div>
     </div>
   </main>
 
   <script>
     const sb = window.supabaseClient;
 
-    async function logout() {
-        await sb.auth.signOut();
-        window.location.href = 'loginfleet.html';
-    }
-
-    async function initTracking() {
+    // ----------------- AUTHENTICATION & SETUP -----------------
+    async function checkSession() {
         const { data: { session } } = await sb.auth.getSession();
         if (!session) {
             window.location.href = 'loginfleet.html';
             return;
         }
-
+        
+        // Load Profile Name
         const { data: profile } = await sb.from('fleet_manager_records').select('first_name').eq('user_id', session.user.id).single();
         if(profile) document.getElementById('welcomeMsg').textContent = `Welcome, ${profile.first_name}!`;
-
-        loadVehicles();
+        
+        // Load Vehicles
+        loadTrackingData();
     }
 
-    async function loadVehicles() {
-        const { data: vehicles, error } = await sb.from('fleet_vehicles').select('*');
-        if(error) return console.error(error);
+    async function logout() {
+        await sb.auth.signOut();
+        window.location.href = 'loginfleet.html';
+    }
 
-        const grid = document.getElementById('vehicleGrid');
+    function updateDate() {
+      const now = new Date();
+      const options = { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      };
+      const dateString = now.toLocaleDateString('en-US', options);
+      document.getElementById('currentDate').textContent = dateString;
+    }
+    updateDate();
+    setInterval(updateDate, 60000);
+
+    // ----------------- DATA LOADING -----------------
+    async function loadTrackingData() {
+        // 1. Fetch Vehicles
+        const { data: vehicles, error: vError } = await sb.from('fleet_vehicles').select('*').order('id');
+        
+        // 2. Fetch Active Requests to cross-reference Driver/Location info
+        const { data: activeRequests, error: rError } = await sb
+            .from('vehicle_requests')
+            .select('*, fleet_drivers(first_name, last_name)')
+            .in('status', ['In Progress', 'On Going', 'Active']);
+
+        if (vError) {
+            console.error('Error loading vehicles:', vError);
+            return;
+        }
+        
+        renderGrid(vehicles, activeRequests || []);
+    }
+
+    function renderGrid(vehicles, activeRequests) {
+        const grid = document.getElementById('trackingGrid');
         grid.innerHTML = '';
 
-        if (!vehicles || vehicles.length === 0) {
-            grid.innerHTML = '<p>No vehicles found.</p>';
+        let activeCount = 0;
+        let idleCount = 0;
+        let offlineCount = 0;
+
+        if (vehicles.length === 0) {
+            grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px;">No vehicles found.</div>';
             return;
         }
 
         vehicles.forEach(v => {
-            const statusClass = v.status === 'Active' ? 'active-status' : 'idle-status';
-            // Map to static full map files based on vehicle type/id logic for demo
-            const mapLink = `vehiclefullmap${(v.id % 3) + 1}.html`; 
+            // Determine status and details logic
+            let status = v.status || 'Idle';
+            let driverName = 'N/A';
+            let location = 'Parking Lot'; 
             
-            const el = document.createElement('div');
-            el.className = 'card';
-            el.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                    <h3 style="margin:0">${v.plate_number}</h3>
-                    <span class="status ${statusClass}">${v.status}</span>
+            // Check if this vehicle has an active request
+            const activeReq = activeRequests.find(r => r.vehicle_id === v.id);
+            
+            if (activeReq) {
+                status = 'Active'; // Override status if there is an active trip
+                location = activeReq.location || 'Unknown';
+                if (activeReq.fleet_drivers) {
+                    driverName = `${activeReq.fleet_drivers.first_name} ${activeReq.fleet_drivers.last_name}`;
+                }
+            } else if (status.toLowerCase() === 'active') {
+                // Fallback if DB says active but no request found
+                location = 'On Road';
+            }
+
+            // Metrics Counting
+            const statusKey = status.toLowerCase();
+            let statusClass = 'status idle';
+            
+            if (statusKey === 'active') { 
+                statusClass = 'status active'; 
+                activeCount++; 
+            } else if (statusKey === 'offline' || statusKey === 'maintenance') { 
+                statusClass = 'status offline'; 
+                offlineCount++; 
+            } else { 
+                statusClass = 'status idle'; 
+                idleCount++; 
+            }
+
+            // Map cycling for demo
+            const mapIndex = (v.id % 3) + 1; 
+            const mapLink = `vehiclefullmap${mapIndex}.html`;
+            // Image toggling
+            const mapImg = (v.id % 2 === 0) ? 'vehicleloc1.png' : 'vehicleloc.png'; 
+
+            // Construct Card
+            const card = document.createElement('div');
+            card.className = 'tracking-card';
+            card.innerHTML = `
+                <h3>${v.type} - ${v.plate_number}</h3>
+                <div class="map-placeholder">
+                    <img src="${mapImg}" alt="Vehicle Location" onerror="this.src='vehicleloc.png'" />
                 </div>
-                <p style="margin:4px 0; color:#666;">Type: <strong>${v.type}</strong></p>
-                <p style="margin:4px 0; color:#666;">Model: ${v.model || 'N/A'}</p>
-                <div style="height: 150px; background: #eee; margin: 14px 0; display:flex; align-items:center; justify-content:center; border-radius:8px; overflow:hidden;">
-                    <img src="vehicleloc.png" style="width:100%; height:100%; object-fit:cover;">
-                </div>
-                <a href="${mapLink}" style="color: var(--brand-orange); font-weight: 700; text-decoration: none; display:block; text-align:center;">View Full Map →</a>
+                <p><strong>Driver:</strong> ${driverName}</p>
+                <p><strong>Location:</strong> ${location}</p>
+                <p><strong>Status:</strong> <span class="${statusClass}">${status}</span></p>
+                <p><a href="${mapLink}" style="color: var(--brand-orange); text-decoration: none; font-weight: 600; margin-top: 8px; display: inline-block;">View Full Map</a></p>
             `;
-            grid.appendChild(el);
+            grid.appendChild(card);
         });
+
+        // Update Metrics UI
+        document.getElementById('countActive').textContent = activeCount;
+        document.getElementById('countIdle').textContent = idleCount;
+        document.getElementById('countOffline').textContent = offlineCount;
     }
 
-    document.addEventListener('DOMContentLoaded', initTracking);
+    // Initialize
+    document.addEventListener('DOMContentLoaded', checkSession);
   </script>
 </body>
 </html>

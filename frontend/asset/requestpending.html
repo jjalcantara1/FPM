@@ -5,71 +5,215 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Pending Requests - Asset Management</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    :root { --brand-orange: #f47621; --brand-dark: #33383f; --muted: #70757d; --card-border: #e3e6ea; --bg-light: #f5f7fa; --danger-red: #dc2626; }
+    :root {
+      --brand-orange: #f47621;
+      --brand-dark: #33383f;
+      --muted: #70757d;
+      --card-border: #e3e6ea;
+      --bg-light: #f5f7fa;
+      --danger-red: #dc2626;
+    }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: "Inter", sans-serif; color: var(--brand-dark); background: var(--bg-light); min-height: 100vh; display: flex; }
-    .sidebar { width: 240px; background: #fff; border-right: 1px solid #e9edf1; display: flex; flex-direction: column; justify-content: space-between; padding: 20px 16px; }
-    .brand { text-align: center; margin-bottom: 24px; } .brand img { height: 40px; }
+    body {
+      font-family: "Inter", sans-serif;
+      color: var(--brand-dark);
+      background: var(--bg-light);
+      min-height: 100vh;
+      display: flex;
+    }
+
+    .sidebar {
+      width: 240px;
+      background: #fff;
+      border-right: 1px solid #e9edf1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 20px 16px;
+    }
+    .brand { text-align: center; margin-bottom: 24px; }
+    .brand img { height: 40px; }
     .menu { display: flex; flex-direction: column; gap: 4px; }
-    .menu a, .menu button { padding: 10px 12px; border-radius: 8px; text-decoration: none; color: var(--brand-dark); font-weight: 600; text-align: left; background: none; border: none; cursor: pointer; transition: background 0.2s, color 0.2s; }
-    .menu a.active, .menu a:hover, .menu button:hover { background: var(--brand-orange); color: #fff; }
+    .menu a, .menu button {
+      padding: 10px 12px;
+      border-radius: 8px;
+      text-decoration: none;
+      color: var(--brand-dark);
+      font-weight: 600;
+      text-align: left;
+      background: none;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .menu a.active, .menu a:hover,
+    .menu button:hover {
+      background: var(--brand-orange);
+      color: #fff;
+    }
     .submenu { display: none; flex-direction: column; margin-left: 16px; gap: 4px; }
     .submenu a { font-weight: 500; font-size: 14px; color: var(--brand-dark); }
     .submenu a.active, .submenu a:hover { background: var(--brand-orange); color: #fff; }
     .submenu.show { display: flex; }
-    .logout a { display: block; padding: 12px; border-radius: 10px; background: #fbe9dd; text-align: center; font-weight: 600; text-decoration: none; color: var(--brand-dark); cursor: pointer; }
+    .logout a {
+      display: block;
+      padding: 12px;
+      border-radius: 10px;
+      background: #fbe9dd;
+      text-align: center;
+      font-weight: 600;
+      text-decoration: none;
+      color: var(--brand-dark);
+    }
+
     .main { flex: 1; display: flex; flex-direction: column; }
-    .topbar { height: 64px; background: #fff; border-bottom: 1px solid #e9edf1; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; }
+    .topbar {
+      height: 64px;
+      background: #fff;
+      border-bottom: 1px solid #e9edf1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+    }
     .welcome { font-weight: 700; font-size: 16px; }
     .content { flex: 1; padding: 24px; overflow-y: auto; }
     .h1 { font-size: 28px; font-weight: 800; margin-bottom: 20px; color: var(--brand-orange); }
-    .container { background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-    table { width: 100%; border-collapse: collapse; }
-    thead th { text-align: left; font-size: 13px; color: var(--muted); font-weight: 700; padding: 10px 14px; border-bottom: 1px solid var(--card-border); }
-    tbody td { padding: 12px 14px; border-bottom: 1px solid var(--card-border); font-size: 14px; }
-    .btn { background: transparent; color: var(--brand-dark); padding: 6px 14px; border-radius: 8px; border: 1px solid var(--brand-dark); font-weight: 600; cursor: pointer; transition: background 0.2s; }
-    .btn:hover { background: var(--brand-dark); color: white; }
-    
-    /* Modal & Picker Styles */
-    .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 999; }
-    .modal-content { background: #fff; border-radius: 16px; max-width: 500px; width: 90%; box-shadow: 0 6px 16px rgba(0,0,0,0.2); overflow: hidden; max-height: 90vh; display: flex; flex-direction: column; }
-    .modal-header { padding: 14px 20px; background: var(--brand-orange); color: #fff; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
-    .modal-body { padding: 20px; overflow-y: auto; }
-    .modal-body p { margin-bottom: 8px; line-height: 1.5; }
-    .modal-footer { padding: 14px 20px; display: flex; justify-content: flex-end; align-items: center; gap: 10px; border-top: 1px solid var(--card-border); }
-    .close { cursor: pointer; font-size: 20px; }
-    textarea { width: 100%; border: 1px solid var(--card-border); border-radius: 8px; padding: 8px; resize: none; font-size: 14px; margin-top: 10px; }
-    .search-box { margin-bottom: 16px; position: relative; }
-    .search-box input { width: 100%; max-width: 350px; padding: 10px 14px; border: 1px solid var(--card-border); border-radius: 8px; font-size: 14px; }
-    
-    /* Toast */
-    #toast { position: fixed; bottom: 30px; right: 30px; background: var(--brand-dark); color: white; padding: 14px 24px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); font-weight: 600; opacity: 0; pointer-events: none; transition: opacity 0.4s ease-in-out; z-index: 1000; }
-    #toast.show { opacity: 1; pointer-events: auto; }
 
-    /* Materials Dropdown & Picker Styles */
-    .materials-section { margin-top: 12px; border: 1px solid var(--card-border); border-radius: 8px; overflow: hidden; }
-    .materials-header { background: var(--bg-light); padding: 12px 14px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 600; transition: background 0.2s; }
-    .materials-header:hover { background: #e9ecef; }
-    .materials-header .arrow { transition: transform 0.3s; font-size: 16px; }
-    .materials-header.active .arrow { transform: rotate(180deg); }
-    .materials-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; background: white; }
-    .materials-content.show { max-height: 600px; overflow-y: auto; }
-    .material-picker { padding: 14px; border-bottom: 1px solid var(--card-border); background: #fafbfc; }
-    .picker-row { display: flex; gap: 10px; align-items: center; margin-top: 8px; }
-    .picker-row select { flex: 1; padding: 8px 12px; border: 1px solid var(--card-border); border-radius: 6px; background: white; }
-    .picker-row input[type="number"] { width: 80px; padding: 8px 12px; border: 1px solid var(--card-border); border-radius: 6px; }
-    .add-material-btn { padding: 8px 16px; background: var(--brand-orange); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
-    .material-item { padding: 12px 14px; border-top: 1px solid var(--card-border); display: flex; justify-content: space-between; align-items: center; }
-    .material-name { font-weight: 500; flex: 1; }
-    .material-actions { display: flex; align-items: center; gap: 10px; }
-    .quantity-controls { display: flex; align-items: center; gap: 8px; }
-    .qty-btn { width: 28px; height: 28px; border: 1px solid var(--brand-orange); background: white; color: var(--brand-orange); border-radius: 6px; cursor: pointer; font-weight: 700; }
-    .qty-value { min-width: 40px; text-align: center; font-weight: 600; }
-    .remove-material-btn { width: 28px; height: 28px; border: 1px solid var(--danger-red); background: white; color: var(--danger-red); border-radius: 6px; cursor: pointer; font-weight: 700; }
-    .requested-materials-text { padding: 12px 14px; background: #fff9f4; border-bottom: 1px solid var(--card-border); font-size: 14px; font-weight: 500; color: #333; }
-    .add-another-btn { margin-top: 12px; background: transparent; border: 1px solid var(--brand-orange); color: var(--brand-orange); padding: 8px 12px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 13px; }
-    .remove-row-btn { color: var(--danger-red); border: 1px solid var(--card-border); background: white; border-radius: 4px; cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; }
+    .container {
+      background: #fff;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      text-align: left;
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 700;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--card-border);
+    }
+    tbody td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--card-border);
+      font-size: 14px;
+    }
+    tbody tr:hover { background: #fff9f4; }
+    .btn {
+      background: transparent;
+      color: var(--brand-dark);
+      padding: 6px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--brand-dark);
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, opacity 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--brand-dark);
+      color: white;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      background: transparent;
+      color: var(--brand-dark);
+      border: 1px solid var(--brand-dark);
+    }
+
+
+    .modal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+    .modal-content {
+      background: #fff;
+      border-radius: 16px;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+      overflow: hidden;
+    }
+    .modal-header {
+      padding: 14px 20px;
+      background: var(--brand-orange);
+      color: #fff;
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-body { padding: 20px; }
+    .modal-body p { margin-bottom: 8px; }
+    .modal-footer {
+      padding: 14px 20px;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 10px;
+      border-top: 1px solid var(--card-border);
+    }
+    .close { cursor: pointer; font-size: 20px; }
+    textarea {
+      width: 100%;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 8px;
+      resize: none;
+      font-size: 14px;
+      margin-top: 10px;
+    }
+
+    #toast {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: var(--brand-dark);
+      color: white;
+      padding: 14px 24px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      font-weight: 600;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease-in-out;
+      z-index: 1000;
+    }
+    #toast.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .search-box {
+      margin-bottom: 16px;
+      position: relative;
+    }
+    .search-box input {
+      width: 100%;
+      max-width: 350px;
+      padding: 10px 14px;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: "Inter", sans-serif;
+    }
+    .search-box input:focus {
+      outline: none;
+      border-color: var(--brand-orange);
+    }
   </style>
 </head>
 <body>
@@ -78,7 +222,7 @@
       <div class="brand"><img src="flogo.png" alt="Company logo" /></div>
       <div class="profile" style="text-align:center;margin:12px 0 18px 0;">
         <img src="aiface.jpg" alt="Profile" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid #e9edf1;" />
-        <div id="profileName" style="font-weight:700;margin-top:8px;color:#33383f;">Loading...</div>
+        <div style="font-weight:700;margin-top:8px;color:#33383f;" id="userProfileName">Loading...</div>
       </div>
       <nav class="menu">
         <a href="dashboard.html">Dashboard</a>
@@ -92,14 +236,15 @@
         </div>
       </nav>
     </div>
-    <div class="logout"><a href="#" id="logoutLink">Logout</a></div>
+    <div class="logout"><a href="#" onclick="logout()">Logout</a></div>
   </aside>
 
   <main class="main">
     <div class="topbar">
-      <div class="welcome">Welcome, User!</div>
+      <div class="welcome" id="welcomeMessage">Welcome!</div>
       <div class="date-display" id="currentDate"></div>
     </div>
+
     <div class="content">
       <div class="h1">Pending Requests</div>
       <div class="container">
@@ -107,8 +252,21 @@
           <input type="text" id="searchTicket" placeholder="Search by ticket number..." />
         </div>
         <table id="requestsTable">
-          <thead><tr><th>ID</th><th>Ticket</th><th>Date</th><th>Site</th><th>Status</th><th>Priority</th><th>Requested Materials</th><th>Action</th></tr></thead>
-          <tbody></tbody>
+          <thead>
+            <tr>
+              <th>Ticket</th>
+              <th>Date</th>
+              <th>Site</th>
+              <th>Remarks</th>
+              <th>Status</th>
+              <th>Priority</th>
+              <th>Requested Materials</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+            <tr><td colspan="8" style="text-align:center; padding: 20px;">Loading requests...</td></tr>
+          </tbody>
         </table>
       </div>
     </div>
@@ -116,227 +274,230 @@
 
   <div class="modal" id="detailsModal">
     <div class="modal-content">
-      <div class="modal-header"><span>Request Details</span><span class="close" id="closeDetails">&times;</span></div>
+      <div class="modal-header">
+        <span>Request Details</span>
+        <span class="close" id="closeDetails">&times;</span>
+      </div>
       <div class="modal-body" id="detailsBody"></div>
-      <div class="modal-footer">
+      <div class="modal-footer" style="justify-content: flex-end; gap: 10px;">
         <button class="btn" id="onHoldBtn">On Hold</button>
-        <button class="btn" id="approveBtn" style="background:var(--brand-orange);color:white;border:none;">Approve</button>
+        <button class="btn" id="approveBtn">Approve</button>
       </div>
     </div>
   </div>
 
   <div class="modal" id="approveConfirmModal">
     <div class="modal-content" style="max-width: 400px;">
-      <div class="modal-header"><span>Confirm Approval</span><span class="close" id="closeApproveConfirm">&times;</span></div>
-      <div class="modal-body">
-        <p>Approve details and update stock?</p>
-        <label style="display:block;margin-top:10px;font-weight:600;">Remarks (optional)</label>
-        <textarea id="approveRemarksInput" rows="3"></textarea>
+      <div class="modal-header">
+        <span>Confirm Approval</span>
+        <span class="close" id="closeApproveConfirm">&times;</span>
       </div>
-      <div class="modal-footer">
+      <div class="modal-body" style="font-size: 16px;">
+        <p>Approve this request?</p>
+        <label for="approveRemarksInput" style="display:block; margin-top:10px; font-weight:600;">Remarks (optional)</label>
+        <textarea id="approveRemarksInput" rows="3" placeholder="Enter any remarks..."></textarea>
+      </div>
+      <div class="modal-footer" style="justify-content: flex-end;">
         <button class="btn" id="cancelApproveBtn">Cancel</button>
-        <button class="btn" id="confirmApproveBtn" style="background:var(--brand-orange);color:white;border:none;">OK</button>
+        <button class="btn" id="confirmApproveBtn" style="background: var(--brand-orange); color: white; border: none;">OK</button>
       </div>
     </div>
   </div>
 
   <div class="modal" id="holdReasonModal">
-    <div class="modal-content" style="max-width: 500px;">
-      <div class="modal-header"><span>On Hold Reason</span><span class="close" id="closeHoldReason">&times;</span></div>
-      <div class="modal-body">
-        <label><strong>Reason</strong></label>
-        <textarea id="holdReasonInput" rows="4"></textarea>
+    <div class="modal-content" style="max-width: 520px;">
+      <div class="modal-header" style="background: var(--brand-orange); color: white;">
+        <span>On Hold Reason</span>
+        <span class="close" id="closeHoldReason">&times;</span>
       </div>
-      <div class="modal-footer">
+      <div class="modal-body">
+        <label for="holdReasonInput"><strong>Reason</strong></label>
+        <textarea id="holdReasonInput" rows="4" placeholder="Enter the reason for putting this request on hold..."></textarea>
+      </div>
+      <div class="modal-footer" style="justify-content: flex-end;">
         <button class="btn" id="cancelHoldReason">Cancel</button>
-        <button class="btn" id="sendHoldReasonBtn" style="background:var(--brand-orange);color:white;border:none;">Send</button>
+        <button class="btn" id="sendHoldReasonBtn" style="background: var(--brand-orange); color: white; border: none;">Send</button>
       </div>
     </div>
   </div>
 
   <div id="toast"></div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="../static/supabaseClient.js"></script>
-  <script src="dashboard.js"></script>
   <script>
+    // --- SUPABASE CONFIGURATION ---
+    const SUPABASE_URL = 'https://bicvcqolkaokimtwimhn.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJpY3ZjcW9sa2Fva2ltdHdpbWhuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MjUzMDIwMCwiZXhwIjoyMDc4MTA2MjAwfQ.eAYHk5c53gz5y2r85Rkz_-48taKCZWii-5cR2glCMP0';
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let currentRequestId = null;
     let requestsData = [];
-    let inventory = [];
-    let currentRequest = null;
 
-    const checkClient = setInterval(() => {
-      if (window.sbClient) {
-        clearInterval(checkClient);
-        loadData();
-      }
-    }, 100);
+    // --- AUTH CHECK & INIT ---
+    document.addEventListener('DOMContentLoaded', async () => {
+        const { data: { session } } = await sb.auth.getSession();
+        if (!session) window.location.href = 'finsilogin.html';
 
-    async function loadData() {
-        const { data: inv } = await window.sbClient.from('materials_inventory').select('*');
-        inventory = inv || [];
-        const { data } = await window.sbClient.from('material_requests').select('*').eq('status', 'Pending');
-        requestsData = data || [];
-        
-        const { data: allItems } = await window.sbClient.from('material_request_items').select('*');
-        renderTable(allItems || []);
+        // Load Profile
+        const { data: profile } = await sb.from('asset_manager_records').select('firstName').eq('user_id', session.user.id).single();
+        if (profile) {
+            document.getElementById('userProfileName').textContent = profile.firstName;
+            document.getElementById('welcomeMessage').textContent = `Welcome, ${profile.firstName}!`;
+        }
+
+        // Date
+        document.getElementById('currentDate').textContent = new Date().toLocaleDateString();
+
+        fetchPendingRequests();
+    });
+
+    async function logout() {
+        await sb.auth.signOut();
+        window.location.href = 'finsilogin.html';
     }
 
-    function renderTable(allItems) {
-        const tbody = document.querySelector('#requestsTable tbody');
-        tbody.innerHTML = '';
-        const term = document.getElementById('searchTicket').value.toLowerCase();
+    // --- FETCH DATA ---
+    async function fetchPendingRequests() {
+        const { data, error } = await sb
+            .from('material_requests')
+            .select('*')
+            .eq('status', 'Pending')
+            .order('created_at', {ascending: false});
         
-        requestsData.forEach(r => {
-            if(term && !r.ticket_id.toLowerCase().includes(term)) return;
-            
-            const rItems = allItems.filter(i => i.request_id === r.id);
-            const matStr = rItems.length ? rItems.map(i => `${i.material_name_cache} - ${i.quantity_requested}pcs`).join(', ') : 'No materials';
+        if(error) { console.error(error); return; }
+        requestsData = data;
+        renderTable(requestsData);
+    }
+
+    function renderTable(data) {
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = '';
+
+        if(data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:20px;">No pending requests.</td></tr>';
+            return;
+        }
+
+        data.forEach(req => {
+            // Parse materials for display if it's a JSON string or just show task desc
+            let materialsDisplay = 'View Details';
+            if(req.remarks && req.remarks.includes('Requested:')) {
+                 try {
+                     const mats = JSON.parse(req.remarks.replace('Requested: ', ''));
+                     materialsDisplay = mats.map(m => `${m.qty}x ${m.type}`).join(', ');
+                 } catch(e) {}
+            }
 
             const tr = document.createElement('tr');
-            tr.innerHTML = `<td>${r.id}</td><td>${r.ticket_id}</td><td>${r.request_date}</td><td>${r.site}</td><td>${r.status}</td><td>${r.priority}</td><td><strong>${matStr}</strong></td><td><button class="btn view-btn" onclick="openDetails(${r.id})">View</button></td>`;
+            tr.innerHTML = `
+                <td>${req.ticket_id || 'N/A'}</td>
+                <td>${new Date(req.request_date).toLocaleDateString()}</td>
+                <td>${req.site}</td>
+                <td>${req.task_description}</td>
+                <td style="color:#b45309; font-weight:700;">${req.status}</td>
+                <td>${req.priority || 'Normal'}</td>
+                <td><strong>${materialsDisplay}</strong></td>
+                <td><button class="btn" onclick="openDetails('${req.id}')">View</button></td>
+            `;
             tbody.appendChild(tr);
         });
     }
-    document.getElementById('searchTicket').addEventListener('input', () => loadData());
 
-    async function openDetails(id) {
-        currentRequest = requestsData.find(r => r.id === id);
-        const { data: items } = await window.sbClient.from('material_request_items').select('*').eq('request_id', id);
+    // --- MODALS & ACTIONS ---
+    function openDetails(id) {
+        const req = requestsData.find(r => r.id == id);
+        currentRequestId = id;
         
-        const reqMaterialsStr = items.length 
-            ? items.map(i => `${i.material_name_cache} - ${i.quantity_requested} pcs`).join('<br>') 
-            : 'None';
+        // Format materials list
+        let matListHtml = '<p>No specific materials listed.</p>';
+        if(req.remarks && req.remarks.includes('Requested:')) {
+             try {
+                 const mats = JSON.parse(req.remarks.replace('Requested: ', ''));
+                 matListHtml = '<ul>' + mats.map(m => `<li>${m.type} - <strong>${m.qty}</strong></li>`).join('') + '</ul>';
+             } catch(e) {}
+        }
 
-        renderDetailsUI(reqMaterialsStr);
+        document.getElementById('detailsBody').innerHTML = `
+            <p><strong>Ticket:</strong> ${req.ticket_id}</p>
+            <p><strong>Site:</strong> ${req.site}</p>
+            <p><strong>Task:</strong> ${req.task_description}</p>
+            <hr style="margin:10px 0; border:0; border-top:1px solid #eee;">
+            <p><strong>Requested Materials:</strong></p>
+            ${matListHtml}
+        `;
         document.getElementById('detailsModal').style.display = 'flex';
     }
 
-    function renderDetailsUI(reqMaterialsStr) {
-        const r = currentRequest;
-        const matOptions = inventory.map(m => `<option value="${m.id}|${m.name}|${m.quantity}">${m.name} (Stock: ${m.quantity})</option>`).join('');
-        
-        const pickerHtml = `
-            <div class="materials-section">
-                <div class="materials-header" id="materialsToggle" onclick="this.nextElementSibling.classList.toggle('show')">
-                    <span>Select Materials to Fulfill Request</span><span class="arrow">▼</span>
-                </div>
-                <div class="materials-content show" id="materialsContent">
-                    <div class="requested-materials-text">
-                        <strong>Requested Materials:</strong><br>${reqMaterialsStr}
-                    </div>
-                    <div class="material-picker">
-                        <div id="pickerRows">
-                            <div class="picker-row">
-                                <select class="mat-select"><option value="">-- Select Material --</option>${matOptions}</select>
-                                <input type="number" class="mat-qty" value="1" min="1">
-                            </div>
-                        </div>
-                        <button type="button" class="add-another-btn" onclick="addPickerRow()">+ Add Another</button>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        document.getElementById('detailsBody').innerHTML = `
-            <p><strong>ID:</strong> ${r.id}</p>
-            <p><strong>Ticket:</strong> ${r.ticket_id}</p>
-            <p><strong>Date:</strong> ${r.request_date}</p>
-            <p><strong>Site:</strong> ${r.site}</p>
-            <p><strong>Remarks:</strong> ${r.task_description}</p>
-            <p><strong>Status:</strong> ${r.status}</p>
-            <p><strong>Priority Level:</strong> ${r.priority}</p>
-            <p><strong>Requested By:</strong> ${r.requested_by_name || 'N/A'}</p>
-            <p><strong>Assigned To:</strong> ${r.assigned_to_name || 'Asset Team'}</p>
-            ${pickerHtml}
-        `;
-    }
-
-    window.addPickerRow = function() {
-        const matOptions = inventory.map(m => `<option value="${m.id}|${m.name}|${m.quantity}">${m.name} (Stock: ${m.quantity})</option>`).join('');
-        const row = document.createElement('div');
-        row.className = 'picker-row';
-        row.style.marginTop = '10px';
-        row.innerHTML = `
-            <select class="mat-select"><option value="">-- Select Material --</option>${matOptions}</select>
-            <input type="number" class="mat-qty" value="1" min="1">
-            <button type="button" class="remove-row-btn" onclick="this.parentElement.remove()">×</button>
-        `;
-        document.getElementById('pickerRows').appendChild(row);
-    }
-
-    document.getElementById('approveBtn').onclick = () => document.getElementById('approveConfirmModal').style.display = 'flex';
-    
-    document.getElementById('confirmApproveBtn').onclick = async () => {
-        const newItems = [];
-        const stockUpdates = [];
-        let isValid = true;
-
-        document.querySelectorAll('.picker-row').forEach(row => {
-            const sel = row.querySelector('.mat-select').value;
-            const qty = parseInt(row.querySelector('.mat-qty').value);
-            if(sel && qty > 0) {
-                const [mId, mName, mStock] = sel.split('|');
-                if (qty > parseInt(mStock)) {
-                    alert(`Not enough stock for ${mName}. Available: ${mStock}`);
-                    isValid = false;
-                    return;
-                }
-                newItems.push({
-                    request_id: currentRequest.id,
-                    material_id: mId,
-                    material_name_cache: mName,
-                    quantity_fulfilled: qty,
-                    quantity_requested: qty
-                });
-                stockUpdates.push({ id: mId, deduct: qty, current: parseInt(mStock) });
-            }
-        });
-
-        if(!isValid) return;
-        if(newItems.length === 0) return alert("Please select at least one material to fulfill.");
-
-        // 1. Update Stock
-        for (const update of stockUpdates) {
-            await window.sbClient.from('materials_inventory')
-                .update({ quantity: update.current - update.deduct })
-                .eq('id', update.id);
-        }
-
-        // 2. Update Request
-        await window.sbClient.from('material_requests')
-            .update({ status: 'On Going', remarks: document.getElementById('approveRemarksInput').value })
-            .eq('id', currentRequest.id);
-
-        // 3. Sync Items
-        await window.sbClient.from('material_request_items').delete().eq('request_id', currentRequest.id);
-        await window.sbClient.from('material_request_items').insert(newItems);
-
-        showToast("Request Approved & Stock Updated");
-        closeAllModals();
-        loadData();
+    // Approve Logic
+    document.getElementById('approveBtn').onclick = () => {
+        document.getElementById('approveConfirmModal').style.display = 'flex';
     };
 
-    document.getElementById('onHoldBtn').onclick = () => document.getElementById('holdReasonModal').style.display = 'flex';
+    document.getElementById('confirmApproveBtn').onclick = async () => {
+        const notes = document.getElementById('approveRemarksInput').value;
+        
+        // Update status to 'On Going' (or 'In Progress' to match Engineer dashboard)
+        const { error } = await sb
+            .from('material_requests')
+            .update({ status: 'On Going', remarks: notes ? `${notes}` : undefined }) 
+            .eq('id', currentRequestId);
+
+        if(error) alert("Error: " + error.message);
+        else {
+            showToast("Request Approved");
+            closeAllModals();
+            fetchPendingRequests();
+        }
+    };
+
+    // On Hold Logic
+    document.getElementById('onHoldBtn').onclick = () => {
+        document.getElementById('holdReasonModal').style.display = 'flex';
+    };
+
     document.getElementById('sendHoldReasonBtn').onclick = async () => {
         const reason = document.getElementById('holdReasonInput').value;
-        if(!reason) return alert("Reason required");
-        await window.sbClient.from('material_requests').update({ status: 'On Hold', remarks: reason }).eq('id', currentRequest.id);
-        showToast("Put On Hold");
-        closeAllModals();
-        loadData();
+        if(!reason) return alert("Reason is required.");
+
+        const { error } = await sb
+            .from('material_requests')
+            .update({ status: 'On Hold', remarks: reason })
+            .eq('id', currentRequestId);
+
+        if(error) alert("Error: " + error.message);
+        else {
+            showToast("Request put On Hold");
+            closeAllModals();
+            fetchPendingRequests();
+        }
     };
+
+    // Search
+    document.getElementById('searchTicket').addEventListener('input', (e) => {
+        const term = e.target.value.toLowerCase();
+        const filtered = requestsData.filter(r => 
+            (r.ticket_id && r.ticket_id.toLowerCase().includes(term)) ||
+            (r.site && r.site.toLowerCase().includes(term))
+        );
+        renderTable(filtered);
+    });
 
     function closeAllModals() {
         document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
     }
-    document.querySelectorAll('.close, #cancelApproveBtn, #cancelHoldReason').forEach(b => b.onclick = closeAllModals);
+    
+    // Close buttons
+    document.querySelectorAll('.close, #cancelApproveBtn, #cancelHoldReason').forEach(btn => {
+        btn.addEventListener('click', closeAllModals);
+    });
 
     function showToast(msg) {
         const t = document.getElementById('toast');
-        t.textContent = msg; t.classList.add('show');
+        t.textContent = msg;
+        t.classList.add('show');
         setTimeout(() => t.classList.remove('show'), 3000);
     }
 
+    // Sidebar toggle
     document.getElementById('requestsBtn').addEventListener('click', () => {
       document.getElementById('requestsMenu').classList.toggle('show');
     });

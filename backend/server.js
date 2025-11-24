@@ -555,9 +555,14 @@ app.get('/api/engineer/dashboard-data', async (req, res) => {
                 .order('created_at', { ascending: false });
             materials = matData || [];
 
+            // *** UPDATED QUERY WITH JOINS ***
             const { data: vehData } = await supabase
                 .from('vehicle_requests')
-                .select('*')
+                .select(`
+                    *,
+                    fleet_drivers (first_name, last_name, phone_number),
+                    fleet_vehicles (plate_number, type, model)
+                `)
                 .in('ticket_id', ticketCodes)
                 .order('created_at', { ascending: false });
             vehicles = vehData || [];
