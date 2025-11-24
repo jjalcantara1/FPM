@@ -435,15 +435,15 @@
     document.getElementById('confirmApproveBtn').onclick = async () => {
         const notes = document.getElementById('approveRemarksInput').value;
         
-        // Update status to 'On Going' (or 'In Progress' to match Engineer dashboard)
+        // CHANGED: status from 'On Going' to 'Approved (Materials Ready)'
         const { error } = await sb
             .from('material_requests')
-            .update({ status: 'On Going', remarks: notes ? `${notes}` : undefined }) 
+            .update({ status: 'Approved (Materials Ready)', remarks: notes ? `${notes}` : undefined }) 
             .eq('id', currentRequestId);
 
         if(error) alert("Error: " + error.message);
         else {
-            showToast("Request Approved");
+            showToast("Request Approved (Materials Ready)");
             closeAllModals();
             fetchPendingRequests();
         }

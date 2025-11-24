@@ -178,7 +178,7 @@ function renderAssignments(data) {
     data.forEach(item => {
         const status = (item.status || '').toLowerCase();
         let category = 'pending';
-        if (['in progress', 'ongoing', 'accepted'].includes(status)) category = 'ongoing';
+        if (['in progress', 'ongoing', 'accepted', 'acknowledged'].includes(status)) category = 'ongoing';
         else if (['completed', 'done'].includes(status)) category = 'completed';
         else if (['pending', 'assigned'].includes(status)) category = 'pending';
         else return; 
@@ -589,7 +589,7 @@ window.selectAssignment = function(id) {
 
         if(['pending', 'assigned'].includes(status)) {
             if(pendingActions) pendingActions.style.display = 'flex'; 
-        } else if(['in progress', 'ongoing', 'in_progress', 'accepted'].includes(status)) {
+        } else if(['in progress', 'ongoing', 'in_progress', 'accepted', 'acknowledged'].includes(status)) {
             if(ongoingActions) ongoingActions.style.display = 'flex'; 
         }
     }
@@ -601,6 +601,7 @@ window.openAssignmentDetails = function(id) {
     const item = getAssignment(id);
     if (!item) return;
     
+    // Populate Data
     document.getElementById('mTitle').textContent = item.type_of_appointment;
     document.getElementById('mSite').textContent = `Site: ${item.site}`;
     document.getElementById('mDue').textContent = `Due: ${new Date(item.date).toLocaleDateString()}`;
@@ -615,19 +616,26 @@ window.openAssignmentDetails = function(id) {
     document.getElementById('mRemarks').textContent = item.pm_remarks || 'None';
 
     const status = (item.status||'').toLowerCase();
-    const isOngoing = ['in progress', 'ongoing', 'in_progress', 'accepted'].includes(status);
     
-    // Control Mobile Buttons
-    document.getElementById('mobileActionBtn').style.display = ['pending','assigned'].includes(status) ? 'block' : 'none';
+    // Logic for Pending vs Ongoing
+    const isPending = ['pending', 'assigned'].includes(status);
+    const isOngoing = ['in progress', 'ongoing', 'in_progress', 'accepted', 'acknowledged'].includes(status);
+    
+    // --- BUTTON VISIBILITY CONTROLS ---
+
+    // 1. "Accept/Acknowledge" Action Button (Only for Pending)
+    document.getElementById('mobileActionBtn').style.display = isPending ? 'block' : 'none';
+
+    // 2. Material Request (Only for Ongoing)
     document.getElementById('mobileRequestMaterialBtn').style.display = isOngoing ? 'block' : 'none';
-    document.getElementById('mobileRequestVehicleBtn').style.display = isOngoing ? 'block' : 'none';
+
+    // 3. Mark Completed (Only for Ongoing)
     document.getElementById('mobileMarkCompletedBtn').style.display = isOngoing ? 'block' : 'none';
-    
-    if(isOngoing) {
-        document.getElementById('mobileActionBtn').style.display = 'none';
-    } else if (['pending', 'assigned'].includes(status)) {
-        document.getElementById('mobileActionBtn').style.display = 'block';
-    }
+
+    // 4. Vehicle Request -> HIDDEN from manual view (Per your request)
+    // It will only trigger automatically after acknowledgment.
+    const vehicleBtn = document.getElementById('mobileRequestVehicleBtn');
+    if(vehicleBtn) vehicleBtn.style.display = 'none'; 
 
     document.getElementById('mobileAssignmentDetails').classList.add('show');
 }
@@ -648,17 +656,34 @@ window.confirmAcknowledge = async function() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ appointment_id: currentAssignmentId, remarks: document.getElementById('acknowledgeRemarks').value })
         });
+        
         if (!response.ok) {
             const err = await response.json();
             throw new Error(err.error || 'Failed to acknowledge');
         }
-        closeAcknowledgeModal();
-        closeMobileAssignmentDetails();
-        fetchDashboardData();
-        showToast('Assignment Acknowledged');
-    } catch (e) { console.error(e); alert('Error: ' + e.message); }
-}
 
+        // 1. Close the Acknowledge Modal
+        closeAcknowledgeModal();
+        
+        // 2. Close the mobile details view to clean up the screen
+        closeMobileAssignmentDetails();
+        
+        // 3. Refresh dashboard data (Background update)
+        fetchDashboardData();
+        
+        showToast('Assignment Acknowledged');
+
+        // 4. AUTOMATICALLY OPEN VEHICLE REQUEST
+        // We use a small timeout to allow the previous modal to fade out visually
+        setTimeout(() => {
+            requestVehicle();
+        }, 300);
+
+    } catch (e) { 
+        console.error(e); 
+        alert('Error: ' + e.message); 
+    }
+}
 // --- COMPLETION LOGIC ---
 window.markAsCompleted = function() { 
     if (!currentAssignmentId) { alert("Please select an assignment first."); return; }

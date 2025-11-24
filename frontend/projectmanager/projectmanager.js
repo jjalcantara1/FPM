@@ -91,7 +91,7 @@ function getStatusClass(status) {
     if (k === 'approved' || k === 'materials approved') return 'status-approved';
     if (k === 'rejected') return 'status-rejected';
     if (k === 'assigned') return 'status-assigned';
-    if (k === 'in progress' || k === 'ongoing' || k === 'in_progress') return 'status-inprogress';
+    if (k === 'in progress' || k === 'ongoing' || k === 'in_progress' || k === 'acknowledged') return 'status-inprogress';
     if (k === 'completed' || k === 'done' || k === 'inspected') return 'status-done';
     if (k === 'on hold') return 'status-pending';
     return 'status-pending'; 
@@ -191,13 +191,17 @@ function renderOnHoldAppointments() {
     const searchQuery = searchBar ? searchBar.value.toLowerCase() : '';
     
     const onHold = state.allAppointments.filter(appt => {
-        const isInProgress = ['Assigned', 'On Hold', 'In Progress', 'Inspected'].includes(appt.status);
+        // Updated to include 'Acknowledged' and 'Approved (Materials Ready)'
+        const isInProgress = ['Assigned', 'On Hold', 'In Progress', 'Inspected', 'Acknowledged', 'Approved (Materials Ready)'].includes(appt.status);
         
         let taskStatusFilter = 'all';
         if (appt.status === 'Assigned') taskStatusFilter = 'pending';
-        if (appt.status === 'In Progress') taskStatusFilter = 'in_progress';
+        // Map 'In Progress' and 'Acknowledged' to the 'in_progress' filter option
+        if (appt.status === 'In Progress' || appt.status === 'Acknowledged') taskStatusFilter = 'in_progress';
         if (appt.status === 'On Hold') taskStatusFilter = 'on_hold';
         if (appt.status === 'Inspected') taskStatusFilter = 'inspected';
+        // Map 'Approved (Materials Ready)' to the 'approved' filter option
+        if (appt.status === 'Approved (Materials Ready)') taskStatusFilter = 'approved';
 
         
         let statusMatch = statusFilter === 'all' || taskStatusFilter === statusFilter;
@@ -212,7 +216,7 @@ function renderOnHoldAppointments() {
 
     tbody.innerHTML = ''; 
     if (onHold.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;">No matching "In Progress" appointments found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;">No matching appointments found.</td></tr>';
         return;
     }
 
@@ -224,56 +228,63 @@ function renderOnHoldAppointments() {
             engineerName = `${appt.engineer_records.firstName || ''} ${appt.engineer_records.lastName || ''}`.trim();
         }
 
-        // START: Logic copied from projectmanager.html prototype
-        const taskStatus = (appt.status === 'Assigned' ? 'pending' : appt.status === 'In Progress' ? 'in_progress' : appt.status === 'On Hold' ? 'on_hold' : appt.status === 'Inspected' ? 'inspected' : 'pending');
+        // Logic to determine display text and styles based on specific statuses
         let taskStatusClass = '';
         let taskStatusText = '';
         let taskIcon = '';
         let bgColor = '';
         let textColor = '';
         
-        if (taskStatus === 'pending') { // 'Assigned' maps to 'pending'
+        const status = appt.status;
+
+        if (status === 'Assigned') {
             taskStatusClass = 'status-pending';
             taskStatusText = 'Pending';
             taskIcon = '⏳';
             bgColor = '#fef3c7';
             textColor = '#92400e';
-        } else if (taskStatus === 'in_progress') { // 'In Progress' maps to 'Ongoing'
+        } else if (status === 'In Progress') {
             taskStatusClass = 'status-in-progress';
             taskStatusText = 'Ongoing';
             taskIcon = '🔄';
             bgColor = '#dbeafe';
             textColor = '#1e40af';
-        } else if (taskStatus === 'approved') { // This is a sub-status, but we'll map it
+        } else if (status === 'Acknowledged') {
+            taskStatusClass = 'status-in-progress';
+            taskStatusText = 'Acknowledged';
+            taskIcon = '👁️';
+            bgColor = '#dbeafe';
+            textColor = '#1e40af';
+        } else if (status === 'Approved (Materials Ready)') {
             taskStatusClass = 'status-approved';
-            taskStatusText = 'Approved';
-            taskIcon = '✅';
+            taskStatusText = 'Materials Ready';
+            taskIcon = '📦';
             bgColor = '#dcfce7';
             textColor = '#166534';
-        } else if (taskStatus === 'inspected') { // 'Inspected' maps to 'Mark as Inspected'
+        } else if (status === 'Inspected') {
             taskStatusClass = 'status-inspected';
-            taskStatusText = 'Mark as Inspected';
+            taskStatusText = 'Inspected';
             taskIcon = '✅';
             bgColor = '#d1fae5';
             textColor = '#065f46';
-        } else if (taskStatus === 'completed') {
-            taskStatusClass = 'status-completed';
-            taskStatusText = 'Completed';
-            taskIcon = '✅';
-            bgColor = '#d1fae5';
-            textColor = '#065f46';
-        } else if (taskStatus === 'on_hold') { // 'On Hold' maps to 'On Hold'
+        } else if (status === 'On Hold') {
             taskStatusClass = 'status-on-hold';
             taskStatusText = 'On Hold';
             taskIcon = '⏸️';
             bgColor = '#fef3c7';
             textColor = '#92400e';
+        } else {
+            // Fallback for any other status
+            taskStatusClass = 'status-pending';
+            taskStatusText = status;
+            taskIcon = '•';
+            bgColor = '#f3f4f6';
+            textColor = '#374151';
         }
         
         const statusHTML = `<span class="${taskStatusClass}" style="padding: 4px 8px; border-radius: 6px; font-size: 12px; display: inline-block; background: ${bgColor}; color: ${textColor}; font-weight: 600;">${taskIcon} ${taskStatusText}</span>`;
-        // END: Logic from prototype
 
-        // Priority styling from prototype
+        // Priority styling
         const priority = appt.priority_level || 'Low';
         const priorityClass = priority.toLowerCase();
         const priorityHTML = `<span class="priority-${priorityClass}">${priority}</span>`;

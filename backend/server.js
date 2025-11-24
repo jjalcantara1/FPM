@@ -587,7 +587,7 @@ app.post('/api/engineer/acknowledge', async (req, res) => {
     try {
         const { error } = await supabase
             .from('appointment_records')
-            .update({ status: 'In Progress', engineerStatus: 'accepted' })
+            .update({ status: 'Acknowledged', engineerStatus: 'accepted' })
             .eq('id', appointment_id);
         if (error) throw error;
         res.status(200).json({ message: 'Success' });
