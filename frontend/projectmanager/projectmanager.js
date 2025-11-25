@@ -192,16 +192,16 @@ function renderOnHoldAppointments() {
     
     const onHold = state.allAppointments.filter(appt => {
         // Updated to include 'Acknowledged' and 'Approved (Materials Ready)'
-        const isInProgress = ['Assigned', 'On Hold', 'In Progress', 'Inspected', 'Acknowledged', 'Approved (Materials Ready)'].includes(appt.status);
+        const isInProgress = ['Assigned', 'On Hold', 'In Progress', 'Inspected', 'Acknowledged', 'Approved (Materials Ready)', 'Ongoing', 'Approved'].includes(appt.status);
         
         let taskStatusFilter = 'all';
         if (appt.status === 'Assigned') taskStatusFilter = 'pending';
         // Map 'In Progress' and 'Acknowledged' to the 'in_progress' filter option
-        if (appt.status === 'In Progress' || appt.status === 'Acknowledged') taskStatusFilter = 'in_progress';
+        if (['In Progress', 'Acknowledged', 'Ongoing'].includes(appt.status)) taskStatusFilter = 'in_progress';
         if (appt.status === 'On Hold') taskStatusFilter = 'on_hold';
         if (appt.status === 'Inspected') taskStatusFilter = 'inspected';
         // Map 'Approved (Materials Ready)' to the 'approved' filter option
-        if (appt.status === 'Approved (Materials Ready)') taskStatusFilter = 'approved';
+        if (['Approved (Materials Ready)', 'Approved'].includes(appt.status)) taskStatusFilter = 'approved';
 
         
         let statusMatch = statusFilter === 'all' || taskStatusFilter === statusFilter;
@@ -243,7 +243,7 @@ function renderOnHoldAppointments() {
             taskIcon = '⏳';
             bgColor = '#fef3c7';
             textColor = '#92400e';
-        } else if (status === 'In Progress') {
+        } else if (['In Progress', 'Ongoing'].includes(status)) {
             taskStatusClass = 'status-in-progress';
             taskStatusText = 'Ongoing';
             taskIcon = '🔄';
@@ -255,9 +255,9 @@ function renderOnHoldAppointments() {
             taskIcon = '👁️';
             bgColor = '#dbeafe';
             textColor = '#1e40af';
-        } else if (status === 'Approved (Materials Ready)') {
+        } else if (['Approved (Materials Ready)', 'Approved'].includes(status)) {
             taskStatusClass = 'status-approved';
-            taskStatusText = 'Materials Ready';
+            taskStatusText = 'Approved';
             taskIcon = '📦';
             bgColor = '#dcfce7';
             textColor = '#166534';
@@ -628,10 +628,29 @@ function populateEngineerDropdown() {
     if (!select) return;
     select.innerHTML = '<option value="">Select an engineer...</option>'; 
     
+    // Get list of engineers currently busy (In Progress or Ongoing)
+    const busyEngineers = new Set();
+    state.allAppointments.forEach(appt => {
+        if (['In Progress', 'Ongoing', 'Approved'].includes(appt.status) && appt.engineer_user_id) {
+            busyEngineers.add(appt.engineer_user_id);
+        }
+    });
+
     state.engineers.forEach(eng => {
         const option = document.createElement('option');
         option.value = eng.user_id; 
-        option.textContent = `${eng.firstName || ''} ${eng.lastName || ''} (${eng.location || 'N/A'})`;
+        
+        // Check if engineer is busy
+        let label = `${eng.firstName || ''} ${eng.lastName || ''}`;
+        if (busyEngineers.has(eng.user_id)) {
+            label += " - (Currently Assigned)";
+            // Optional: disable selection if you don't want double booking
+            // option.disabled = true; 
+        } else {
+            label += ` (${eng.location || 'Available'})`;
+        }
+        
+        option.textContent = label;
         select.appendChild(option);
     });
 }
@@ -757,6 +776,7 @@ function openTicketModal(appointmentId) {
         currentPMRemarks.style.display = 'none';
         engineerSelect.style.display = 'block';
         engineerSelect.value = ''; 
+        populateEngineerDropdown(); // Refresh dropdown to show busy status
     } else {
         engineerSelect.style.display = 'none';
         currentAssignment.style.display = 'block';
@@ -778,7 +798,7 @@ function openTicketModal(appointmentId) {
     const currentStatusSection = document.getElementById('currentStatusSection');
     const foRemarksForm = document.getElementById('foRemarksForm');
 
-    if (['assigned', 'in progress', 'on hold', 'inspected'].includes(status)) {
+    if (['assigned', 'in progress', 'on hold', 'inspected', 'ongoing', 'approved'].includes(status)) {
         if(remarksSection) remarksSection.style.display = 'block';
         if(currentStatusSection) currentStatusSection.style.display = 'block';
         if(foRemarksForm) foRemarksForm.style.display = 'block';

@@ -376,6 +376,7 @@ app.post('/api/pm/approve-account', async (req, res) => {
     }
 });
 
+// 1. PM ASSIGNS ENGINEER -> Status: 'In Progress'
 app.post('/api/pm/assign-appointment', async (req, res) => {
     const { appointment_id, engineer_user_id, pm_remarks } = req.body;
 
@@ -384,7 +385,7 @@ app.post('/api/pm/assign-appointment', async (req, res) => {
             .from('appointment_records')
             .update({
                 engineer_user_id: engineer_user_id,
-                status: 'In Progress', 
+                status: 'In Progress', // UPDATED
                 pm_remarks: pm_remarks
             })
             .eq('id', appointment_id);
@@ -582,18 +583,23 @@ app.get('/api/engineer/dashboard-data', async (req, res) => {
     }
 });
 
+// 2. ENGINEER ACKNOWLEDGES -> Status: 'Ongoing'
 app.post('/api/engineer/acknowledge', async (req, res) => {
     const { appointment_id, remarks } = req.body;
     try {
         const { error } = await supabase
             .from('appointment_records')
-            .update({ status: 'Acknowledged', engineerStatus: 'accepted' })
+            .update({ 
+                status: 'Ongoing', // UPDATED
+                engineerStatus: 'accepted' 
+            })
             .eq('id', appointment_id);
         if (error) throw error;
         res.status(200).json({ message: 'Success' });
     } catch (error) { res.status(400).json({ error: error.message }); }
 });
 
+// 4. ENGINEER COMPLETES -> Status: 'Completed'
 app.post('/api/engineer/complete', async (req, res) => {
     const { appointment_id, remarks } = req.body;
     try {
@@ -639,6 +645,34 @@ app.post('/api/engineer/request-vehicle', async (req, res) => {
             }]);
         if (error) throw error;
         res.status(200).json({ message: 'Vehicle request submitted' });
+    } catch (error) { res.status(400).json({ error: error.message }); }
+});
+
+// 3. ASSET TEAM APPROVES MATERIAL -> Status: 'Approved'
+app.post('/api/asset/approve-material', async (req, res) => {
+    const { request_id, remarks } = req.body;
+    try {
+        // 1. Update Material Request
+        const { data: matReq, error: matError } = await supabase
+            .from('material_requests')
+            .update({ status: 'Approved', remarks: remarks })
+            .eq('id', request_id)
+            .select()
+            .single();
+            
+        if (matError) throw matError;
+
+        // 2. Update Parent Appointment Status to 'Approved' using the ticket_id
+        if (matReq && matReq.ticket_id) {
+            const { error: apptError } = await supabase
+                .from('appointment_records')
+                .update({ status: 'Approved' }) // CHANGED
+                .eq('ticket_code', matReq.ticket_id);
+            
+            if (apptError) console.error("Warning: Could not sync appointment status", apptError);
+        }
+
+        res.status(200).json({ message: 'Material Approved and Appointment updated' });
     } catch (error) { res.status(400).json({ error: error.message }); }
 });
 

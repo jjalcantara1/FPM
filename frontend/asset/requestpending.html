@@ -435,17 +435,24 @@
     document.getElementById('confirmApproveBtn').onclick = async () => {
         const notes = document.getElementById('approveRemarksInput').value;
         
-        // CHANGED: status from 'On Going' to 'Approved (Materials Ready)'
-        const { error } = await sb
-            .from('material_requests')
-            .update({ status: 'Approved (Materials Ready)', remarks: notes ? `${notes}` : undefined }) 
-            .eq('id', currentRequestId);
+        // UPDATED: Call new API endpoint instead of direct DB update
+        try {
+            const response = await fetch('http://localhost:3000/api/asset/approve-material', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    request_id: currentRequestId, 
+                    remarks: notes 
+                })
+            });
 
-        if(error) alert("Error: " + error.message);
-        else {
-            showToast("Request Approved (Materials Ready)");
+            if (!response.ok) throw new Error('Failed to approve');
+
+            showToast("Request Approved. Engineer Notified.");
             closeAllModals();
             fetchPendingRequests();
+        } catch (e) {
+            alert("Error: " + e.message);
         }
     };
 

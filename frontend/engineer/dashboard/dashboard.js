@@ -178,9 +178,10 @@ function renderAssignments(data) {
     data.forEach(item => {
         const status = (item.status || '').toLowerCase();
         let category = 'pending';
-        if (['in progress', 'ongoing', 'accepted', 'acknowledged'].includes(status)) category = 'ongoing';
+        // UPDATED LOGIC: 'In Progress' -> 'Pending' (waiting for acknowledge), 'Ongoing' -> 'Ongoing' (Acknowledged)
+        if (['ongoing', 'accepted', 'acknowledged', 'approved'].includes(status)) category = 'ongoing';
         else if (['completed', 'done'].includes(status)) category = 'completed';
-        else if (['pending', 'assigned'].includes(status)) category = 'pending';
+        else if (['pending', 'assigned', 'in progress'].includes(status)) category = 'pending';
         else return; 
 
         const dateStr = new Date(item.date).toLocaleDateString();
@@ -244,7 +245,7 @@ function renderHistory(data) {
     const groupOrder = ['Today', 'Yesterday', 'Others'];
     
     const deskHistContentArea = document.querySelector('.main-section[data-content="history"] .section-content-area');
-    const mobHist = document.querySelector('.mobile-history-list');
+    const mobHist = document.querySelector('.mobile-history-list-container');
 
     if (completedItems.length === 0) {
         const message = '<p style="text-align:center;padding:20px;">No completed assignments found.</p>';
@@ -347,7 +348,7 @@ function renderNotifications(assignments, notifications) {
     const today = new Date().toLocaleDateString();
     const groupOrder = ['Today', 'Yesterday', 'Others'];
 
-    const mobileContainer = document.querySelector('.mobile-content-section[data-mobile-content="notification"] .notification-list');
+    const mobileContainer = document.querySelector('.mobile-notification-list-container');
     const desktopContainer = document.querySelector('.main-section[data-content="notification"] .section-content-area');
 
     if (allNotifs.length === 0) {
@@ -587,9 +588,10 @@ window.selectAssignment = function(id) {
         if(pendingActions) pendingActions.style.display = 'none';
         if(ongoingActions) ongoingActions.style.display = 'none';
 
-        if(['pending', 'assigned'].includes(status)) {
+        // UPDATED LOGIC: 'In Progress' = Pending (waiting for acknowledge), 'Ongoing' = Ongoing
+        if(['pending', 'assigned', 'in progress'].includes(status)) {
             if(pendingActions) pendingActions.style.display = 'flex'; 
-        } else if(['in progress', 'ongoing', 'in_progress', 'accepted', 'acknowledged'].includes(status)) {
+        } else if(['ongoing', 'accepted', 'acknowledged', 'approved'].includes(status)) {
             if(ongoingActions) ongoingActions.style.display = 'flex'; 
         }
     }
@@ -617,25 +619,35 @@ window.openAssignmentDetails = function(id) {
 
     const status = (item.status||'').toLowerCase();
     
-    // Logic for Pending vs Ongoing
-    const isPending = ['pending', 'assigned'].includes(status);
-    const isOngoing = ['in progress', 'ongoing', 'in_progress', 'accepted', 'acknowledged'].includes(status);
+    // UPDATED LOGIC:
+    // 1. PENDING GROUP: 'assigned', 'pending', 'in progress' -> Show ACKNOWLEDGE
+    // 2. ONGOING GROUP: 'ongoing', 'approved', 'acknowledged' -> Show REQUEST MATERIAL, REQUEST VEHICLE, MARK AS COMPLETED
     
-    // --- BUTTON VISIBILITY CONTROLS ---
+    const isPending = ['assigned', 'pending', 'in progress'].includes(status);
+    const isOngoing = ['ongoing', 'approved', 'acknowledged', 'accepted'].includes(status);
+    
+    const actionBtn = document.getElementById('mobileActionBtn');
+    const matBtn = document.getElementById('mobileRequestMaterialBtn');
+    const vehBtn = document.getElementById('mobileRequestVehicleBtn');
+    const compBtn = document.getElementById('mobileMarkCompletedBtn');
 
-    // 1. "Accept/Acknowledge" Action Button (Only for Pending)
-    document.getElementById('mobileActionBtn').style.display = isPending ? 'block' : 'none';
+    // Reset visibility
+    if (actionBtn) actionBtn.style.display = 'none';
+    if (matBtn) matBtn.style.display = 'none';
+    if (vehBtn) vehBtn.style.display = 'none';
+    if (compBtn) compBtn.style.display = 'none';
 
-    // 2. Material Request (Only for Ongoing)
-    document.getElementById('mobileRequestMaterialBtn').style.display = isOngoing ? 'block' : 'none';
-
-    // 3. Mark Completed (Only for Ongoing)
-    document.getElementById('mobileMarkCompletedBtn').style.display = isOngoing ? 'block' : 'none';
-
-    // 4. Vehicle Request -> HIDDEN from manual view (Per your request)
-    // It will only trigger automatically after acknowledgment.
-    const vehicleBtn = document.getElementById('mobileRequestVehicleBtn');
-    if(vehicleBtn) vehicleBtn.style.display = 'none'; 
+    if (isPending) {
+        if (actionBtn) {
+            actionBtn.style.display = 'block';
+            actionBtn.textContent = 'ACKNOWLEDGE TASK';
+            actionBtn.onclick = acknowledgeAssignment;
+        }
+    } else if (isOngoing) {
+        if (matBtn) matBtn.style.display = 'block';
+        if (vehBtn) vehBtn.style.display = 'block';
+        if (compBtn) compBtn.style.display = 'block';
+    }
 
     document.getElementById('mobileAssignmentDetails').classList.add('show');
 }
@@ -673,11 +685,14 @@ window.confirmAcknowledge = async function() {
         
         showToast('Assignment Acknowledged');
 
-        // 4. AUTOMATICALLY OPEN VEHICLE REQUEST
-        // We use a small timeout to allow the previous modal to fade out visually
+        // 4. AUTOMATICALLY OPEN VEHICLE REQUEST (Optional workflow step from prior request, keeping for flow)
+        // Or just let them choose from the menu now that it is Ongoing.
+        // Commenting out auto-vehicle request to match standard flow unless specified.
+        /*
         setTimeout(() => {
             requestVehicle();
         }, 300);
+        */
 
     } catch (e) { 
         console.error(e); 

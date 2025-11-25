@@ -186,6 +186,12 @@
       border-radius: 10px;
       font-size: 14px;
     }
+    /* Style for file inputs */
+    .form-group input[type="file"] {
+      padding: 8px;
+      background: #f9fafb;
+    }
+    
     .form-actions { margin-top: 20px; display: flex; justify-content: flex-end; gap: 12px; }
     .btn-secondary {
       background: #e0e0e0;
@@ -238,22 +244,30 @@
       <h2>Add Vehicle</h2>
       <div class="form-group"><label>Vehicle Type</label><input type="text" id="vType" placeholder="e.g. L300"></div>
       <div class="form-group"><label>Model</label><input type="text" id="vModel" placeholder="e.g. Toyota"></div>
-      <div class="form-group"><label>Photo URL</label><input type="text" id="vPhoto" placeholder="Image Link (optional)"></div>
+      
+      <div class="form-group">
+        <label>Photo</label>
+        <input type="file" id="vPhoto" accept="image/*">
+      </div>
+      
       <div class="form-group"><label>Plate Number</label><input type="text" id="vPlate"></div>
-      <div class="form-group"><label>OR/CR URL</label><input type="text" id="vORCR" placeholder="Document Link (optional)"></div>
+      
+      <div class="form-group">
+        <label>OR/CR Document</label>
+        <input type="file" id="vORCR" accept="image/*,application/pdf">
+      </div>
+      
       <div class="form-actions">
         <button class="btn-secondary" onclick="closeModal()">Cancel</button>
-        <button class="btn" onclick="saveVehicle()">Save</button>
+        <button class="btn" id="saveBtn" onclick="saveVehicle()">Save</button>
       </div>
     </div>
   </div>
 
   <script>
     const SUPABASE_URL = 'https://bicvcqolkaokimtwimhn.supabase.co';
-    // Using key from your provided file
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJpY3ZjcW9sa2Fva2ltdHdpbWhuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MjUzMDIwMCwiZXhwIjoyMDc4MTA2MjAwfQ.eAYHk5c53gz5y2r85Rkz_-48taKCZWii-5cR2glCMP0';
     
-    // RENAMED 'supabase' to 'sb' to avoid ReferenceError
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     async function initDashboard() {
@@ -281,6 +295,7 @@
             vehicles.forEach(v => {
                 const card = document.createElement("div");
                 card.className = "vehicle-card";
+                // Use a placeholder if photo_url is null
                 const img = v.photo_url ? v.photo_url : 'vehicle1.jpg'; 
                 
                 let orcrHtml = '';
@@ -310,29 +325,90 @@
     function openModal() { document.getElementById("vehicleModal").style.display = "flex"; }
     function closeModal() { document.getElementById("vehicleModal").style.display = "none"; }
 
+    // Helper to upload file
+    async function uploadFile(file, folder) {
+        const fileName = `${Date.now()}_${file.name.replace(/\s+/g, '-')}`;
+        const filePath = `${folder}/${fileName}`;
+        
+        // Assuming you have a public bucket named 'fleet-assets'
+        // You must create this bucket in your Supabase Storage first
+        const { data, error } = await sb.storage
+            .from('fleet-assets') 
+            .upload(filePath, file);
+
+        if (error) throw error;
+
+        // Get public URL
+        const { data: publicData } = sb.storage
+            .from('fleet-assets')
+            .getPublicUrl(filePath);
+            
+        return publicData.publicUrl;
+    }
+
     async function saveVehicle() {
+        const btn = document.getElementById('saveBtn');
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
+
         const type = document.getElementById("vType").value;
         const model = document.getElementById("vModel").value;
         const plate = document.getElementById("vPlate").value;
-        const photo = document.getElementById("vPhoto").value;
-        const orcr = document.getElementById("vORCR").value;
+        
+        const photoFile = document.getElementById("vPhoto").files[0];
+        const orcrFile = document.getElementById("vORCR").files[0];
 
-        if(!type || !plate) return alert("Type and Plate Number are required.");
+        if(!type || !plate) {
+            alert("Type and Plate Number are required.");
+            btn.disabled = false;
+            btn.textContent = 'Save';
+            return;
+        }
 
-        const { error } = await sb.from('fleet_vehicles').insert([{
-            type, model, plate_number: plate, photo_url: photo, orcr_url: orcr, status: 'Idle'
-        }]);
+        let photoUrl = null;
+        let orcrUrl = null;
 
-        if(error) {
-            alert("Error: " + error.message);
-        } else {
-            alert("Vehicle added!");
+        try {
+            // Upload Photo if exists
+            if (photoFile) {
+                photoUrl = await uploadFile(photoFile, 'vehicles');
+            }
+
+            // Upload OR/CR if exists
+            if (orcrFile) {
+                orcrUrl = await uploadFile(orcrFile, 'documents');
+            }
+
+            const { error } = await sb.from('fleet_vehicles').insert([{
+                type, 
+                model, 
+                plate_number: plate, 
+                photo_url: photoUrl, 
+                orcr_url: orcrUrl, 
+                status: 'Idle'
+            }]);
+
+            if(error) {
+                throw error;
+            }
+
+            alert("Vehicle added successfully!");
             closeModal();
             initDashboard();
+            
+            // Reset form
             document.getElementById("vType").value = "";
             document.getElementById("vModel").value = "";
             document.getElementById("vPlate").value = "";
             document.getElementById("vPhoto").value = "";
+            document.getElementById("vORCR").value = "";
+
+        } catch (error) {
+            console.error(error);
+            alert("Error: " + (error.message || "Failed to save vehicle."));
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Save';
         }
     }
 
