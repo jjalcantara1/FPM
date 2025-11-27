@@ -614,6 +614,32 @@ function renderNotifications() {
         `;
     });
 
+    // START: ADDED SECTION FOR COMPLETED TASKS
+    const completedAppointments = state.allAppointments.filter(appt => appt.status === 'Completed' || appt.status === 'Done');
+    completedAppointments.forEach(appt => {
+        const timeAgo = getTimeAgo(appt.completed_at || appt.updated_at || appt.created_at);
+        let engineerName = 'N/A';
+        if (appt.engineer_records) {
+            engineerName = `${appt.engineer_records.firstName || ''} ${appt.engineer_records.lastName || ''}`.trim();
+        }
+
+        notificationsHTML += `
+            <div class="notification-card" style="border-left: 4px solid #10b981;">
+                <div class="notification-header">
+                    <div class="notification-title">✅ Task Completed</div>
+                    <div class="notification-time">${timeAgo}</div>
+                </div>
+                <div class="notification-content">
+                    <strong>${appt.ticket_code || 'N/A'}</strong> at ${appt.site || 'N/A'} has been completed by <strong>${engineerName}</strong>.
+                </div>
+                <div class="notification-actions">
+                    <button class="notification-btn" onclick="switchView('approved-appointments')">View Details</button>
+                    <button class="notification-btn secondary" onclick="this.closest('.notification-card').remove()">Dismiss</button>
+                </div>
+            </div>
+        `;
+    });
+    // END: ADDED SECTION FOR COMPLETED TASKS
 
     if (notificationsHTML === '') {
         notificationsHTML = '<p style="text-align: center; color: #66748a;">No new notifications.</p>';
@@ -887,7 +913,6 @@ function generateCompletedReport() {
 
     doc.save('Completed_Appointments_Report.pdf');
 }
-
 
 
 function initNavigation() {
