@@ -4,11 +4,22 @@ let allAppointments = [];
 
 function statusClass(s){
     const k = String(s||'pending').toLowerCase();
+    
+    // New Workflow Table Mapping:
+    // Pending -> Pending (Yellow)
+    // In Progress -> In Progress (Blue - Assigned)
+    // Ongoing -> Ongoing (Purple - Active)
+    // Approved -> Approved (Teal - Material Ready)
+    // On Hold -> On Hold (Orange/Red - Warning)
+    // Completed -> Completed (Green - Done)
+
     if (k === 'approved') return 'status-approved';
-    if (k === 'rejected') return 'status-rejected';
-    if (k === 'assigned') return 'status-assigned';
-    if (k === 'ongoing' || k === 'in progress' || k === 'in_progress') return 'status-inprogress';
     if (k === 'completed' || k === 'done') return 'status-done';
+    if (k === 'ongoing') return 'status-inprogress'; 
+    if (k === 'in progress' || k === 'assigned') return 'status-assigned';
+    if (k === 'on hold') return 'status-pending'; // Or status-rejected if you prefer red for holds
+    if (k === 'rejected') return 'status-rejected';
+
     return 'status-pending';
 }
         
@@ -56,7 +67,6 @@ async function checkUserSession() {
 function updateHeaderUI() {
     const label = document.getElementById('welcomeLabel');
     if (label && userProfile) {
-        // Consistent "Welcome, Name" format
         const name = `${userProfile.firstName || ''} ${userProfile.surname || ''}`.trim() || userProfile.email;
         label.textContent = 'Welcome, ' + name;
     }
@@ -82,7 +92,6 @@ async function loadAndRenderAppointments() {
             throw new Error('You are not logged in.');
         }
 
-        // This fetch call goes to your Node.js backend
         const response = await fetch('http://localhost:3000/api/my-appointments', {
             headers: {
                 'Authorization': `Bearer ${session.access_token}`
@@ -124,8 +133,8 @@ function renderTable(appointments) {
             day: 'numeric'
         });
 
-        // Display "On Going" for "In Progress"
-        const displayStatus = (appt.status === 'In Progress') ? 'Ongoing' : (appt.status || 'Pending');
+        // Use exact status from DB to match the new workflow table
+        const displayStatus = appt.status || 'Pending';
 
         row.innerHTML = `
             <td>${count++}</td>
@@ -134,7 +143,7 @@ function renderTable(appointments) {
             <td>${appt.site || 'N/A'}</td>
             <td>${appt.type_of_appointment || 'N/A'}</td>
             <td>${appt.task_description || 'N/A'}</td>
-            <td><span class="status-pill ${statusClass(appt.status)}">${displayStatus}</span></td>
+            <td><span class="status-pill ${statusClass(displayStatus)}">${displayStatus}</span></td>
             <td>${appt.priority_level || 'N/A'}</td>
             <td><button class="btn-view" onclick="viewDetails(${appt.id})">View</button></td>
         `;
@@ -157,8 +166,8 @@ window.viewDetails = function(appointmentId) {
         engineerName = `${task.engineer_records.firstName || ''} ${task.engineer_records.lastName || ''}`.trim();
     }
 
-    // Display "On Going" if status is "In Progress"
-    const displayStatus = (task.status === 'In Progress') ? 'Ongoing' : (task.status || 'Pending');
+    // Use exact status from DB
+    const displayStatus = task.status || 'Pending';
 
     document.getElementById('modalTicketNumber').textContent = task.ticket_code || 'N/A';
     document.getElementById('modalDate').textContent = date;
@@ -198,11 +207,18 @@ document.addEventListener('DOMContentLoaded', function(){
             var selectedStatus = this.value.toLowerCase();
             
             const filtered = allAppointments.filter(appt => {
+                const status = (appt.status || 'pending').toLowerCase();
                 if (selectedStatus === 'all') return true;
+                
+                // Update filter logic for new statuses
                 if (selectedStatus === 'ongoing') {
-                    return ['assigned', 'ongoing', 'in_progress'].includes((appt.status || 'pending').toLowerCase());
+                    return ['ongoing', 'in progress', 'approved'].includes(status);
                 }
-                return (appt.status || 'pending').toLowerCase() === selectedStatus;
+                if (selectedStatus === 'assigned') {
+                    return status === 'in progress'; // Map 'assigned' filter to 'In Progress' status per flow
+                }
+                
+                return status === selectedStatus;
             });
             
             renderTable(filtered);

@@ -649,8 +649,8 @@
             .from('vehicle_requests')
             .select(`
                 *,
-                fleet_drivers (first_name, last_name),
-                fleet_vehicles (plate_number, type)
+                fleet_drivers (first_name, last_name, status),
+                fleet_vehicles (plate_number, type, status)
             `)
             .order('created_at', { ascending: false });
 
@@ -788,7 +788,7 @@
 
         // Logic for Assignment Section based on Status
         if (currentTask.status === 'Pending') {
-            // Fetch available drivers/vehicles for assignment
+            // Fetch 'Active' drivers and 'Idle' vehicles
             const [driversRes, vehiclesRes] = await Promise.all([
                 sb.from('fleet_drivers').select('*').eq('status', 'Active'),
                 sb.from('fleet_vehicles').select('*').eq('status', 'Idle')
@@ -828,16 +828,19 @@
         } else {
             // Ongoing, Completed, On Hold - Show Assignment Info
             const driverName = currentTask.fleet_drivers ? `${currentTask.fleet_drivers.first_name} ${currentTask.fleet_drivers.last_name}` : 'Not Assigned';
+            // Added status display for Driver
+            const driverStatus = currentTask.fleet_drivers ? `(${currentTask.fleet_drivers.status})` : '';
+            
             const vehicleInfo = currentTask.fleet_vehicles ? `${currentTask.fleet_vehicles.type} - ${currentTask.fleet_vehicles.plate_number}` : 'Not Assigned';
+            // Added status display for Vehicle
+            const vehicleStatus = currentTask.fleet_vehicles ? `(${currentTask.fleet_vehicles.status})` : '';
 
             assignmentSection = `
               <div style="margin-top:20px; padding-top:20px; border-top:1px solid #eee;">
-                  <div class="detail-row"><strong>Assigned Driver:</strong> <span>${driverName}</span></div>
-                  <div class="detail-row"><strong>Assigned Vehicle:</strong> <span>${vehicleInfo}</span></div>
+                  <div class="detail-row"><strong>Assigned Driver:</strong> <span>${driverName} <small style="color:var(--muted)">${driverStatus}</small></span></div>
+                  <div class="detail-row"><strong>Assigned Vehicle:</strong> <span>${vehicleInfo} <small style="color:var(--muted)">${vehicleStatus}</small></span></div>
             `;
 
-            // If On Hold, allow resuming or re-assignment? (Simplifying: just show info and option to resume/complete depending on logic)
-            // If In Progress, show Mark as Done
             if (currentTask.status === 'In Progress' || currentTask.status === 'On Going') {
                 assignmentSection += `
                   <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
@@ -845,9 +848,13 @@
                   </div>
                 </div>`;
             } else if (currentTask.status === 'On Hold') {
+                 // Show Continue button for On Hold tasks
                  assignmentSection += `
-                  <div style="margin-top: 20px; color: #d9534f;">
-                    <strong>Reason:</strong> ${currentTask.remarks || 'No reason provided'}
+                  <div style="margin-top: 20px; color: #d9534f; background: #fff5f5; padding: 10px; border-radius: 6px;">
+                    <strong>Reason for Hold:</strong> ${currentTask.remarks || 'No reason provided'}
+                  </div>
+                  <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+                    <button onclick="continueTask()" style="padding: 10px 24px; border: none; background: #17a2b8; color: white; border-radius: 6px; cursor: pointer; font-weight: 600;">Continue Task</button>
                   </div>
                   </div>`;
             } else {
@@ -904,12 +911,13 @@
 
         if (reqError) return alert("Error updating request: " + reqError.message);
 
-        // Update Driver Status
+        // Set Driver status to 'On Trip'
         await sb.from('fleet_drivers').update({ status: 'On Trip' }).eq('id', driverId);
-        // Update Vehicle Status
-        await sb.from('fleet_vehicles').update({ status: 'Active' }).eq('id', vehicleId);
+        
+        // Set Vehicle status to 'Assigned'
+        await sb.from('fleet_vehicles').update({ status: 'Assigned' }).eq('id', vehicleId);
 
-        alert("Task Approved and Started!");
+        alert("Task Approved and Started! Driver is On Trip, Vehicle is Assigned.");
         closeModal();
         loadTasks();
     }
@@ -949,7 +957,23 @@
         loadTasks();
     }
 
-    // 3. Complete Task
+    // 3. Continue Task (Moves status back to Pending)
+    async function continueTask() {
+        if(!confirm("Resume this task? It will be moved back to Pending for assignment.")) return;
+
+        // Reset status to Pending so it can be assigned again
+        const { error } = await sb.from('vehicle_requests')
+            .update({ status: 'Pending' })
+            .eq('id', currentTask.id);
+
+        if(error) return alert("Error: " + error.message);
+
+        alert("Task Resumed! It is now Pending.");
+        closeModal();
+        loadTasks();
+    }
+
+    // 4. Complete Task
     function completeTask() {
         if(!confirm("Mark this task as completed? This will free up the driver and vehicle.")) return;
         finalizeCompletion();
@@ -963,17 +987,17 @@
 
         if(error) return alert("Error: " + error.message);
 
-        // Free resources if they exist on the task object (joined data might not have IDs directly attached in all views, so relying on currentTask object structure)
-        // IMPORTANT: ensure currentTask has vehicle_id and driver_id. If 'select *' was used, they should be there.
-        
+        // Set Vehicle back to 'Idle'
         if (currentTask.vehicle_id) {
             await sb.from('fleet_vehicles').update({ status: 'Idle' }).eq('id', currentTask.vehicle_id);
         }
+        
+        // Set Driver back to 'Active'
         if (currentTask.driver_id) {
             await sb.from('fleet_drivers').update({ status: 'Active' }).eq('id', currentTask.driver_id);
         }
 
-        alert("Task Completed!");
+        alert("Task Completed! Driver and Vehicle are now Idle.");
         closeModal();
         loadTasks();
     }

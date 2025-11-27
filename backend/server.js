@@ -648,11 +648,9 @@ app.post('/api/engineer/request-vehicle', async (req, res) => {
     } catch (error) { res.status(400).json({ error: error.message }); }
 });
 
-// 3. ASSET TEAM APPROVES MATERIAL -> Status: 'Approved'
 app.post('/api/asset/approve-material', async (req, res) => {
     const { request_id, remarks } = req.body;
     try {
-        // 1. Update Material Request
         const { data: matReq, error: matError } = await supabase
             .from('material_requests')
             .update({ status: 'Approved', remarks: remarks })
@@ -662,17 +660,100 @@ app.post('/api/asset/approve-material', async (req, res) => {
             
         if (matError) throw matError;
 
-        // 2. Update Parent Appointment Status to 'Approved' using the ticket_id
         if (matReq && matReq.ticket_id) {
             const { error: apptError } = await supabase
                 .from('appointment_records')
-                .update({ status: 'Approved' }) // CHANGED
+                .update({ status: 'Approved' }) 
                 .eq('ticket_code', matReq.ticket_id);
             
             if (apptError) console.error("Warning: Could not sync appointment status", apptError);
         }
 
         res.status(200).json({ message: 'Material Approved and Appointment updated' });
+    } catch (error) { res.status(400).json({ error: error.message }); }
+});
+
+app.post('/api/pm/assign-appointment', async (req, res) => {
+    const { appointment_id, engineer_user_id, pm_remarks } = req.body;
+    try {
+        const { error } = await supabase
+            .from('appointment_records')
+            .update({
+                engineer_user_id: engineer_user_id,
+                status: 'In Progress', 
+                pm_remarks: pm_remarks
+            })
+            .eq('id', appointment_id);
+
+        if (error) throw error;
+        res.status(200).json({ message: 'Assigned. Status: In Progress' });
+    } catch (error) { res.status(400).json({ error: error.message }); }
+});
+
+app.post('/api/engineer/acknowledge', async (req, res) => {
+    const { appointment_id, remarks } = req.body;
+    try {
+        const { error } = await supabase
+            .from('appointment_records')
+            .update({ 
+                status: 'Ongoing', 
+                engineerStatus: 'accepted' 
+            })
+            .eq('id', appointment_id);
+        if (error) throw error;
+        res.status(200).json({ message: 'Acknowledged. Status: Ongoing' });
+    } catch (error) { res.status(400).json({ error: error.message }); }
+});
+
+app.post('/api/asset/approve-material', async (req, res) => {
+    const { request_id, remarks } = req.body;
+    try {
+        const { data: matReq, error: matError } = await supabase
+            .from('material_requests')
+            .update({ status: 'Approved', remarks: remarks })
+            .eq('id', request_id)
+            .select()
+            .single();
+            
+        if (matError) throw matError;
+
+        if (matReq && matReq.ticket_id) {
+            const { error: apptError } = await supabase
+                .from('appointment_records')
+                .update({ status: 'Approved' }) 
+                .eq('ticket_code', matReq.ticket_id);
+            
+            if (apptError) console.error("Sync error", apptError);
+        }
+
+        res.status(200).json({ message: 'Material Approved. Status: Approved' });
+    } catch (error) { res.status(400).json({ error: error.message }); }
+});
+
+app.post('/api/pm/hold-appointment', async (req, res) => {
+    const { appointment_id, remarks } = req.body;
+    try {
+        const { error } = await supabase
+            .from('appointment_records')
+            .update({ 
+                status: 'On Hold',
+                pm_remarks: remarks
+            })
+            .eq('id', appointment_id);
+        if (error) throw error;
+        res.status(200).json({ message: 'Status: On Hold' });
+    } catch (error) { res.status(400).json({ error: error.message }); }
+});
+
+app.post('/api/engineer/complete', async (req, res) => {
+    const { appointment_id, remarks } = req.body;
+    try {
+        const { error } = await supabase
+            .from('appointment_records')
+            .update({ status: 'Completed' }) 
+            .eq('id', appointment_id);
+        if (error) throw error;
+        res.status(200).json({ message: 'Task Completed.' });
     } catch (error) { res.status(400).json({ error: error.message }); }
 });
 

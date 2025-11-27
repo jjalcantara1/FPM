@@ -88,12 +88,12 @@ function renderAllTables() {
 
 function getStatusClass(status) {
     const k = String(status || 'pending').toLowerCase();
-    if (k === 'approved' || k === 'materials approved') return 'status-approved';
+    if (k === 'approved') return 'status-approved'; // Green
+    if (k === 'in progress') return 'status-assigned'; // Blue
+    if (k === 'ongoing') return 'status-inprogress'; // Purple
+    if (k === 'on hold') return 'status-pending'; // Orange
+    if (k === 'completed') return 'status-done'; // Green
     if (k === 'rejected') return 'status-rejected';
-    if (k === 'assigned') return 'status-assigned';
-    if (k === 'in progress' || k === 'ongoing' || k === 'in_progress' || k === 'acknowledged') return 'status-inprogress';
-    if (k === 'completed' || k === 'done' || k === 'inspected') return 'status-done';
-    if (k === 'on hold') return 'status-pending';
     return 'status-pending'; 
 }
 
@@ -123,12 +123,17 @@ function getTimeAgo(dateString) {
 
 function renderDashboardStats() {
     const pendingAppointments = state.allAppointments.filter(a => a.status === 'Pending').length;
-    const onHoldAppointments = state.allAppointments.filter(a => ['Assigned', 'In Progress', 'On Hold', 'Inspected'].includes(a.status)).length;
+    
+    // Active Tasks: Assigned, In Progress, Ongoing, Approved, On Hold
+    const activeAppointments = state.allAppointments.filter(a => 
+        ['Assigned', 'In Progress', 'Ongoing', 'Approved', 'On Hold', 'Inspected'].includes(a.status)
+    ).length;
+    
     const rejectedAppointments = state.allAppointments.filter(a => a.status === 'Rejected').length;
     const pendingAccounts = state.allAccounts.filter(a => a.status === 'pending').length;
 
     document.getElementById('totalTickets').textContent = pendingAppointments;
-    document.getElementById('pendingApprovals').textContent = onHoldAppointments;
+    document.getElementById('pendingApprovals').textContent = activeAppointments;
     document.getElementById('rejectedTasks').textContent = rejectedAppointments;
     document.getElementById('pendingFOAccounts').textContent = pendingAccounts;
 }
@@ -160,7 +165,6 @@ function renderRequestAppointments() {
         const row = document.createElement('tr');
         const date = new Date(appt.date).toLocaleDateString();
         
-        // Priority styling from prototype
         const priority = appt.priority_level || 'Low';
         const priorityClass = priority.toLowerCase();
 
@@ -190,28 +194,29 @@ function renderOnHoldAppointments() {
     const searchBar = document.getElementById('searchOnHoldAppointments');
     const searchQuery = searchBar ? searchBar.value.toLowerCase() : '';
     
+    // Filter for ALL active/in-progress states
     const onHold = state.allAppointments.filter(appt => {
-        // Updated to include 'Acknowledged' and 'Approved (Materials Ready)'
-        const isInProgress = ['Assigned', 'On Hold', 'In Progress', 'Inspected', 'Acknowledged', 'Approved (Materials Ready)', 'Ongoing', 'Approved'].includes(appt.status);
+        const status = appt.status;
+        const isActive = ['Assigned', 'In Progress', 'Ongoing', 'Approved', 'On Hold', 'Inspected', 'Acknowledged'].includes(status);
         
-        let taskStatusFilter = 'all';
-        if (appt.status === 'Assigned') taskStatusFilter = 'pending';
-        // Map 'In Progress' and 'Acknowledged' to the 'in_progress' filter option
-        if (['In Progress', 'Acknowledged', 'Ongoing'].includes(appt.status)) taskStatusFilter = 'in_progress';
-        if (appt.status === 'On Hold') taskStatusFilter = 'on_hold';
-        if (appt.status === 'Inspected') taskStatusFilter = 'inspected';
-        // Map 'Approved (Materials Ready)' to the 'approved' filter option
-        if (['Approved (Materials Ready)', 'Approved'].includes(appt.status)) taskStatusFilter = 'approved';
-
+        if (!isActive) return false;
         
-        let statusMatch = statusFilter === 'all' || taskStatusFilter === statusFilter;
+        // Helper for mapping specific statuses to filter dropdown values
+        let filterCategory = 'all';
+        if (status === 'Assigned') filterCategory = 'assigned';
+        if (['In Progress', 'Ongoing', 'Acknowledged'].includes(status)) filterCategory = 'in_progress';
+        if (['Approved'].includes(status)) filterCategory = 'approved';
+        if (status === 'On Hold') filterCategory = 'on_hold';
+        if (status === 'Inspected') filterCategory = 'inspected';
+        
+        let statusMatch = statusFilter === 'all' || filterCategory === statusFilter;
 
         const searchMatch = !searchQuery ||
             (appt.ticket_code && appt.ticket_code.toLowerCase().includes(searchQuery)) ||
             (appt.site && appt.site.toLowerCase().includes(searchQuery)) ||
             (appt.type_of_appointment && appt.type_of_appointment.toLowerCase().includes(searchQuery));
             
-        return isInProgress && statusMatch && searchMatch;
+        return statusMatch && searchMatch;
     });
 
     tbody.innerHTML = ''; 
@@ -228,7 +233,7 @@ function renderOnHoldAppointments() {
             engineerName = `${appt.engineer_records.firstName || ''} ${appt.engineer_records.lastName || ''}`.trim();
         }
 
-        // Logic to determine display text and styles based on specific statuses
+        // --- STATUS BADGE LOGIC ---
         let taskStatusClass = '';
         let taskStatusText = '';
         let taskIcon = '';
@@ -239,42 +244,38 @@ function renderOnHoldAppointments() {
 
         if (status === 'Assigned') {
             taskStatusClass = 'status-pending';
-            taskStatusText = 'Pending';
+            taskStatusText = 'Assigned';
+            taskIcon = '👤';
+            bgColor = '#e0f2fe';
+            textColor = '#0284c7';
+        } else if (status === 'In Progress') {
+            // PM Assigned, waiting for Ack
+            taskStatusClass = 'status-pending';
+            taskStatusText = 'In Progress';
             taskIcon = '⏳';
             bgColor = '#fef3c7';
             textColor = '#92400e';
-        } else if (['In Progress', 'Ongoing'].includes(status)) {
+        } else if (status === 'Ongoing') {
+            // Engineer Acknowledged
             taskStatusClass = 'status-in-progress';
             taskStatusText = 'Ongoing';
-            taskIcon = '🔄';
+            taskIcon = '🏃';
             bgColor = '#dbeafe';
             textColor = '#1e40af';
-        } else if (status === 'Acknowledged') {
-            taskStatusClass = 'status-in-progress';
-            taskStatusText = 'Acknowledged';
-            taskIcon = '👁️';
-            bgColor = '#dbeafe';
-            textColor = '#1e40af';
-        } else if (['Approved (Materials Ready)', 'Approved'].includes(status)) {
+        } else if (status === 'Approved') {
+            // Material Approved / Ready
             taskStatusClass = 'status-approved';
             taskStatusText = 'Approved';
             taskIcon = '📦';
             bgColor = '#dcfce7';
             textColor = '#166534';
-        } else if (status === 'Inspected') {
-            taskStatusClass = 'status-inspected';
-            taskStatusText = 'Inspected';
-            taskIcon = '✅';
-            bgColor = '#d1fae5';
-            textColor = '#065f46';
         } else if (status === 'On Hold') {
             taskStatusClass = 'status-on-hold';
             taskStatusText = 'On Hold';
             taskIcon = '⏸️';
-            bgColor = '#fef3c7';
-            textColor = '#92400e';
+            bgColor = '#fee2e2';
+            textColor = '#991b1b';
         } else {
-            // Fallback for any other status
             taskStatusClass = 'status-pending';
             taskStatusText = status;
             taskIcon = '•';
@@ -284,7 +285,6 @@ function renderOnHoldAppointments() {
         
         const statusHTML = `<span class="${taskStatusClass}" style="padding: 4px 8px; border-radius: 6px; font-size: 12px; display: inline-block; background: ${bgColor}; color: ${textColor}; font-weight: 600;">${taskIcon} ${taskStatusText}</span>`;
 
-        // Priority styling
         const priority = appt.priority_level || 'Low';
         const priorityClass = priority.toLowerCase();
         const priorityHTML = `<span class="priority-${priorityClass}">${priority}</span>`;
@@ -628,7 +628,7 @@ function populateEngineerDropdown() {
     if (!select) return;
     select.innerHTML = '<option value="">Select an engineer...</option>'; 
     
-    // Get list of engineers currently busy (In Progress or Ongoing)
+    // Get list of engineers currently busy (In Progress or Ongoing or Approved)
     const busyEngineers = new Set();
     state.allAppointments.forEach(appt => {
         if (['In Progress', 'Ongoing', 'Approved'].includes(appt.status) && appt.engineer_user_id) {
@@ -644,8 +644,6 @@ function populateEngineerDropdown() {
         let label = `${eng.firstName || ''} ${eng.lastName || ''}`;
         if (busyEngineers.has(eng.user_id)) {
             label += " - (Currently Assigned)";
-            // Optional: disable selection if you don't want double booking
-            // option.disabled = true; 
         } else {
             label += ` (${eng.location || 'Available'})`;
         }
@@ -776,7 +774,7 @@ function openTicketModal(appointmentId) {
         currentPMRemarks.style.display = 'none';
         engineerSelect.style.display = 'block';
         engineerSelect.value = ''; 
-        populateEngineerDropdown(); // Refresh dropdown to show busy status
+        populateEngineerDropdown();
     } else {
         engineerSelect.style.display = 'none';
         currentAssignment.style.display = 'block';

@@ -177,6 +177,7 @@
       margin-top: 10px;
     }
 
+    /* Custom toast notification */
     #toast {
       position: fixed;
       bottom: 30px;
@@ -197,6 +198,7 @@
       pointer-events: auto;
     }
 
+    /* Search box styles */
     .search-box {
       margin-bottom: 16px;
       position: relative;
@@ -214,6 +216,190 @@
       outline: none;
       border-color: var(--brand-orange);
     }
+
+    /* Approve confirmation modal override styles */
+    #approveConfirmModal .modal-header {
+      background: var(--brand-orange);
+      color: white;
+    }
+    #approveConfirmModal .btn {
+      font-weight: 600;
+    }
+    #approveConfirmModal .btn:first-child {
+      background: #ccc;
+      color: black;
+      border: none;
+    }
+    #approveConfirmModal .btn:last-child {
+      background: var(--brand-orange);
+      color: white;
+      border: none;
+    }
+
+    /* On Hold (formerly Decline) reason and confirmation modal overrides */
+    #declineReasonModal .modal-header { background: var(--brand-orange); color: white; }
+    #declineReasonModal .btn.primary { background: var(--brand-orange); color: white; border: none; }
+    #declineConfirmModal .modal-header { background: var(--brand-orange); color: white; }
+    #declineConfirmModal .btn.primary { background: var(--brand-orange); color: white; border: none; }
+
+    /* Materials Dropdown Section */
+    .materials-section {
+      margin-top: 12px;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .materials-header {
+      background: var(--bg-light);
+      padding: 12px 14px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+    .materials-header:hover {
+      background: #e9ecef;
+    }
+    .materials-header .arrow {
+      transition: transform 0.3s;
+      font-size: 16px;
+    }
+    .materials-header.active .arrow {
+      transform: rotate(180deg);
+    }
+    .materials-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+      background: white;
+    }
+    .materials-content.show {
+      max-height: 600px;
+      overflow-y: auto;
+    }
+    .material-picker {
+      padding: 14px;
+      border-bottom: 1px solid var(--card-border);
+      background: #fafbfc;
+    }
+    .picker-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .picker-row select {
+      flex: 1;
+      padding: 8px 12px;
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      font-family: "Inter", sans-serif;
+      font-size: 14px;
+      background: white;
+    }
+    .picker-row select:focus {
+      outline: none;
+      border-color: var(--brand-orange);
+    }
+    .picker-row input[type="number"] {
+      width: 80px;
+      padding: 8px 12px;
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      font-family: "Inter", sans-serif;
+      font-size: 14px;
+    }
+    .picker-row input[type="number"]:focus {
+      outline: none;
+      border-color: var(--brand-orange);
+    }
+    .add-material-btn {
+      padding: 8px 16px;
+      background: var(--brand-orange);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+    .add-material-btn:hover {
+      background: #e36612;
+    }
+    .selected-materials-empty {
+      padding: 20px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .material-item {
+      padding: 12px 14px;
+      border-top: 1px solid var(--card-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .material-name {
+      font-weight: 500;
+      flex: 1;
+    }
+    .material-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .quantity-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .qty-btn {
+      width: 28px;
+      height: 28px;
+      border: 1px solid var(--brand-orange);
+      background: white;
+      color: var(--brand-orange);
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 700;
+      transition: all 0.2s;
+    }
+    .qty-btn:hover {
+      background: var(--brand-orange);
+      color: white;
+    }
+    .qty-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+    .qty-value {
+      min-width: 40px;
+      text-align: center;
+      font-weight: 600;
+      font-size: 15px;
+    }
+    .remove-material-btn {
+      width: 28px;
+      height: 28px;
+      border: 1px solid var(--danger-red);
+      background: white;
+      color: var(--danger-red);
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 700;
+      transition: all 0.2s;
+    }
+    .remove-material-btn:hover {
+      background: var(--danger-red);
+      color: white;
+    }
+    .material-status {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
   </style>
 </head>
 <body>
@@ -228,7 +414,7 @@
         <a href="dashboard.html">Dashboard</a>
         <a href="materials.html">Materials</a>
         <button id="requestsBtn">Requests ▾</button>
-        <div class="submenu show" id="requestsMenu">
+        <div class="submenu" id="requestsMenu">
           <a href="requestpending.html" class="active">Pending</a>
           <a href="ongoing.html">On Going</a>
           <a href="onhold.html">On Hold</a>
@@ -249,11 +435,12 @@
       <div class="h1">Pending Requests</div>
       <div class="container">
         <div class="search-box">
-          <input type="text" id="searchTicket" placeholder="Search by ticket number..." />
+          <input type="text" id="searchTicket" placeholder="Search by ticket number or site..." />
         </div>
         <table id="requestsTable">
           <thead>
             <tr>
+              <th>ID</th>
               <th>Ticket</th>
               <th>Date</th>
               <th>Site</th>
@@ -265,10 +452,11 @@
             </tr>
           </thead>
           <tbody id="tableBody">
-            <tr><td colspan="8" style="text-align:center; padding: 20px;">Loading requests...</td></tr>
+             <tr><td colspan="9" style="text-align:center; padding: 20px;">Loading requests...</td></tr>
           </tbody>
         </table>
       </div>
+
     </div>
   </main>
 
@@ -278,7 +466,8 @@
         <span>Request Details</span>
         <span class="close" id="closeDetails">&times;</span>
       </div>
-      <div class="modal-body" id="detailsBody"></div>
+      <div class="modal-body" id="detailsBody">
+        </div>
       <div class="modal-footer" style="justify-content: flex-end; gap: 10px;">
         <button class="btn" id="onHoldBtn">On Hold</button>
         <button class="btn" id="approveBtn">Approve</button>
@@ -293,7 +482,7 @@
         <span class="close" id="closeApproveConfirm">&times;</span>
       </div>
       <div class="modal-body" style="font-size: 16px;">
-        <p>Approve this request?</p>
+        <p>Approve details?</p>
         <label for="approveRemarksInput" style="display:block; margin-top:10px; font-weight:600;">Remarks (optional)</label>
         <textarea id="approveRemarksInput" rows="3" placeholder="Enter any remarks..."></textarea>
       </div>
@@ -313,10 +502,27 @@
       <div class="modal-body">
         <label for="holdReasonInput"><strong>Reason</strong></label>
         <textarea id="holdReasonInput" rows="4" placeholder="Enter the reason for putting this request on hold..."></textarea>
+        <div id="holdReasonError" style="color: var(--danger-red); font-size: 13px; margin-top: 6px; display: none;">Reason is required.</div>
       </div>
       <div class="modal-footer" style="justify-content: flex-end;">
         <button class="btn" id="cancelHoldReason">Cancel</button>
         <button class="btn" id="sendHoldReasonBtn" style="background: var(--brand-orange); color: white; border: none;">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="holdConfirmModal">
+    <div class="modal-content" style="max-width: 420px;">
+      <div class="modal-header" style="background: var(--brand-orange); color: white;">
+        <span>Confirm</span>
+        <span class="close" id="closeHoldConfirm">&times;</span>
+      </div>
+      <div class="modal-body" style="font-size: 16px;">
+        <p>Put this request On Hold and update status?</p>
+      </div>
+      <div class="modal-footer" style="justify-content: flex-end;">
+        <button class="btn" id="cancelHoldConfirmBtn">Cancel</button>
+        <button class="btn" id="confirmHoldSendBtn" style="background: var(--brand-orange); color: white; border: none;">OK</button>
       </div>
     </div>
   </div>
@@ -331,8 +537,25 @@
 
     let currentRequestId = null;
     let requestsData = [];
+    let pendingHoldReason = ''; // Temporary store for hold reason between modals
 
-    // --- AUTH CHECK & INIT ---
+    // Static Inventory for UI behavior (as backend logic provided was limited to Requests)
+    const availableMaterials = [
+      { id: 1, name: "Fiber Optic Cable", stock: 50 },
+      { id: 2, name: "Network Switch", stock: 15 },
+      { id: 3, name: "Ethernet Cable Cat6", stock: 100 },
+      { id: 4, name: "Patch Cords", stock: 200 },
+      { id: 5, name: "RJ45 Connectors", stock: 500 }
+    ];
+
+    // Sidebar submenu toggle
+    const requestsBtn = document.getElementById('requestsBtn');
+    const requestsMenu = document.getElementById('requestsMenu');
+    requestsBtn.addEventListener('click', () => {
+      requestsMenu.classList.toggle('show');
+    });
+
+    // --- AUTH & INIT ---
     document.addEventListener('DOMContentLoaded', async () => {
         const { data: { session } } = await sb.auth.getSession();
         if (!session) window.location.href = 'finsilogin.html';
@@ -342,6 +565,8 @@
         if (profile) {
             document.getElementById('userProfileName').textContent = profile.firstName;
             document.getElementById('welcomeMessage').textContent = `Welcome, ${profile.firstName}!`;
+        } else {
+             document.getElementById('userProfileName').textContent = "User";
         }
 
         // Date
@@ -368,75 +593,187 @@
         renderTable(requestsData);
     }
 
+    // --- RENDER TABLE ---
     function renderTable(data) {
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = '';
 
         if(data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:20px;">No pending requests.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:20px;">No pending requests.</td></tr>';
             return;
         }
 
         data.forEach(req => {
-            // Parse materials for display if it's a JSON string or just show task desc
+            // Parse materials for display if it's a JSON string inside remarks
             let materialsDisplay = 'View Details';
+            let matString = '';
+            
             if(req.remarks && req.remarks.includes('Requested:')) {
                  try {
                      const mats = JSON.parse(req.remarks.replace('Requested: ', ''));
-                     materialsDisplay = mats.map(m => `${m.qty}x ${m.type}`).join(', ');
+                     if(Array.isArray(mats)) {
+                         matString = mats.map(m => `${m.qty}x ${m.type}`).join(', ');
+                     }
                  } catch(e) {}
             }
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
+                <td>${req.id}</td>
                 <td>${req.ticket_id || 'N/A'}</td>
                 <td>${new Date(req.request_date).toLocaleDateString()}</td>
                 <td>${req.site}</td>
                 <td>${req.task_description}</td>
-                <td style="color:#b45309; font-weight:700;">${req.status}</td>
+                <td style="color:var(--brand-orange); font-weight:700;">${req.status}</td>
                 <td>${req.priority || 'Normal'}</td>
-                <td><strong>${materialsDisplay}</strong></td>
-                <td><button class="btn" onclick="openDetails('${req.id}')">View</button></td>
+                <td><strong>${matString || materialsDisplay}</strong></td>
+                <td><button class="btn view-btn" onclick="openDetails('${req.id}')">View</button></td>
             `;
             tbody.appendChild(tr);
         });
     }
 
-    // --- MODALS & ACTIONS ---
-    function openDetails(id) {
-        const req = requestsData.find(r => r.id == id);
+    // --- MATERIAL HELPER FUNCTIONS (UI ONLY) ---
+    function getMaterialOptions() {
+      return availableMaterials.map(mat => 
+        `<option value="${mat.id}">${mat.name} (Stock: ${mat.stock})</option>`
+      ).join('');
+    }
+
+    let pickerRowCounter = 0;
+
+    // Render the Materials Section inside the Modal
+    function renderMaterialsSection(materialsList, originalMaterialsDesc) {
+      const selectedHtml = materialsList.length > 0 
+        ? materialsList.map((material, matIndex) => `
+          <div class="material-item">
+            <div>
+              <div class="material-name">${material.name}</div>
+              <div class="material-status">
+                <span>Quantity: <strong>${material.quantity} pcs</strong></span>
+              </div>
+            </div>
+            <div class="material-actions">
+              <div class="quantity-controls">
+                <button class="qty-btn" onclick="decreaseQty(${matIndex})" ${material.quantity <= 1 ? 'disabled' : ''}>−</button>
+                <span class="qty-value">${material.quantity}</span>
+                <button class="qty-btn" onclick="increaseQty(${matIndex})">+</button>
+              </div>
+              <button class="remove-material-btn" onclick="removeMaterial(${matIndex})" title="Remove">×</button>
+            </div>
+          </div>
+        `).join('')
+        : '<div class="selected-materials-empty">No specific materials added yet. Add below.</div>';
+
+      return `
+        <div style="padding: 14px; background: #fff9f4; border-bottom: 1px solid var(--card-border);">
+          <p style="margin: 0; font-size: 14px;"><strong>Originally Requested:</strong> ${originalMaterialsDesc}</p>
+        </div>
+        <div class="material-picker" id="materialPickerContainer">
+          <div class="picker-row" data-row-id="0">
+            <select class="materialSelect" data-row-id="0">
+              <option value="">-- Select Material --</option>
+              ${getMaterialOptions()}
+            </select>
+            <input type="number" class="materialQty" data-row-id="0" min="1" value="1" placeholder="Qty">
+            <button class="add-material-btn" onclick="addMaterialFromRow(0)" style="margin-left:10px;">Add</button>
+          </div>
+          <div style="padding: 10px 14px 0 14px;">
+            <button class="add-material-btn" onclick="addAnotherPickerRow()" style="background: #fff; color: var(--brand-orange); border: 1px solid var(--brand-orange);">
+              + Add Another Picker
+            </button>
+          </div>
+        </div>
+        <div class="selected-materials" id="selectedMaterialsList">
+          ${selectedHtml}
+        </div>
+      `;
+    }
+
+    // Local state for the currently open request's modified material list
+    let currentMaterialList = [];
+
+    // --- MODALS & DETAILS ---
+    window.openDetails = function(id) {
         currentRequestId = id;
-        
-        // Format materials list
-        let matListHtml = '<p>No specific materials listed.</p>';
+        const req = requestsData.find(r => r.id == id);
+        if(!req) return;
+
+        // Parse existing materials
+        currentMaterialList = [];
+        let originalDesc = "See Details";
         if(req.remarks && req.remarks.includes('Requested:')) {
              try {
                  const mats = JSON.parse(req.remarks.replace('Requested: ', ''));
-                 matListHtml = '<ul>' + mats.map(m => `<li>${m.type} - <strong>${m.qty}</strong></li>`).join('') + '</ul>';
-             } catch(e) {}
+                 // Convert backend format to UI format if possible
+                 if(Array.isArray(mats)){
+                    currentMaterialList = mats.map(m => ({ name: m.type, quantity: m.qty }));
+                 }
+                 originalDesc = "Materials extracted from request.";
+             } catch(e) {
+                 originalDesc = req.remarks;
+             }
         }
 
-        document.getElementById('detailsBody').innerHTML = `
-            <p><strong>Ticket:</strong> ${req.ticket_id}</p>
-            <p><strong>Site:</strong> ${req.site}</p>
-            <p><strong>Task:</strong> ${req.task_description}</p>
-            <hr style="margin:10px 0; border:0; border-top:1px solid #eee;">
-            <p><strong>Requested Materials:</strong></p>
-            ${matListHtml}
+        const detailsBody = document.getElementById('detailsBody');
+        detailsBody.innerHTML = `
+          <p><strong>Ticket:</strong> ${req.ticket_id}</p>
+          <p><strong>Date:</strong> ${new Date(req.request_date).toLocaleDateString()}</p>
+          <p><strong>Site:</strong> ${req.site}</p>
+          <p><strong>Task:</strong> ${req.task_description}</p>
+          <p><strong>Status:</strong> ${req.status}</p>
+          <p><strong>Priority:</strong> ${req.priority || 'Normal'}</p>
+          
+          <div class="materials-section">
+            <div class="materials-header" id="materialsToggle">
+              <span><strong>Select Materials to Fulfill Request</strong></span>
+              <span class="arrow">▼</span>
+            </div>
+            <div class="materials-content" id="materialsContent">
+              ${renderMaterialsSection(currentMaterialList, originalDesc)}
+            </div>
+          </div>
         `;
-        document.getElementById('detailsModal').style.display = 'flex';
-    }
+        
+        // Setup toggle functionality
+        const materialsToggle = document.getElementById('materialsToggle');
+        const materialsContent = document.getElementById('materialsContent');
+        materialsToggle.addEventListener('click', () => {
+          materialsToggle.classList.toggle('active');
+          materialsContent.classList.toggle('show');
+        });
+        // Auto open
+        materialsToggle.click();
 
-    // Approve Logic
-    document.getElementById('approveBtn').onclick = () => {
-        document.getElementById('approveConfirmModal').style.display = 'flex';
+        document.getElementById('approveBtn').disabled = false;
+        document.getElementById('detailsModal').style.display = "flex";
     };
+
+    // Close details
+    document.getElementById('closeDetails').onclick = () => {
+      document.getElementById('detailsModal').style.display = "none";
+    };
+
+    // --- APPROVE LOGIC ---
+    const approveConfirmModal = document.getElementById('approveConfirmModal');
+    const approveBtn = document.getElementById('approveBtn');
+    
+    approveBtn.onclick = () => {
+        document.getElementById('approveRemarksInput').value = '';
+        approveConfirmModal.style.display = 'flex';
+    };
+
+    document.getElementById('closeApproveConfirm').onclick = () => approveConfirmModal.style.display = 'none';
+    document.getElementById('cancelApproveBtn').onclick = () => approveConfirmModal.style.display = 'none';
 
     document.getElementById('confirmApproveBtn').onclick = async () => {
         const notes = document.getElementById('approveRemarksInput').value;
-        
-        // UPDATED: Call new API endpoint instead of direct DB update
+        const confirmBtn = document.getElementById('confirmApproveBtn');
+        confirmBtn.innerText = "Processing...";
+        confirmBtn.disabled = true;
+
         try {
+            // Backend API call
             const response = await fetch('http://localhost:3000/api/asset/approve-material', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -453,32 +790,177 @@
             fetchPendingRequests();
         } catch (e) {
             alert("Error: " + e.message);
+        } finally {
+            confirmBtn.innerText = "OK";
+            confirmBtn.disabled = false;
         }
     };
 
-    // On Hold Logic
+    // --- ON HOLD LOGIC ---
+    const holdReasonModal = document.getElementById('holdReasonModal');
+    const holdConfirmModal = document.getElementById('holdConfirmModal');
+    const holdReasonInput = document.getElementById('holdReasonInput');
+    const holdReasonError = document.getElementById('holdReasonError');
+
     document.getElementById('onHoldBtn').onclick = () => {
-        document.getElementById('holdReasonModal').style.display = 'flex';
+        holdReasonInput.value = '';
+        holdReasonError.style.display = 'none';
+        holdReasonModal.style.display = 'flex';
     };
 
-    document.getElementById('sendHoldReasonBtn').onclick = async () => {
-        const reason = document.getElementById('holdReasonInput').value;
-        if(!reason) return alert("Reason is required.");
+    document.getElementById('closeHoldReason').onclick = () => holdReasonModal.style.display = 'none';
+    document.getElementById('cancelHoldReason').onclick = () => holdReasonModal.style.display = 'none';
 
+    document.getElementById('sendHoldReasonBtn').onclick = () => {
+        const reason = holdReasonInput.value.trim();
+        if (!reason) { holdReasonError.style.display = 'block'; return; }
+        pendingHoldReason = reason;
+        holdReasonModal.style.display = 'none';
+        holdConfirmModal.style.display = 'flex';
+    };
+
+    document.getElementById('closeHoldConfirm').onclick = () => holdConfirmModal.style.display = 'none';
+    document.getElementById('cancelHoldConfirmBtn').onclick = () => holdConfirmModal.style.display = 'none';
+
+    document.getElementById('confirmHoldSendBtn').onclick = async () => {
         const { error } = await sb
             .from('material_requests')
-            .update({ status: 'On Hold', remarks: reason })
+            .update({ status: 'On Hold', remarks: pendingHoldReason })
             .eq('id', currentRequestId);
 
-        if(error) alert("Error: " + error.message);
-        else {
+        if(error) {
+            alert("Error: " + error.message);
+        } else {
             showToast("Request put On Hold");
             closeAllModals();
             fetchPendingRequests();
         }
     };
 
-    // Search
+    // --- MATERIAL PICKER DYNAMIC UI LOGIC ---
+    window.addAnotherPickerRow = function() {
+      pickerRowCounter++;
+      const rowId = pickerRowCounter;
+      const container = document.getElementById('materialPickerContainer');
+      const addAnotherBtnContainer = container.querySelector('div[style*="padding"]');
+      
+      const newRow = document.createElement('div');
+      newRow.className = 'picker-row';
+      newRow.setAttribute('data-row-id', rowId);
+      newRow.style.marginTop = '8px';
+      newRow.innerHTML = `
+        <select class="materialSelect" data-row-id="${rowId}">
+          <option value="">-- Select Material --</option>
+          ${getMaterialOptions()}
+        </select>
+        <input type="number" class="materialQty" data-row-id="${rowId}" min="1" value="1" placeholder="Qty">
+        <button class="add-material-btn" onclick="addMaterialFromRow(${rowId})" style="margin-left:10px;">Add</button>
+        <button class="remove-material-btn" onclick="removePickerRow(${rowId})" title="Remove row" style="margin-left:5px;">×</button>
+      `;
+      container.insertBefore(newRow, addAnotherBtnContainer);
+    };
+
+    window.removePickerRow = function(rowId) {
+      const row = document.querySelector(`.picker-row[data-row-id="${rowId}"]`);
+      if (row) row.remove();
+    };
+
+    window.addMaterialFromRow = function(rowId) {
+      const materialSelect = document.querySelector(`.materialSelect[data-row-id="${rowId}"]`);
+      const materialQty = document.querySelector(`.materialQty[data-row-id="${rowId}"]`);
+      
+      if (!materialSelect || !materialQty) return;
+      
+      const selectedId = parseInt(materialSelect.value);
+      const quantity = parseInt(materialQty.value);
+      
+      if (!selectedId || quantity < 1) {
+        showToast('Please select a material and enter a valid quantity');
+        return;
+      }
+      
+      const selectedMaterial = availableMaterials.find(m => m.id === selectedId);
+      if (!selectedMaterial) return;
+      
+      const existingIndex = currentMaterialList.findIndex(m => m.name === selectedMaterial.name);
+      if (existingIndex >= 0) {
+        showToast('Material already added. Use +/- buttons to adjust quantity.');
+        return;
+      }
+      
+      currentMaterialList.push({ name: selectedMaterial.name, quantity: quantity });
+      rerenderMaterialsList();
+      showToast(`${selectedMaterial.name} added`);
+    };
+
+    window.removeMaterial = function(matIndex) {
+      currentMaterialList.splice(matIndex, 1);
+      rerenderMaterialsList();
+    };
+
+    window.decreaseQty = function(matIndex) {
+      if (currentMaterialList[matIndex].quantity > 1) {
+        currentMaterialList[matIndex].quantity--;
+        rerenderMaterialsList();
+      }
+    };
+
+    window.increaseQty = function(matIndex) {
+      currentMaterialList[matIndex].quantity++;
+      rerenderMaterialsList();
+    };
+
+    function rerenderMaterialsList() {
+        // Only redraw the list part, not the whole picker
+        const container = document.getElementById('selectedMaterialsList');
+        const listHtml = currentMaterialList.length > 0 
+        ? currentMaterialList.map((material, matIndex) => `
+          <div class="material-item">
+            <div>
+              <div class="material-name">${material.name}</div>
+              <div class="material-status">
+                <span>Quantity: <strong>${material.quantity} pcs</strong></span>
+              </div>
+            </div>
+            <div class="material-actions">
+              <div class="quantity-controls">
+                <button class="qty-btn" onclick="decreaseQty(${matIndex})" ${material.quantity <= 1 ? 'disabled' : ''}>−</button>
+                <span class="qty-value">${material.quantity}</span>
+                <button class="qty-btn" onclick="increaseQty(${matIndex})">+</button>
+              </div>
+              <button class="remove-material-btn" onclick="removeMaterial(${matIndex})" title="Remove">×</button>
+            </div>
+          </div>
+        `).join('')
+        : '<div class="selected-materials-empty">No specific materials added yet. Add above.</div>';
+        
+        container.innerHTML = listHtml;
+    }
+
+    // --- UTILS ---
+    function closeAllModals() {
+        document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
+    }
+
+    // Close modals on outside click
+    window.onclick = (event) => {
+      const modals = ['detailsModal', 'approveConfirmModal', 'holdReasonModal', 'holdConfirmModal'];
+      modals.forEach(id => {
+          const modal = document.getElementById(id);
+          if (event.target === modal) modal.style.display = "none";
+      });
+    };
+
+    // Search filter
     document.getElementById('searchTicket').addEventListener('input', (e) => {
         const term = e.target.value.toLowerCase();
         const filtered = requestsData.filter(r => 
@@ -486,27 +968,6 @@
             (r.site && r.site.toLowerCase().includes(term))
         );
         renderTable(filtered);
-    });
-
-    function closeAllModals() {
-        document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
-    }
-    
-    // Close buttons
-    document.querySelectorAll('.close, #cancelApproveBtn, #cancelHoldReason').forEach(btn => {
-        btn.addEventListener('click', closeAllModals);
-    });
-
-    function showToast(msg) {
-        const t = document.getElementById('toast');
-        t.textContent = msg;
-        t.classList.add('show');
-        setTimeout(() => t.classList.remove('show'), 3000);
-    }
-
-    // Sidebar toggle
-    document.getElementById('requestsBtn').addEventListener('click', () => {
-      document.getElementById('requestsMenu').classList.toggle('show');
     });
   </script>
 </body>

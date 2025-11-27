@@ -19,6 +19,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (document.getElementById('pendingCount')) loadDashboardStats();
 });
 
+document.addEventListener('DOMContentLoaded', () => {
+  const requestsBtn = document.getElementById('requestsBtn');
+  const requestsMenu = document.getElementById('requestsMenu');
+  
+  // Check if elements exist to avoid errors on pages without the sidebar
+  if (requestsBtn && requestsMenu) {
+    requestsBtn.addEventListener('click', (e) => {
+      // Prevent default button behavior just in case
+      e.preventDefault();
+      requestsMenu.classList.toggle('show');
+    });
+  }
+});
+
 async function checkSession() {
     const { data: { session }, error } = await window.sbClient.auth.getSession();
     if (error || !session) {

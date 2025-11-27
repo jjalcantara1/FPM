@@ -128,6 +128,31 @@
     }
     .btn-view:hover { background: #1565c0; }
 
+    /* Status Badges */
+    .status-badge {
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: capitalize;
+    }
+    .status-approved {
+      background: #d1fae5;
+      color: #065f46;
+    }
+    .status-ongoing {
+      background: #e0e7ff;
+      color: #3730a3;
+    }
+    .status-inprogress {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+    .status-default {
+      background: #f3f4f6;
+      color: #374151;
+    }
+
     /* Modal Styles */
     .modal {
       position: fixed;
@@ -311,15 +336,15 @@
 
     async function fetchOngoing() {
       // 1. Fetch Requests
+      // Added 'Approved' and 'Ongoing' to the list
       const { data: requests, error } = await window.sbClient
         .from('material_requests')
         .select('*')
-        .in('status', ['On Going', 'In Progress']);
+        .in('status', ['On Going', 'In Progress', 'Ongoing', 'Approved']);
       
       if (error) return console.error(error);
 
       // 2. Fetch Items for these requests to display in the table
-      // (Fetching all items for simplicity, in prod use filtering)
       const { data: allItems } = await window.sbClient
         .from('material_request_items')
         .select('*');
@@ -341,6 +366,12 @@
             ? requestItems.map(i => `${i.material_name_cache}`).join(', ') 
             : 'No specific materials';
 
+        // Status Styling
+        let statusBadgeClass = 'status-default';
+        if (r.status === 'Approved') statusBadgeClass = 'status-approved';
+        else if (r.status === 'Ongoing' || r.status === 'On Going') statusBadgeClass = 'status-ongoing';
+        else if (r.status === 'In Progress') statusBadgeClass = 'status-inprogress';
+
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>G-${r.id}</td>
@@ -348,7 +379,7 @@
           <td>${r.request_date}</td>
           <td>${r.site}</td>
           <td>${r.task_description || '-'}</td>
-          <td>${r.status}</td>
+          <td><span class="status-badge ${statusBadgeClass}">${r.status}</span></td>
           <td>${r.priority || 'Medium'}</td>
           <td><strong>${materialsStr}</strong></td>
           <td><button class="btn btn-view" onclick="openDetails(${r.id})">View</button></td>
@@ -376,7 +407,6 @@
       }
       itemsHtml += '</ul>';
 
-      // Calculate "Started Date" (Using created_at as proxy if start date field missing)
       const startedDate = req.created_at ? new Date(req.created_at).toLocaleDateString() : 'N/A';
 
       document.getElementById('detailsBody').innerHTML = `
